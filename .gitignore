@@ -5,3 +5,6 @@ run/
 *.log
 *.iml
 .idea/
+.tmp-*
+logs/
+*.gz
