@@ -62,11 +62,11 @@ public final class ImageTiles {
         return image;
     }
 
-    /** 只缩小不放大，居中放进 cell×cell 的透明画布，小图保持像素风不糊。 */
+    /** 缩放图片适配 cell×cell 画布，小图上采样到大尺寸以避免模糊。 */
     public static BufferedImage fit(BufferedImage source, int cell) {
         int width = source.getWidth();
         int height = source.getHeight();
-        double scale = Math.min(1.0, (double) cell / Math.max(width, height));
+        double scale = (double) cell / Math.max(width, height);
         int targetWidth = Math.max(1, (int) Math.round(width * scale));
         int targetHeight = Math.max(1, (int) Math.round(height * scale));
 

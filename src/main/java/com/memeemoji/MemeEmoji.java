@@ -54,21 +54,18 @@ public final class MemeEmoji implements ModInitializer {
         };
     }
 
-    /** 表情在文字里的逻辑高度，对应 font.json 的 height 字段。 */
+    /** 表情在文字里的逻辑高度，对应 font.json 的 height 字段。
+     *  必须等于 cell()，否则 ModernUI 的 mScaleFactor = height/spriteHeight < 1 导致 advance 偏小、表情重叠。 */
     public static int glyphHeight() {
-        return switch (config().emojiSize) {
-            case "medium" -> 16;
-            case "large" -> 24;
-            default -> 9; // small
-        };
+        return cell();
     }
 
     /** 表情在文字里的基线偏移，对应 font.json 的 ascent 字段。 */
     public static int glyphAscent() {
         return switch (config().emojiSize) {
-            case "medium" -> 13;
-            case "large" -> 19;
-            default -> 8; // small
+            case "medium" -> 20;
+            case "large" -> 29;
+            default -> 11; // small
         };
     }
 
