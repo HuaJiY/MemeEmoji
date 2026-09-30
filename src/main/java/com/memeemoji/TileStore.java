@@ -16,19 +16,19 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * 扫描一个表情文件夹，产出裁好的表情图。
+ * 扫描一个表情文件夹，返回裁好的表情图。
  *
- * <p>源图往往是几 MB 的大图，每次启动都重解码要十几秒，所以裁切结果按 (名字 + 相对路径 + 大小 + 修改时间) 做指纹缓存到磁盘，
- * 指纹没变就直接读缓存里的小图。
+ * <p>源图往往是几 MB 的大图，每次启动都重解码要十几秒，所以处理结果按
+ * (名字 + 相对路径 + 大小 + 修改时间) 做指纹缓存到磁盘，指纹没变就直接读缓存。
  */
 public final class TileStore {
-    private static final int CACHE_VERSION = 1;
+    private static final int CACHE_VERSION = 2; // 从 1 升到 2：独立纹理格式
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private TileStore() {
     }
 
-    public static List<EmojiTile> load(Path emojiDir, Path cacheDir, int cell, int maxNameLength) {
+    public static List<EmojiTile> load(Path emojiDir, Path cacheDir, int maxSize, int maxNameLength) {
         List<Source> sources;
         try {
             Files.createDirectories(emojiDir);
@@ -60,7 +60,7 @@ public final class TileStore {
             MemeEmoji.LOGGER.info("跳过了 {} 个名字重复或不合法（含空格、冒号、超长）的图片", rejected);
         }
 
-        List<EmojiTile> cached = readCache(cacheDir, usable, cell);
+        List<EmojiTile> cached = readCache(cacheDir, usable, maxSize);
         if (cached != null) {
             MemeEmoji.LOGGER.info("从缓存载入 {} 个表情", cached.size());
             return cached;
@@ -71,9 +71,12 @@ public final class TileStore {
         int failed = 0;
         for (Source source : usable) {
             try {
-                byte[] png = ImageTiles.toPng(ImageTiles.fit(ImageTiles.read(source.file()), cell));
-                tiles.add(new EmojiTile(source.name(), png));
-                entries.add(new CacheEntry(source.name(), source.rel(), source.size(), source.mtime()));
+                java.awt.image.BufferedImage img = ImageTiles.read(source.file());
+                ImageTiles.FitResult result = ImageTiles.fitToMax(img, maxSize);
+                byte[] png = ImageTiles.toPng(result.image());
+                tiles.add(new EmojiTile(source.name(), png, result.width(), result.height()));
+                entries.add(new CacheEntry(source.name(), source.rel(), source.size(), source.mtime(),
+                        result.width(), result.height()));
             } catch (Throwable t) {
                 failed++;
                 MemeEmoji.LOGGER.warn("解码 {} 失败，已跳过：{}", source.rel(), t.toString());
@@ -82,7 +85,7 @@ public final class TileStore {
         if (failed > 0) {
             MemeEmoji.LOGGER.warn("共 {} 个表情图片解码失败", failed);
         }
-        writeCache(cacheDir, cell, entries, tiles);
+        writeCache(cacheDir, maxSize, entries, tiles);
         return tiles;
     }
 
@@ -103,7 +106,7 @@ public final class TileStore {
         return sources;
     }
 
-    private static List<EmojiTile> readCache(Path cacheDir, List<Source> sources, int cell) {
+    private static List<EmojiTile> readCache(Path cacheDir, List<Source> sources, int maxSize) {
         Path indexFile = cacheDir.resolve("index.json");
         if (!Files.isRegularFile(indexFile)) {
             return null;
@@ -114,7 +117,7 @@ public final class TileStore {
         } catch (IOException | JsonSyntaxException e) {
             return null;
         }
-        if (index == null || index.version != CACHE_VERSION || index.cell != cell || index.entries == null
+        if (index == null || index.version != CACHE_VERSION || index.maxSize != maxSize || index.entries == null
                 || index.entries.size() != sources.size()) {
             return null;
         }
@@ -127,7 +130,8 @@ public final class TileStore {
                 return null;
             }
             try {
-                tiles.add(new EmojiTile(entry.name, Files.readAllBytes(cacheDir.resolve("tiles").resolve(i + ".png"))));
+                tiles.add(new EmojiTile(entry.name, Files.readAllBytes(cacheDir.resolve("tiles").resolve(i + ".png")),
+                        entry.width, entry.height));
             } catch (IOException e) {
                 return null;
             }
@@ -135,7 +139,7 @@ public final class TileStore {
         return tiles;
     }
 
-    private static void writeCache(Path cacheDir, int cell, List<CacheEntry> entries, List<EmojiTile> tiles) {
+    private static void writeCache(Path cacheDir, int maxSize, List<CacheEntry> entries, List<EmojiTile> tiles) {
         try {
             Path tilesDir = cacheDir.resolve("tiles");
             deleteTree(tilesDir);
@@ -145,7 +149,7 @@ public final class TileStore {
             }
             CacheIndex index = new CacheIndex();
             index.version = CACHE_VERSION;
-            index.cell = cell;
+            index.maxSize = maxSize;
             index.entries = entries;
             Files.createDirectories(cacheDir);
             Files.writeString(cacheDir.resolve("index.json"), GSON.toJson(index), StandardCharsets.UTF_8);
@@ -171,7 +175,7 @@ public final class TileStore {
     @SuppressWarnings("unused")
     static final class CacheIndex {
         int version;
-        int cell;
+        int maxSize;
         List<CacheEntry> entries;
     }
 
@@ -181,15 +185,19 @@ public final class TileStore {
         String path;
         long size;
         long mtime;
+        int width;
+        int height;
 
         CacheEntry() {
         }
 
-        CacheEntry(String name, String path, long size, long mtime) {
+        CacheEntry(String name, String path, long size, long mtime, int width, int height) {
             this.name = name;
             this.path = path;
             this.size = size;
             this.mtime = mtime;
+            this.width = width;
+            this.height = height;
         }
     }
 }

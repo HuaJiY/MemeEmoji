@@ -7,20 +7,17 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 
-import java.awt.Dimension;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
- * 客户端负责两件事：启动时把本地表情文件夹变成图集；进服务器后改由服务端下发的内容重建图集。
+ * 客户端负责两件事：启动时把本地表情文件夹变成独立纹理资源包；进服务器后改由服务端下发的内容重建。
  * 两者写的是同一个资源包目录，谁后写谁生效。
  */
 public final class MemeEmojiClient implements ClientModInitializer {
@@ -43,8 +40,8 @@ public final class MemeEmojiClient implements ClientModInitializer {
     }
 
     /**
-     * 保证 generated 目录里有一份可用的图集。只有第一次调用会真正扫描表情文件夹，
-     * 之后要么沿用本地结果，要么沿用服务端下发的图集，避免重进服务器时把服务端表情换回本地的。
+     * 保证 generated 目录里有一份可用的资源包。只有第一次调用会真正扫描表情文件夹，
+     * 之后要么沿用本地结果，要么沿用服务端下发的资源包，避免重进服务器时把服务端表情换回本地的。
      *
      * @return 资源包目录是否可用；不可用时调用方不应把它挂进资源包列表
      */
@@ -57,30 +54,25 @@ public final class MemeEmojiClient implements ClientModInitializer {
         }
         WebpSupport.ensureRegistered();
 
-        // 根据预设决定格大小
-        int cell = getCellFromPreset();
-        MemeEmoji.setComputedCell(cell);
+        int maxSize = MemeEmoji.config().targetMaxSize();
+        MemeEmoji.setComputedMaxSize(maxSize);
 
         List<EmojiTile> tiles = TileStore.load(MemeEmoji.emojiDir(), MemeEmoji.cacheDir(),
-                cell, MemeEmoji.config().maxNameLength);
+                maxSize, MemeEmoji.config().maxNameLength);
+
+        // 计算最大表情高度
+        int maxH = 9;
+        for (EmojiTile tile : tiles) {
+            if (tile.height() > maxH) maxH = tile.height();
+        }
+        MemeEmoji.setMaxEmojiHeight(maxH);
+
         if (!writeAndApply(tiles)) {
             return false;
         }
         packReady = true;
-        MemeEmoji.LOGGER.info("MemeEmoji 已生成 {} 个表情的图集，格大小={}", tiles.size(), cell);
+        MemeEmoji.LOGGER.info("MemeEmoji 已生成 {} 个表情，maxSize={}, maxHeight={}", tiles.size(), maxSize, maxH);
         return true;
-    }
-
-    /** 直接取配置文件预设的目标格大小。不再依赖原图尺寸。 */
-    private static int getCellFromPreset() {
-        try {
-            Files.createDirectories(MemeEmoji.emojiDir());
-        } catch (IOException e) {
-            MemeEmoji.LOGGER.warn("创建 emoji 目录失败", e);
-        }
-        int cell = MemeEmoji.config().targetCellSize();
-        MemeEmoji.LOGGER.info("表情格大小（预设={}）：{}px", MemeEmoji.config().sizePreset, cell);
-        return cell;
     }
 
     // ---- 服务端同步 ----
@@ -89,7 +81,7 @@ public final class MemeEmojiClient implements ClientModInitializer {
         try {
             EmojiPack.write(MemeEmoji.generatedPackDir(), tiles);
         } catch (IOException | RuntimeException e) {
-            MemeEmoji.LOGGER.warn("写入表情图集失败，本次不加载表情", e);
+            MemeEmoji.LOGGER.warn("写入表情资源包失败，本次不加载表情", e);
             return false;
         }
         EmojiRegistry.INSTANCE.apply(tiles, MemeEmoji.config().enabled);
@@ -107,7 +99,8 @@ public final class MemeEmojiClient implements ClientModInitializer {
         if (!sessionActive || payload.sessionId() != sessionId) {
             return;
         }
-        ASSEMBLIES.computeIfAbsent(payload.index(), index -> new ChunkAssembly(payload.name(), payload.partTotal()))
+        ASSEMBLIES.computeIfAbsent(payload.index(), index -> new ChunkAssembly(payload.name(), payload.partTotal(),
+                        payload.width(), payload.height()))
                 .add(payload);
     }
 
@@ -129,9 +122,17 @@ public final class MemeEmojiClient implements ClientModInitializer {
                 resetSession();
                 return;
             }
-            tiles.add(new EmojiTile(assembly.name, assembly.assemble()));
+            tiles.add(new EmojiTile(assembly.name, assembly.assemble(), assembly.width, assembly.height));
         }
         resetSession();
+
+        // 计算最大表情高度
+        int maxH = 9;
+        for (EmojiTile tile : tiles) {
+            if (tile.height() > maxH) maxH = tile.height();
+        }
+        MemeEmoji.setMaxEmojiHeight(maxH);
+
         if (!writeAndApply(tiles)) {
             return;
         }
@@ -149,11 +150,15 @@ public final class MemeEmojiClient implements ClientModInitializer {
     private static final class ChunkAssembly {
         private final String name;
         private final byte[][] parts;
+        private final int width;
+        private final int height;
         private int received;
 
-        ChunkAssembly(String name, int partTotal) {
+        ChunkAssembly(String name, int partTotal, int width, int height) {
             this.name = name;
             this.parts = partTotal > 0 ? new byte[partTotal][] : new byte[0][];
+            this.width = width;
+            this.height = height;
         }
 
         void add(EmojiSyncChunkPayload payload) {

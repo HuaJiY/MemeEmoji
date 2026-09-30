@@ -35,7 +35,6 @@ public final class EmojiSync {
 
     public static void initServer() {
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
-            // 单人游戏的客户端启动时已经扫过同一个表情文件夹，再来一次只会白白重载资源。
             if (player.server.isSingleplayer() || !MemeEmoji.config().sendToClients) {
                 return;
             }
@@ -52,8 +51,9 @@ public final class EmojiSync {
     }
 
     public static synchronized List<EmojiTile> rescanServerTiles() {
+        int maxSize = MemeEmoji.config().targetMaxSize();
         List<EmojiTile> tiles = TileStore.load(MemeEmoji.emojiDir(), MemeEmoji.cacheDir(),
-                MemeEmoji.cell(), MemeEmoji.config().maxNameLength);
+                maxSize, MemeEmoji.config().maxNameLength);
         serverTiles = tiles;
         return tiles;
     }
@@ -76,7 +76,8 @@ public final class EmojiSync {
             EmojiTile tile = tiles.get(i);
             List<byte[]> parts = split(tile.png());
             for (int part = 0; part < parts.size(); part++) {
-                sink.accept(new EmojiSyncChunkPayload(sessionId, i, tile.name(), part, parts.size(), parts.get(part)));
+                sink.accept(new EmojiSyncChunkPayload(sessionId, i, tile.name(), part, parts.size(), parts.get(part),
+                        tile.width(), tile.height()));
             }
         }
         sink.accept(new EmojiSyncEndPayload(sessionId));

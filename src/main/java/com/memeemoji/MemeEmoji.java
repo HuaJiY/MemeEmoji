@@ -16,9 +16,6 @@ public final class MemeEmoji implements ModInitializer {
     /** 生成资源包里表情字体和贴图使用的固定名字。 */
     public static final ResourceLocation EMOJI_FONT = ResourceLocation.fromNamespaceAndPath(MOD_ID, "emoji");
 
-    /** 图集列数，1.21.1 的 BitmapProvider 按 chars 每行的码位数切列。 */
-    public static final int COLUMNS = 16;
-
     /** 码位从 BMP 私用区低位开始分配，保证一个码位就是一个 char。 */
     public static final int PUA_BASE = 0xE000;
     public static final int PUA_LAST = 0xF8FF;
@@ -27,7 +24,10 @@ public final class MemeEmoji implements ModInitializer {
     public static final String GENERATED_PACK_ID = MOD_ID + "/generated";
 
     /** 启动时由 MemeEmojiClient 根据预设算出。 */
-    private static volatile int computedCell = 32;
+    private static volatile int computedMaxSize = 48;
+
+    /** 扫描后记录的最大表情高度，用于计算聊天气泡行高。 */
+    private static volatile int maxEmojiHeight = 9;
 
     private static volatile MemeEmojiConfig config;
 
@@ -47,41 +47,34 @@ public final class MemeEmoji implements ModInitializer {
         return configDir().resolve("generated");
     }
 
-    /** 由 MemeEmojiClient 在扫描图片后设置，所有文字链路共用同一个格大小。 */
-    public static void setComputedCell(int cell) {
-        computedCell = Math.max(8, cell);
+    /** 由 MemeEmojiClient 在扫描图片后设置。 */
+    public static void setComputedMaxSize(int size) {
+        computedMaxSize = Math.max(8, size);
     }
 
-    /** 图集精灵的边长。 */
-    public static int cell() {
-        return computedCell;
+    /** 扫描后记录最大表情高度，所有文字链路共用。 */
+    public static void setMaxEmojiHeight(int height) {
+        maxEmojiHeight = Math.max(9, height);
     }
 
-    /** 表情在文字里的逻辑高度，等于 cell。 */
-    public static int glyphHeight() {
-        return computedCell;
+    /** 表情的最大尺寸限制（超过此值的图片会按比例缩小）。 */
+    public static int maxSize() {
+        return computedMaxSize;
     }
 
-    /**
-     * 基线偏移 = cell - 5，让 emoji 从背景框顶部（baseline - cell + 5 = aa - cell - 3 = aa - lineHeight）
-     * 渲染到背景框底部上方 3px（baseline + 5 = aa - 3），实现"往下拓展 3px"。
-     *
-     * <p>ChatComponent 背景框：fill(aa - lineHeight, aa)，文字 baseline = aa - 8
-     * emoji 顶部 = (aa-8) - (cell-5) = aa - cell - 3 = aa - lineHeight ✓
-     * emoji 底部 = (aa-8) - (cell-5) + cell = aa - 3（比背景框底部 aa 高 3px）✓
-     */
-    public static int glyphAscent() {
-        return Math.max(1, computedCell - 5);
+    /** 实际的最大表情高度（可能小于 maxSize，保持原图比例）。 */
+    public static int maxEmojiHeight() {
+        return maxEmojiHeight;
     }
 
-    /** 带 3px 底部余白的聊天气泡行高 = cell + 3。 */
+    /** 带 3px 底部余白的聊天气泡行高 = 最大表情高度 + 3。 */
     public static int lineHeight() {
-        return computedCell + 3;
+        return maxEmojiHeight + 3;
     }
 
-    /** 表情选择界面每格大小 = cell + 20px 余白。 */
+    /** 表情选择界面每格大小 = maxSize + 20px 余白。 */
     public static int pickerCell() {
-        return computedCell + 20;
+        return computedMaxSize + 20;
     }
 
     /**

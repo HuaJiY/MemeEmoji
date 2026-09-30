@@ -13,7 +13,8 @@ import java.nio.file.Path;
  * 可调项都放在这里。表情图片本身不需要写进配置，丢进 emoji 文件夹就算一张表情，
  * 文件名（去掉扩展名）就是 :名字: 里的名字。
  *
- * <p>表情格大小由预设档位（small/medium/large）决定，每档对应的格大小可自定义。
+ * <p>表情尺寸由预设档位（small/medium/large）决定，每档对应一个最大尺寸限制。
+ * 图片不超过该尺寸时保持原始分辨率，超过时按比例缩小。
  */
 public final class MemeEmojiConfig {
     public static final MemeEmojiConfig DEFAULT = new MemeEmojiConfig();
@@ -23,13 +24,13 @@ public final class MemeEmojiConfig {
     public boolean sendToClients = true;
     /** 大小预设：small / medium / large */
     public String sizePreset = "medium";
-    /** 小号格大小 */
+    /** 小号最大尺寸 */
     public int smallCellSize = 24;
-    /** 中号格大小 */
+    /** 中号最大尺寸 */
     public int mediumCellSize = 48;
-    /** 大号格大小 */
+    /** 大号最大尺寸 */
     public int largeCellSize = 96;
-    /** 格大小上限，兜底防止意外超大值 */
+    /** 尺寸上限，兜底防止意外超大值 */
     public int maxCellSize = 128;
 
     public MemeEmojiConfig() {
@@ -45,7 +46,7 @@ public final class MemeEmojiConfig {
             MemeEmojiConfig config = new Gson().fromJson(Files.readString(file, StandardCharsets.UTF_8), MemeEmojiConfig.class);
             if (config != null) {
                 config.normalize();
-                config.save(file); // 回写确保配置文件里有所有新字段
+                config.save(file);
                 return config;
             }
         } catch (IOException | JsonSyntaxException e) {
@@ -75,14 +76,14 @@ public final class MemeEmojiConfig {
         }
     }
 
-    /** 根据预设返回目标格大小，再 clamp 到 maxCellSize。 */
-    public int targetCellSize() {
-        int cell = switch (sizePreset) {
+    /** 根据预设返回最大尺寸限制，再 clamp 到 maxCellSize。 */
+    public int targetMaxSize() {
+        int size = switch (sizePreset) {
             case "small" -> smallCellSize;
             case "large" -> largeCellSize;
             default -> mediumCellSize;
         };
-        return Math.max(8, Math.min(cell, maxCellSize));
+        return Math.max(8, Math.min(size, maxCellSize));
     }
 
     public void save(Path file) {

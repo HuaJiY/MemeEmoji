@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 
 /**
  * 表情选择界面，打开后显示所有已加载的表情供点击。
- * 直接用 tile PNG 数据渲染纹理图集，避免字体位图放大模糊问题。
+ * 使用 scaleToFill 把每个不同尺寸的表情缩放到统一格子大小显示。
  */
 public final class EmojiPickerScreen extends Screen {
 
@@ -35,7 +35,6 @@ public final class EmojiPickerScreen extends Screen {
     private int panelW;
     private int panelH;
 
-    // 图集纹理，直接从 tile PNG 构建
     private DynamicTexture atlasTexture;
     private ResourceLocation atlasLocation;
     private int atlasW;
@@ -52,7 +51,6 @@ public final class EmojiPickerScreen extends Screen {
 
     @Override
     protected void init() {
-        // 重建前清理旧纹理
         if (atlasTexture != null) {
             atlasTexture.close();
             atlasTexture = null;
@@ -69,7 +67,7 @@ public final class EmojiPickerScreen extends Screen {
         buildAtlas();
     }
 
-    /** 把所有表情图缩放到 pickerCell 大小，拼成一张纹理图集。 */
+    /** 把所有表情缩放到 pickerCell 大小，拼成一张纹理图集。 */
     private void buildAtlas() {
         if (tiles.isEmpty()) return;
         atlasW = GRID_COLS * cellSize;
@@ -80,10 +78,8 @@ public final class EmojiPickerScreen extends Screen {
         for (int i = 0; i < tiles.size(); i++) {
             try {
                 BufferedImage img = ImageTiles.read(tiles.get(i).png());
-                // 缩放到 pickerCell 大小，bicubic 插值保证清晰度
-                if (img.getWidth() != cellSize || img.getHeight() != cellSize) {
-                    img = ImageTiles.fit(img, cellSize);
-                }
+                // 缩放到 pickerCell 大小，bicubic 保证清晰度
+                img = ImageTiles.scaleToFill(img, cellSize);
                 int col = i % GRID_COLS;
                 int row = i / GRID_COLS;
                 int baseX = col * cellSize;
@@ -96,7 +92,6 @@ public final class EmojiPickerScreen extends Screen {
                         int r = (argb >> 16) & 0xFF;
                         int g = (argb >> 8) & 0xFF;
                         int b = argb & 0xFF;
-                        // NativeImage.setPixelRGBA 需要 ABGR 打包
                         int abgr = (a << 24) | (b << 16) | (g << 8) | r;
                         nativeImage.setPixelRGBA(baseX + x, baseY + y, abgr);
                     }
@@ -114,8 +109,6 @@ public final class EmojiPickerScreen extends Screen {
     @Override
     public void render(GuiGraphics gr, int mouseX, int mouseY, float delta) {
         renderBackground(gr, mouseX, mouseY, delta);
-
-        // 半透明面板
         gr.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xC0101010);
         gr.renderOutline(panelX, panelY, panelW, panelH, 0xFF555555);
 
@@ -134,7 +127,6 @@ public final class EmojiPickerScreen extends Screen {
         int startX = panelX + (panelW - gridWidth) / 2;
         int startY = panelY + 10;
 
-        // 直接用图集纹理绘制每个表情
         for (int i = 0; i < tiles.size(); i++) {
             int col = i % GRID_COLS;
             int row = i / GRID_COLS;
@@ -148,7 +140,6 @@ public final class EmojiPickerScreen extends Screen {
             boolean hovered = mouseX >= cellX && mouseX < cellX + cellSize
                     && mouseY >= cellY && mouseY < cellY + cellSize;
 
-            // 从图集纹理绘制此格子
             gr.blit(atlasLocation, cellX, cellY, cellSize, cellSize,
                     col * cellSize, row * cellSize, cellSize, cellSize, atlasW, atlasH);
 
@@ -159,7 +150,6 @@ public final class EmojiPickerScreen extends Screen {
 
         super.render(gr, mouseX, mouseY, delta);
 
-        // 悬停 tooltip
         if (panelY + 10 <= mouseY && mouseY <= panelY + panelH - 10) {
             int relX = mouseX - startX;
             int relY = mouseY - startY + scrollOffset;
