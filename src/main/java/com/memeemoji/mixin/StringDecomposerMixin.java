@@ -1,6 +1,7 @@
 package com.memeemoji.mixin;
 
 import com.memeemoji.EmojiRegistry;
+import com.memeemoji.ShapingScope;
 import com.memeemoji.registry.ShapingSink;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSink;
@@ -19,7 +20,7 @@ public abstract class StringDecomposerMixin {
 
     @Inject(method = "iterate", at = @At("HEAD"), cancellable = true)
     private static void memeemoji$iterate(String string, Style style, FormattedCharSink output, CallbackInfoReturnable<Boolean> cir) {
-        if (output instanceof ShapingSink || !EmojiRegistry.INSTANCE.needsShaping(string)) {
+        if (output instanceof ShapingSink || !ShapingScope.isActive() || !EmojiRegistry.INSTANCE.needsShaping(string)) {
             return;
         }
         ShapingSink sink = ShapingSink.acquire(output, EmojiRegistry.INSTANCE.shapingTable());
@@ -35,7 +36,7 @@ public abstract class StringDecomposerMixin {
             at = @At("HEAD"), cancellable = true)
     private static void memeemoji$iterateFormatted(String string, int offset, Style currentStyle, Style resetStyle,
                                                     FormattedCharSink output, CallbackInfoReturnable<Boolean> cir) {
-        if (output instanceof ShapingSink || !EmojiRegistry.INSTANCE.needsShaping(string)) {
+        if (output instanceof ShapingSink || !ShapingScope.isActive() || !EmojiRegistry.INSTANCE.needsShaping(string)) {
             return;
         }
         ShapingSink sink = ShapingSink.acquire(output, EmojiRegistry.INSTANCE.shapingTable());

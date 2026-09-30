@@ -19,8 +19,14 @@ public final class EmojiRegistry {
     private volatile IntSet puaCodepoints = IntSets.emptySet();
     private volatile ShapingTable table = ShapingTable.EMPTY;
     private volatile int size;
+    private volatile List<EmojiTile> currentTiles = List.of();
 
     private EmojiRegistry() {
+    }
+
+    /** 按图集顺序返回当前所有表情；表情选择界面用它列表情。 */
+    public List<EmojiTile> tiles() {
+        return currentTiles;
     }
 
     public void apply(List<EmojiTile> tiles, boolean enabled) {
@@ -28,8 +34,10 @@ public final class EmojiRegistry {
             puaCodepoints = IntSets.emptySet();
             table = ShapingTable.EMPTY;
             size = 0;
+            currentTiles = List.of();
             return;
         }
+        currentTiles = tiles;
         IntSet nextPua = new IntOpenHashSet(Math.max(16, tiles.size()));
         Map<String, Integer> matchKeys = new HashMap<>(tiles.size() * 2);
         for (int i = 0; i < tiles.size(); i++) {

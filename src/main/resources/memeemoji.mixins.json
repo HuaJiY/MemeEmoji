@@ -6,7 +6,9 @@
   "client": [
     "FolderRepositorySourceAccessor",
     "PackRepositoryMixin",
-    "StringDecomposerMixin"
+    "StringDecomposerMixin",
+    "ChatScreenMixin",
+    "TextLayoutProcessorMixin"
   ],
   "injectors": {
     "defaultRequire": 1
