@@ -7,12 +7,17 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 
+import java.awt.Dimension;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * 客户端负责两件事：启动时把本地表情文件夹变成图集；进服务器后改由服务端下发的内容重建图集。
@@ -51,15 +56,59 @@ public final class MemeEmojiClient implements ClientModInitializer {
             return true;
         }
         WebpSupport.ensureRegistered();
+
+        // 先扫描所有图片，找出最大尺寸来决定统一的格大小
+        int cell = computeCell();
+        MemeEmoji.setComputedCell(cell);
+
         List<EmojiTile> tiles = TileStore.load(MemeEmoji.emojiDir(), MemeEmoji.cacheDir(),
-                MemeEmoji.cell(), MemeEmoji.config().maxNameLength);
+                cell, MemeEmoji.config().maxNameLength);
         if (!writeAndApply(tiles)) {
             return false;
         }
         packReady = true;
-        MemeEmoji.LOGGER.info("MemeEmoji 已生成 {} 个表情的图集", tiles.size());
+        MemeEmoji.LOGGER.info("MemeEmoji 已生成 {} 个表情的图集，格大小={}", tiles.size(), cell);
         return true;
     }
+
+    /** 扫描本地 emoji 文件夹所有图片，取最大边 × scale。没有图片时回退 32。 */
+    private static int computeCell() {
+        Path emojiDir = MemeEmoji.emojiDir();
+        try {
+            Files.createDirectories(emojiDir);
+        } catch (IOException e) {
+            MemeEmoji.LOGGER.warn("创建 emoji 目录失败", e);
+            return 32;
+        }
+
+        float scale = MemeEmoji.config().scale;
+        int maxDim = 0;
+        try (Stream<Path> stream = Files.walk(emojiDir)) {
+            for (Path file : (Iterable<Path>) stream.filter(Files::isRegularFile)
+                    .filter(p -> ImageTiles.isImageFile(p.getFileName().toString()))::iterator) {
+                try {
+                    Dimension dim = ImageTiles.readDimension(file);
+                    int maxSide = Math.max(dim.width, dim.height);
+                    if (maxSide > maxDim) {
+                        maxDim = maxSide;
+                    }
+                } catch (IOException e) {
+                    MemeEmoji.LOGGER.debug("跳过尺寸读取失败的文件 {}：{}", file.getFileName(), e.toString());
+                }
+            }
+        } catch (IOException e) {
+            MemeEmoji.LOGGER.warn("扫描 emoji 文件夹失败", e);
+        }
+
+        if (maxDim <= 0) {
+            return 32; // 没有有效图片
+        }
+        int cell = Math.max(8, Math.round(maxDim * scale));
+        MemeEmoji.LOGGER.info("表情自动格大小：图片最大边={}，scale={}，计算 cell={}", maxDim, scale, cell);
+        return cell;
+    }
+
+    // ---- 服务端同步 ----
 
     private static boolean writeAndApply(List<EmojiTile> tiles) {
         try {

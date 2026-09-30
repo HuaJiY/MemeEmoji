@@ -8,29 +8,24 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
 
 /**
  * 可调项都放在这里。表情图片本身不需要写进配置，丢进 emoji 文件夹就算一张表情，
  * 文件名（去掉扩展名）就是 :名字: 里的名字。
+ *
+ * <p>表情格大小默认由图片原始尺寸决定（取所有图片的最大宽高 × scale），
+ * 不再需要手动选 small/medium/large。
  */
 public final class MemeEmojiConfig {
-    public static final MemeEmojiConfig DEFAULT = new MemeEmojiConfig(true, 32, true, "medium");
+    public static final MemeEmojiConfig DEFAULT = new MemeEmojiConfig();
 
     public boolean enabled = true;
     public int maxNameLength = 32;
     public boolean sendToClients = true;
-    /** small / medium / large */
-    public String emojiSize = "medium";
+    /** 缩放系数，取所有图片最大边 × scale = 实际格大小。1.0 = 原尺寸，0.5 = 一半。 */
+    public float scale = 1.0f;
 
     public MemeEmojiConfig() {
-    }
-
-    private MemeEmojiConfig(boolean enabled, int maxNameLength, boolean sendToClients, String emojiSize) {
-        this.enabled = enabled;
-        this.maxNameLength = maxNameLength;
-        this.sendToClients = sendToClients;
-        this.emojiSize = emojiSize;
     }
 
     public static MemeEmojiConfig load(Path file) {
@@ -52,26 +47,23 @@ public final class MemeEmojiConfig {
         return new MemeEmojiConfig();
     }
 
+    private void normalize() {
+        if (maxNameLength < 1) {
+            maxNameLength = DEFAULT.maxNameLength;
+        }
+        if (scale <= 0 || Float.isNaN(scale) || Float.isInfinite(scale)) {
+            scale = DEFAULT.scale;
+        } else {
+            scale = Math.clamp(scale, 0.1f, 5.0f);
+        }
+    }
+
     public void save(Path file) {
         try {
             Files.createDirectories(file.getParent());
             Files.writeString(file, new GsonBuilder().setPrettyPrinting().create().toJson(this) + System.lineSeparator(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             MemeEmoji.LOGGER.warn("写入 {} 失败", file, e);
-        }
-    }
-
-    private void normalize() {
-        if (maxNameLength < 1) {
-            maxNameLength = DEFAULT.maxNameLength;
-        }
-        if (emojiSize == null) {
-            emojiSize = DEFAULT.emojiSize;
-        } else {
-            emojiSize = emojiSize.toLowerCase(Locale.ROOT);
-            if (!emojiSize.equals("small") && !emojiSize.equals("medium") && !emojiSize.equals("large")) {
-                emojiSize = DEFAULT.emojiSize;
-            }
         }
     }
 }

@@ -3,6 +3,7 @@ package com.memeemoji;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
@@ -28,6 +29,31 @@ public final class ImageTiles {
     public static String baseName(String fileName) {
         int dot = fileName.lastIndexOf('.');
         return dot > 0 ? fileName.substring(0, dot) : fileName;
+    }
+
+    /** 快速读取图片尺寸而不解码完整像素数据。 */
+    public static Dimension readDimension(Path file) throws IOException {
+        try (ImageInputStream in = ImageIO.createImageInputStream(file.toFile())) {
+            if (in == null) {
+                throw new IOException("无法打开图片流");
+            }
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+            if (!readers.hasNext()) {
+                throw new IOException("没有可用的解码器");
+            }
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(in, true, true);
+                int width = reader.getWidth(0);
+                int height = reader.getHeight(0);
+                if (width <= 0 || height <= 0) {
+                    throw new IOException("图片尺寸无效：" + width + "x" + height);
+                }
+                return new Dimension(width, height);
+            } finally {
+                reader.dispose();
+            }
+        }
     }
 
     /** 只取第一帧：BitmapProvider 读的是静态 NativeImage，动图在字体里没法逐帧播放。 */

@@ -12,7 +12,7 @@ Minecraft 1.21.1 Fabric mod。把图片丢进 config/memeemoji/emoji/，聊天�
 
 ### 字体渲染
 - PUA 码位从 U+E000 开始，图集第 i 格固定为 U+E000 + i
-- BitmapProvider: cell/glyphHeight/ascent 按 emojiSize 配置动态切换（small=18/9/8, medium=32/16/13, large=48/24/19）
+- BitmapProvider: glyphHeight = cell()（否则 ModernUI mScaleFactor<1 → advance 偏小→重叠），ascent ≈ cell*0.6（small=11, medium=20, large=29）
 - StringDecomposerMixin 的 3-arg iterate 和 5-arg iterateFormatted 两个 injection 覆盖全部文本链路
 - ModernUI 的 TextLayoutProcessor、ModernStringSplitter、FormattedTextWrapper 全部走 5-arg hook
 
@@ -42,3 +42,5 @@ Minecraft 1.21.1 Fabric mod。把图片丢进 config/memeemoji/emoji/，聊天�
 5. **ChatScreen 按钮不能用 @Shadow addRenderableWidget**: ModernUI 环境下该 Shadow 不可靠，改为纯手工绘制：@Inject render TAIL 画背景+文字，@Inject mouseClicked HEAD 处理点击。
 6. **TextLayoutProcessorMixin createVanillaLayout 需 CallbackInfoReturnable**: 因为 createVanillaLayout 是非 void 方法，用 CallbackInfo 会导致 mixin 应用失败。
 7. **PowerShell -replace 拼接整行问题**: `(Get-Content ... -Raw) -replace 'a','b'` 会把文件拼接成一行；需要确保替换后格式正确，或逐行处理。
+
+8. **ModernUI BitmapFont advance 重叠**: font.json 的 height 必须等于纹理 cell 大小，否则 ModernUI 的 mScaleFactor=height/spriteHeight<1 导致 glyph advance 偏小、表情互相重叠。已修复为 glyphHeight()=cell()。

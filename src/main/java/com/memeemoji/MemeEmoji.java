@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.util.Locale;
 
 public final class MemeEmoji implements ModInitializer {
     public static final String MOD_ID = "memeemoji";
@@ -26,6 +25,9 @@ public final class MemeEmoji implements ModInitializer {
     public static final int MAX_EMOJI = PUA_LAST - PUA_BASE + 1;
 
     public static final String GENERATED_PACK_ID = MOD_ID + "/generated";
+
+    /** 启动时由 MemeEmojiClient.ensurePackOnDisk() 根据图片实际大小 × scale 算出。 */
+    private static volatile int computedCell = 32;
 
     private static volatile MemeEmojiConfig config;
 
@@ -45,37 +47,29 @@ public final class MemeEmoji implements ModInitializer {
         return configDir().resolve("generated");
     }
 
-    /** 图集精灵的边长，根据 emojiSize 预设决定。 */
+    /** 由 MemeEmojiClient 在扫描图片后设置，所有文字链路共用同一个格大小。 */
+    public static void setComputedCell(int cell) {
+        computedCell = Math.max(8, cell);
+    }
+
+    /** 图集精灵的边长 = 所有图片最大边 × scale。 */
     public static int cell() {
-        return switch (config().emojiSize) {
-            case "medium" -> 32;
-            case "large" -> 48;
-            default -> 18; // small
-        };
+        return computedCell;
     }
 
-    /** 表情在文字里的逻辑高度，对应 font.json 的 height 字段。
-     *  必须等于 cell()，否则 ModernUI 的 mScaleFactor = height/spriteHeight < 1 导致 advance 偏小、表情重叠。 */
+    /** 表情在文字里的逻辑高度，等于 cell，保证 ModernUI 的 mScaleFactor = 1.0。 */
     public static int glyphHeight() {
-        return cell();
+        return computedCell;
     }
 
-    /** 表情在文字里的基线偏移，对应 font.json 的 ascent 字段。 */
+    /** 表情在文字里的基线偏移，取 cell 的约 5/8。 */
     public static int glyphAscent() {
-        return switch (config().emojiSize) {
-            case "medium" -> 20;
-            case "large" -> 29;
-            default -> 11; // small
-        };
+        return (int) Math.round(computedCell * 0.625);
     }
 
-    /** 表情选择界面每个格子的大小。 */
+    /** 表情选择界面每格大小 = cell + 20px 余白。 */
     public static int pickerCell() {
-        return switch (config().emojiSize) {
-            case "medium" -> 52;
-            case "large" -> 68;
-            default -> 38; // small
-        };
+        return computedCell + 20;
     }
 
     /**
