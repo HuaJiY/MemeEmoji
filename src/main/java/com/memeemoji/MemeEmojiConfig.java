@@ -16,9 +16,9 @@ import java.nio.file.Path;
 public final class MemeEmojiConfig {
     public static final MemeEmojiConfig DEFAULT = new MemeEmojiConfig(true, 32, true);
 
-    public boolean enabled = DEFAULT.enabled;
-    public int maxNameLength = DEFAULT.maxNameLength;
-    public boolean sendToClients = DEFAULT.sendToClients;
+    public boolean enabled = true;
+    public int maxNameLength = 32;
+    public boolean sendToClients = true;
 
     public MemeEmojiConfig() {
     }
