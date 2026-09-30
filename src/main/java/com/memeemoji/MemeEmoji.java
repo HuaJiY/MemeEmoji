@@ -26,7 +26,7 @@ public final class MemeEmoji implements ModInitializer {
 
     public static final String GENERATED_PACK_ID = MOD_ID + "/generated";
 
-    /** 启动时由 MemeEmojiClient.ensurePackOnDisk() 根据图片实际大小 × scale 算出。 */
+    /** 启动时由 MemeEmojiClient 根据预设算出。 */
     private static volatile int computedCell = 32;
 
     private static volatile MemeEmojiConfig config;
@@ -52,20 +52,22 @@ public final class MemeEmoji implements ModInitializer {
         computedCell = Math.max(8, cell);
     }
 
-    /** 图集精灵的边长 = 所有图片最大边 × scale。 */
+    /** 图集精灵的边长。 */
     public static int cell() {
         return computedCell;
     }
 
-    /** 表情在文字里的逻辑高度，等于 cell，保证 ModernUI 的 mScaleFactor = 1.0。 */
+    /** 表情在文字里的逻辑高度，等于 cell。 */
     public static int glyphHeight() {
         return computedCell;
     }
 
-    /** 表情在文字里的基线偏移，取 cell 的约 5/8。 */
+    /**
+     * 表情在文字里的基线偏移 = cell，使 emoji 从 baseline - cell 到 baseline，
+     * 正好填满聊天气泡背景框。
+     */
     public static int glyphAscent() {
-        // ascent = cell - 8，配合 getLineHeight()=cell，emoji 正好填满聊天气泡背景框
-        return Math.max(1, computedCell - 8);
+        return Math.max(1, computedCell);
     }
 
     /** 表情选择界面每格大小 = cell + 20px 余白。 */

@@ -57,8 +57,8 @@ public final class MemeEmojiClient implements ClientModInitializer {
         }
         WebpSupport.ensureRegistered();
 
-        // 先扫描所有图片，找出最大尺寸来决定统一的格大小
-        int cell = computeCell();
+        // 根据预设决定格大小
+        int cell = getCellFromPreset();
         MemeEmoji.setComputedCell(cell);
 
         List<EmojiTile> tiles = TileStore.load(MemeEmoji.emojiDir(), MemeEmoji.cacheDir(),
@@ -71,46 +71,15 @@ public final class MemeEmojiClient implements ClientModInitializer {
         return true;
     }
 
-    /** 扫描本地 emoji 文件夹所有图片，取最大边 × scale，再 clamp 到 maxCellSize。没有图片时回退 32。 */
-    private static int computeCell() {
-        Path emojiDir = MemeEmoji.emojiDir();
+    /** 直接取配置文件预设的目标格大小。不再依赖原图尺寸。 */
+    private static int getCellFromPreset() {
         try {
-            Files.createDirectories(emojiDir);
+            Files.createDirectories(MemeEmoji.emojiDir());
         } catch (IOException e) {
             MemeEmoji.LOGGER.warn("创建 emoji 目录失败", e);
-            return 32;
         }
-
-        MemeEmojiConfig config = MemeEmoji.config();
-        float scale = config.scale;
-        int maxDim = 0;
-        try (Stream<Path> stream = Files.walk(emojiDir)) {
-            for (Path file : (Iterable<Path>) stream.filter(Files::isRegularFile)
-                    .filter(p -> ImageTiles.isImageFile(p.getFileName().toString()))::iterator) {
-                try {
-                    Dimension dim = ImageTiles.readDimension(file);
-                    int maxSide = Math.max(dim.width, dim.height);
-                    if (maxSide > maxDim) {
-                        maxDim = maxSide;
-                    }
-                } catch (IOException e) {
-                    MemeEmoji.LOGGER.debug("跳过尺寸读取失败的文件 {}：{}", file.getFileName(), e.toString());
-                }
-            }
-        } catch (IOException e) {
-            MemeEmoji.LOGGER.warn("扫描 emoji 文件夹失败", e);
-        }
-
-        if (maxDim <= 0) {
-            return 32; // 没有有效图片
-        }
-        int cell = Math.max(8, Math.round(maxDim * scale));
-        int beforeCap = cell;
-        cell = Math.min(cell, config.maxCellSize);
-        if (beforeCap != cell) {
-            MemeEmoji.LOGGER.info("格大小 {} 超出上限 {}，已截断", beforeCap, config.maxCellSize);
-        }
-        MemeEmoji.LOGGER.info("表情自动格大小：图片最大边={}，scale={}，clip={}，结果 cell={}", maxDim, scale, config.maxCellSize, cell);
+        int cell = MemeEmoji.config().targetCellSize();
+        MemeEmoji.LOGGER.info("表情格大小（预设={}）：{}px", MemeEmoji.config().sizePreset, cell);
         return cell;
     }
 

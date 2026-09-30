@@ -99,6 +99,9 @@ public final class ImageTiles {
         BufferedImage canvas = new BufferedImage(cell, cell, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = canvas.createGraphics();
         try {
+            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
             graphics.drawImage(scale(source, targetWidth, targetHeight), (cell - targetWidth) / 2, (cell - targetHeight) / 2, null);
         } finally {
             graphics.dispose();
@@ -131,7 +134,7 @@ public final class ImageTiles {
         BufferedImage target = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = target.createGraphics();
         try {
-            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
             graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
             graphics.drawImage(source, 0, 0, width, height, null);
