@@ -15,13 +15,13 @@ import java.util.Locale;
  * 文件名（去掉扩展名）就是 :名字: 里的名字。
  */
 public final class MemeEmojiConfig {
-    public static final MemeEmojiConfig DEFAULT = new MemeEmojiConfig(true, 32, true, "small");
+    public static final MemeEmojiConfig DEFAULT = new MemeEmojiConfig(true, 32, true, "medium");
 
     public boolean enabled = true;
     public int maxNameLength = 32;
     public boolean sendToClients = true;
     /** small / medium / large */
-    public String emojiSize = "small";
+    public String emojiSize = "medium";
 
     public MemeEmojiConfig() {
     }
@@ -43,6 +43,7 @@ public final class MemeEmojiConfig {
             MemeEmojiConfig config = new Gson().fromJson(Files.readString(file, StandardCharsets.UTF_8), MemeEmojiConfig.class);
             if (config != null) {
                 config.normalize();
+                config.save(file); // 回写确保配置文件里有所有新字段
                 return config;
             }
         } catch (IOException | JsonSyntaxException e) {
