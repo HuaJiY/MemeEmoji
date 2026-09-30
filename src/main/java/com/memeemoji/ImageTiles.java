@@ -92,16 +92,22 @@ public final class ImageTiles {
     public static BufferedImage fit(BufferedImage source, int cell) {
         int width = source.getWidth();
         int height = source.getHeight();
-        double scale = (double) cell / Math.max(width, height);
-        int targetWidth = Math.max(1, (int) Math.round(width * scale));
-        int targetHeight = Math.max(1, (int) Math.round(height * scale));
 
         BufferedImage canvas = new BufferedImage(cell, cell, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = canvas.createGraphics();
         try {
+            // 图片小于等于 cell 时不放大，居中放置保持原图清晰
+            if (width <= cell && height <= cell) {
+                graphics.drawImage(source, (cell - width) / 2, (cell - height) / 2, null);
+                return canvas;
+            }
+            // 图片大于 cell 时才缩小
             graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
             graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+            double scale = (double) cell / Math.max(width, height);
+            int targetWidth = Math.max(1, (int) Math.round(width * scale));
+            int targetHeight = Math.max(1, (int) Math.round(height * scale));
             graphics.drawImage(scale(source, targetWidth, targetHeight), (cell - targetWidth) / 2, (cell - targetHeight) / 2, null);
         } finally {
             graphics.dispose();

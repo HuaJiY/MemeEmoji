@@ -63,14 +63,18 @@ public final class MemeEmoji implements ModInitializer {
     }
 
     /**
-     * 表情的基线偏移 = 2，让 emoji 从聊天气泡背景框顶部（baseline-2）开始渲染，
-     * 表情填满背景框（高度 cell），背景框比表情大 3px 在底部，实现"往下拓宽"。
+     * 基线偏移 = cell - 5，让 emoji 从背景框顶部（baseline - cell + 5 = aa - cell - 3 = aa - lineHeight）
+     * 渲染到背景框底部上方 3px（baseline + 5 = aa - 3），实现"往下拓展 3px"。
+     *
+     * <p>ChatComponent 背景框：fill(aa - lineHeight, aa)，文字 baseline = aa - 8
+     * emoji 顶部 = (aa-8) - (cell-5) = aa - cell - 3 = aa - lineHeight ✓
+     * emoji 底部 = (aa-8) - (cell-5) + cell = aa - 3（比背景框底部 aa 高 3px）✓
      */
     public static int glyphAscent() {
-        return 2;
+        return Math.max(1, computedCell - 5);
     }
 
-    /** 带 3px 底部余白的聊天气泡行高。 */
+    /** 带 3px 底部余白的聊天气泡行高 = cell + 3。 */
     public static int lineHeight() {
         return computedCell + 3;
     }
