@@ -52,7 +52,7 @@ public final class MemeEmojiClient implements ClientModInitializer {
         }
         WebpSupport.ensureRegistered();
         List<EmojiTile> tiles = TileStore.load(MemeEmoji.emojiDir(), MemeEmoji.cacheDir(),
-                MemeEmoji.CELL, MemeEmoji.config().maxNameLength);
+                MemeEmoji.cell(), MemeEmoji.config().maxNameLength);
         if (!writeAndApply(tiles)) {
             return false;
         }

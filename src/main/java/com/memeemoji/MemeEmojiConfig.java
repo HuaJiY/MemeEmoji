@@ -8,25 +8,29 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 
 /**
  * 可调项都放在这里。表情图片本身不需要写进配置，丢进 emoji 文件夹就算一张表情，
  * 文件名（去掉扩展名）就是 :名字: 里的名字。
  */
 public final class MemeEmojiConfig {
-    public static final MemeEmojiConfig DEFAULT = new MemeEmojiConfig(true, 32, true);
+    public static final MemeEmojiConfig DEFAULT = new MemeEmojiConfig(true, 32, true, "small");
 
     public boolean enabled = true;
     public int maxNameLength = 32;
     public boolean sendToClients = true;
+    /** small / medium / large */
+    public String emojiSize = "small";
 
     public MemeEmojiConfig() {
     }
 
-    private MemeEmojiConfig(boolean enabled, int maxNameLength, boolean sendToClients) {
+    private MemeEmojiConfig(boolean enabled, int maxNameLength, boolean sendToClients, String emojiSize) {
         this.enabled = enabled;
         this.maxNameLength = maxNameLength;
         this.sendToClients = sendToClients;
+        this.emojiSize = emojiSize;
     }
 
     public static MemeEmojiConfig load(Path file) {
@@ -59,6 +63,14 @@ public final class MemeEmojiConfig {
     private void normalize() {
         if (maxNameLength < 1) {
             maxNameLength = DEFAULT.maxNameLength;
+        }
+        if (emojiSize == null) {
+            emojiSize = DEFAULT.emojiSize;
+        } else {
+            emojiSize = emojiSize.toLowerCase(Locale.ROOT);
+            if (!emojiSize.equals("small") && !emojiSize.equals("medium") && !emojiSize.equals("large")) {
+                emojiSize = DEFAULT.emojiSize;
+            }
         }
     }
 }

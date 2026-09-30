@@ -53,7 +53,7 @@ public final class EmojiSync {
 
     public static synchronized List<EmojiTile> rescanServerTiles() {
         List<EmojiTile> tiles = TileStore.load(MemeEmoji.emojiDir(), MemeEmoji.cacheDir(),
-                MemeEmoji.CELL, MemeEmoji.config().maxNameLength);
+                MemeEmoji.cell(), MemeEmoji.config().maxNameLength);
         serverTiles = tiles;
         return tiles;
     }

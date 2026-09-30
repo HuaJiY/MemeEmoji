@@ -16,14 +16,15 @@ import java.util.function.Consumer;
 /**
  * 表情选择界面，打开后显示所有已加载的表情供点击。
  * 点击就把表情名交给回调（由调用方处理导航），按 ESC 关闭。
+ * 格子大小跟随 MemeEmoji.pickerCell()，随 emojiSize 预设变化。
  */
 public final class EmojiPickerScreen extends Screen {
 
     private static final int GRID_COLS = 8;
-    private static final int CELL_SIZE = 38;
 
     private final Consumer<String> callback;
     private final List<EmojiTile> tiles;
+    private final int cellSize;
     private final int gridWidth;
     private int scrollOffset;
     private int panelX;
@@ -35,7 +36,8 @@ public final class EmojiPickerScreen extends Screen {
         super(Component.literal("\u8868\u60C5\u9009\u62E9"));
         this.callback = callback;
         this.tiles = EmojiRegistry.INSTANCE.tiles();
-        this.gridWidth = GRID_COLS * CELL_SIZE;
+        this.cellSize = MemeEmoji.pickerCell();
+        this.gridWidth = GRID_COLS * cellSize;
     }
 
     @Override
@@ -43,7 +45,7 @@ public final class EmojiPickerScreen extends Screen {
         int maxW = Math.min(width - 40, 400);
         int maxH = Math.min(height - 40, 400);
         int rows = Math.max(1, (tiles.size() + GRID_COLS - 1) / GRID_COLS);
-        int gridH = rows * CELL_SIZE;
+        int gridH = rows * cellSize;
         panelW = Math.max(maxW, gridWidth + 20);
         panelH = Math.min(maxH, Math.max(80, gridH + 40));
         panelX = (width - panelW) / 2;
@@ -66,7 +68,7 @@ public final class EmojiPickerScreen extends Screen {
         }
 
         int rows = (tiles.size() + GRID_COLS - 1) / GRID_COLS;
-        int gridH = rows * CELL_SIZE;
+        int gridH = rows * cellSize;
         int contentH = panelH - 20;
         int maxScroll = Math.max(0, gridH - contentH);
         scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
@@ -79,18 +81,18 @@ public final class EmojiPickerScreen extends Screen {
         for (int i = 0; i < tiles.size(); i++) {
             int col = i % GRID_COLS;
             int row = i / GRID_COLS;
-            int cellX = startX + col * CELL_SIZE;
-            int cellY = startY + row * CELL_SIZE - scrollOffset;
+            int cellX = startX + col * cellSize;
+            int cellY = startY + row * cellSize - scrollOffset;
 
-            if (cellY + CELL_SIZE < panelY + 10 || cellY > panelY + panelH - 10) {
+            if (cellY + cellSize < panelY + 10 || cellY > panelY + panelH - 10) {
                 continue;
             }
 
-            boolean hovered = mouseX >= cellX && mouseX < cellX + CELL_SIZE
-                    && mouseY >= cellY && mouseY < cellY + CELL_SIZE;
+            boolean hovered = mouseX >= cellX && mouseX < cellX + cellSize
+                    && mouseY >= cellY && mouseY < cellY + cellSize;
 
             if (hovered) {
-                gr.fill(cellX, cellY, cellX + CELL_SIZE, cellY + CELL_SIZE, 0x40FFFFFF);
+                gr.fill(cellX, cellY, cellX + cellSize, cellY + cellSize, 0x40FFFFFF);
             }
 
             // 用字体渲染表情码位
@@ -98,8 +100,8 @@ public final class EmojiPickerScreen extends Screen {
             String emojiStr = new String(Character.toChars(codepoint));
             FormattedCharSequence seq = FormattedCharSequence.forward(emojiStr, emojiStyle);
             int emojiW = font.width(emojiStr);
-            int drawX = cellX + (CELL_SIZE - emojiW) / 2;
-            int drawY = cellY + (CELL_SIZE - font.lineHeight) / 2 + 1;
+            int drawX = cellX + (cellSize - emojiW) / 2;
+            int drawY = cellY + (cellSize - font.lineHeight) / 2 + 1;
             gr.drawString(font, seq, drawX, drawY, 0xFFFFFFFF, false);
         }
 
@@ -110,8 +112,8 @@ public final class EmojiPickerScreen extends Screen {
             int relX = mouseX - startX;
             int relY = mouseY - startY + scrollOffset;
             if (relX >= 0 && relY >= 0) {
-                int col = relX / CELL_SIZE;
-                int row = relY / CELL_SIZE;
+                int col = relX / cellSize;
+                int row = relY / cellSize;
                 int idx = row * GRID_COLS + col;
                 if (col < GRID_COLS && idx >= 0 && idx < tiles.size()) {
                     EmojiTile tile = tiles.get(idx);
@@ -125,10 +127,10 @@ public final class EmojiPickerScreen extends Screen {
     public boolean mouseScrolled(double mouseX, double mouseY, double deltaX, double deltaY) {
         if (mouseX >= panelX && mouseX <= panelX + panelW && mouseY >= panelY && mouseY <= panelY + panelH) {
             int rows = (tiles.size() + GRID_COLS - 1) / GRID_COLS;
-            int gridH = rows * CELL_SIZE;
+            int gridH = rows * cellSize;
             int contentH = panelH - 20;
             if (gridH > contentH) {
-                scrollOffset = (int) Math.max(0, Math.min(scrollOffset - deltaY * CELL_SIZE, gridH - contentH));
+                scrollOffset = (int) Math.max(0, Math.min(scrollOffset - deltaY * cellSize, gridH - contentH));
                 return true;
             }
         }
@@ -143,12 +145,12 @@ public final class EmojiPickerScreen extends Screen {
             int relX = (int) mouseX - startX;
             int relY = (int) mouseY - panelY - 10 + scrollOffset;
             if (relX >= 0 && relY >= 0) {
-                int col = relX / CELL_SIZE;
-                int row = relY / CELL_SIZE;
+                int col = relX / cellSize;
+                int row = relY / cellSize;
                 int idx = row * GRID_COLS + col;
                 if (col < GRID_COLS && idx >= 0 && idx < tiles.size()) {
                     callback.accept(tiles.get(idx).name());
-                    return true; // 回调自己处理屏幕导航
+                    return true;
                 }
             }
         }

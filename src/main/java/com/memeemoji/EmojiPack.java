@@ -35,7 +35,7 @@ public final class EmojiPack {
 
     private static BufferedImage sheet(List<EmojiTile> tiles) throws IOException {
         int columns = MemeEmoji.COLUMNS;
-        int cell = MemeEmoji.CELL;
+        int cell = MemeEmoji.cell();
         int rows = Math.max(1, (tiles.size() + columns - 1) / columns);
         BufferedImage image = new BufferedImage(columns * cell, rows * cell, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = image.createGraphics();
@@ -67,12 +67,15 @@ public final class EmojiPack {
             return "{\n  \"providers\": []\n}\n";
         }
         int columns = MemeEmoji.COLUMNS;
+        int cell = MemeEmoji.cell();
+        int glyphHeight = MemeEmoji.glyphHeight();
+        int glyphAscent = MemeEmoji.glyphAscent();
         int rows = Math.max(1, (tiles.size() + columns - 1) / columns);
         json.append("{\n  \"providers\": [\n    {\n");
         json.append("      \"type\": \"bitmap\",\n");
         json.append("      \"file\": \"").append(MemeEmoji.MOD_ID).append(":font/emoji.png\",\n");
-        json.append("      \"height\": ").append(MemeEmoji.GLYPH_HEIGHT).append(",\n");
-        json.append("      \"ascent\": ").append(MemeEmoji.GLYPH_ASCENT).append(",\n");
+        json.append("      \"height\": ").append(glyphHeight).append(",\n");
+        json.append("      \"ascent\": ").append(glyphAscent).append(",\n");
         json.append("      \"chars\": [\n");
         for (int row = 0; row < rows; row++) {
             json.append("        \"");
