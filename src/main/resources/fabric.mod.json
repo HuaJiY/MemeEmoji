@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "memeemoji",
+  "version": "${version}",
+  "name": "MemeEmoji",
+  "description": "把图片丢进 config/memeemoji/emoji 就能用 :名字: 发送的自定义表情，服务端自动同步给客户端。",
+  "authors": [],
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.memeemoji.MemeEmoji"
+    ],
+    "client": [
+      "com.memeemoji.MemeEmojiClient"
+    ]
+  },
+  "mixins": [
+    "memeemoji.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  }
+}

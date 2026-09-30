@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.memeemoji.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "FolderRepositorySourceAccessor",
+    "PackRepositoryMixin",
+    "StringDecomposerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

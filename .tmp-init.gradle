@@ -1,0 +1,12 @@
+gradle.projectsEvaluated {
+    def root = gradle.rootProject
+    root.tasks.register('printRtCp') {
+        doLast {
+            new File(root.projectDir, '.tmp-rtcp.txt').text =
+                    root.sourceSets.main.runtimeClasspath.asPath + File.pathSeparator +
+                    new File(root.projectDir, 'build/classes/java/main').absolutePath + File.pathSeparator +
+                    new File(root.projectDir, 'build/resources/main').absolutePath
+            println 'wrote .tmp-rtcp.txt'
+        }
+    }
+}

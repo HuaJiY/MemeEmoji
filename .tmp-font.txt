@@ -1,0 +1,1630 @@
+===== net.minecraft.client.gui.Font$StringRenderOutput =====
+Compiled from "Font.java"
+class net.minecraft.client.gui.Font$StringRenderOutput implements net.minecraft.util.FormattedCharSink {
+  final net.minecraft.client.renderer.MultiBufferSource bufferSource;
+
+  private final boolean dropShadow;
+
+  private final float dimFactor;
+
+  private final float r;
+
+  private final float g;
+
+  private final float b;
+
+  private final float a;
+
+  private final org.joml.Matrix4f pose;
+
+  private final net.minecraft.client.gui.Font$DisplayMode mode;
+
+  private final int packedLightCoords;
+
+  float x;
+
+  float y;
+
+  private java.util.List<net.minecraft.client.gui.font.glyphs.BakedGlyph$Effect> effects;
+
+  final net.minecraft.client.gui.Font field_24240;
+
+  private void addEffect(net.minecraft.client.gui.font.glyphs.BakedGlyph$Effect);
+    Code:
+       0: aload_0
+       1: getfield      #51                 // Field effects:Ljava/util/List;
+       4: ifnonnull     14
+       7: aload_0
+       8: invokestatic  #57                 // Method com/google/common/collect/Lists.newArrayList:()Ljava/util/ArrayList;
+      11: putfield      #51                 // Field effects:Ljava/util/List;
+      14: aload_0
+      15: getfield      #51                 // Field effects:Ljava/util/List;
+      18: aload_1
+      19: invokeinterface #63,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+      24: pop
+      25: return
+
+  public net.minecraft.client.gui.Font$StringRenderOutput(net.minecraft.client.gui.Font, net.minecraft.client.renderer.MultiBufferSource, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.gui.Font$DisplayMode, int);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: putfield      #78                 // Field field_24240:Lnet/minecraft/client/gui/Font;
+       5: aload_0
+       6: invokespecial #81                 // Method java/lang/Object."<init>":()V
+       9: aload_0
+      10: aload_2
+      11: putfield      #83                 // Field bufferSource:Lnet/minecraft/client/renderer/MultiBufferSource;
+      14: aload_0
+      15: fload_3
+      16: putfield      #85                 // Field x:F
+      19: aload_0
+      20: fload         4
+      22: putfield      #87                 // Field y:F
+      25: aload_0
+      26: iload         6
+      28: putfield      #89                 // Field dropShadow:Z
+      31: aload_0
+      32: iload         6
+      34: ifeq          42
+      37: ldc           #90                 // float 0.25f
+      39: goto          43
+      42: fconst_1
+      43: putfield      #94                 // Field dimFactor:F
+      46: aload_0
+      47: iload         5
+      49: bipush        16
+      51: ishr
+      52: sipush        255
+      55: iand
+      56: i2f
+      57: ldc           #95                 // float 255.0f
+      59: fdiv
+      60: aload_0
+      61: getfield      #94                 // Field dimFactor:F
+      64: fmul
+      65: putfield      #97                 // Field r:F
+      68: aload_0
+      69: iload         5
+      71: bipush        8
+      73: ishr
+      74: sipush        255
+      77: iand
+      78: i2f
+      79: ldc           #95                 // float 255.0f
+      81: fdiv
+      82: aload_0
+      83: getfield      #94                 // Field dimFactor:F
+      86: fmul
+      87: putfield      #99                 // Field g:F
+      90: aload_0
+      91: iload         5
+      93: sipush        255
+      96: iand
+      97: i2f
+      98: ldc           #95                 // float 255.0f
+     100: fdiv
+     101: aload_0
+     102: getfield      #94                 // Field dimFactor:F
+     105: fmul
+     106: putfield      #101                // Field b:F
+     109: aload_0
+     110: iload         5
+     112: bipush        24
+     114: ishr
+     115: sipush        255
+     118: iand
+     119: i2f
+     120: ldc           #95                 // float 255.0f
+     122: fdiv
+     123: putfield      #103                // Field a:F
+     126: aload_0
+     127: aload         7
+     129: putfield      #105                // Field pose:Lorg/joml/Matrix4f;
+     132: aload_0
+     133: aload         8
+     135: putfield      #107                // Field mode:Lnet/minecraft/client/gui/Font$DisplayMode;
+     138: aload_0
+     139: iload         9
+     141: putfield      #109                // Field packedLightCoords:I
+     144: return
+
+  public boolean accept(int, net.minecraft.network.chat.Style, int);
+    Code:
+       0: aload_0
+       1: getfield      #78                 // Field field_24240:Lnet/minecraft/client/gui/Font;
+       4: aload_2
+       5: invokevirtual #118                // Method net/minecraft/network/chat/Style.getFont:()Lnet/minecraft/resources/ResourceLocation;
+       8: invokevirtual #122                // Method net/minecraft/client/gui/Font.getFontSet:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/gui/font/FontSet;
+      11: astore        4
+      13: aload         4
+      15: iload_3
+      16: aload_0
+      17: getfield      #78                 // Field field_24240:Lnet/minecraft/client/gui/Font;
+      20: getfield      #125                // Field net/minecraft/client/gui/Font.filterFishyGlyphs:Z
+      23: invokevirtual #131                // Method net/minecraft/client/gui/font/FontSet.getGlyphInfo:(IZ)Lcom/mojang/blaze3d/font/GlyphInfo;
+      26: astore        5
+      28: aload_2
+      29: invokevirtual #135                // Method net/minecraft/network/chat/Style.isObfuscated:()Z
+      32: ifeq          51
+      35: iload_3
+      36: bipush        32
+      38: if_icmpeq     51
+      41: aload         4
+      43: aload         5
+      45: invokevirtual #139                // Method net/minecraft/client/gui/font/FontSet.getRandomGlyph:(Lcom/mojang/blaze3d/font/GlyphInfo;)Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+      48: goto          57
+      51: aload         4
+      53: iload_3
+      54: invokevirtual #145                // Method net/minecraft/client/gui/font/FontSet.getGlyph:(I)Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+      57: astore        6
+      59: aload_2
+      60: invokevirtual #148                // Method net/minecraft/network/chat/Style.isBold:()Z
+      63: istore        7
+      65: aload_0
+      66: getfield      #103                // Field a:F
+      69: fstore        11
+      71: aload_2
+      72: invokevirtual #152                // Method net/minecraft/network/chat/Style.getColor:()Lnet/minecraft/network/chat/TextColor;
+      75: astore        12
+      77: aload         12
+      79: ifnull        149
+      82: aload         12
+      84: invokevirtual #158                // Method net/minecraft/network/chat/TextColor.getValue:()I
+      87: istore        13
+      89: iload         13
+      91: bipush        16
+      93: ishr
+      94: sipush        255
+      97: iand
+      98: i2f
+      99: ldc           #95                 // float 255.0f
+     101: fdiv
+     102: aload_0
+     103: getfield      #94                 // Field dimFactor:F
+     106: fmul
+     107: fstore        8
+     109: iload         13
+     111: bipush        8
+     113: ishr
+     114: sipush        255
+     117: iand
+     118: i2f
+     119: ldc           #95                 // float 255.0f
+     121: fdiv
+     122: aload_0
+     123: getfield      #94                 // Field dimFactor:F
+     126: fmul
+     127: fstore        9
+     129: iload         13
+     131: sipush        255
+     134: iand
+     135: i2f
+     136: ldc           #95                 // float 255.0f
+     138: fdiv
+     139: aload_0
+     140: getfield      #94                 // Field dimFactor:F
+     143: fmul
+     144: fstore        10
+     146: goto          167
+     149: aload_0
+     150: getfield      #97                 // Field r:F
+     153: fstore        8
+     155: aload_0
+     156: getfield      #99                 // Field g:F
+     159: fstore        9
+     161: aload_0
+     162: getfield      #101                // Field b:F
+     165: fstore        10
+     167: aload         6
+     169: instanceof    #160                // class net/minecraft/client/gui/font/glyphs/EmptyGlyph
+     172: ifne          282
+     175: iload         7
+     177: ifeq          190
+     180: aload         5
+     182: invokeinterface #164,  1          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.getBoldOffset:()F
+     187: goto          191
+     190: fconst_0
+     191: fstore        13
+     193: aload_0
+     194: getfield      #89                 // Field dropShadow:Z
+     197: ifeq          210
+     200: aload         5
+     202: invokeinterface #167,  1          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.getShadowOffset:()F
+     207: goto          211
+     210: fconst_0
+     211: fstore        14
+     213: aload_0
+     214: getfield      #83                 // Field bufferSource:Lnet/minecraft/client/renderer/MultiBufferSource;
+     217: aload         6
+     219: aload_0
+     220: getfield      #107                // Field mode:Lnet/minecraft/client/gui/Font$DisplayMode;
+     223: invokevirtual #171                // Method net/minecraft/client/gui/font/glyphs/BakedGlyph.renderType:(Lnet/minecraft/client/gui/Font$DisplayMode;)Lnet/minecraft/client/renderer/RenderType;
+     226: invokeinterface #177,  2          // InterfaceMethod net/minecraft/client/renderer/MultiBufferSource.getBuffer:(Lnet/minecraft/client/renderer/RenderType;)Lcom/mojang/blaze3d/vertex/VertexConsumer;
+     231: astore        15
+     233: aload_0
+     234: getfield      #78                 // Field field_24240:Lnet/minecraft/client/gui/Font;
+     237: aload         6
+     239: iload         7
+     241: aload_2
+     242: invokevirtual #180                // Method net/minecraft/network/chat/Style.isItalic:()Z
+     245: fload         13
+     247: aload_0
+     248: getfield      #85                 // Field x:F
+     251: fload         14
+     253: fadd
+     254: aload_0
+     255: getfield      #87                 // Field y:F
+     258: fload         14
+     260: fadd
+     261: aload_0
+     262: getfield      #105                // Field pose:Lorg/joml/Matrix4f;
+     265: aload         15
+     267: fload         8
+     269: fload         9
+     271: fload         10
+     273: fload         11
+     275: aload_0
+     276: getfield      #109                // Field packedLightCoords:I
+     279: invokevirtual #184                // Method net/minecraft/client/gui/Font.renderChar:(Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;ZZFFFLorg/joml/Matrix4f;Lcom/mojang/blaze3d/vertex/VertexConsumer;FFFFI)V
+     282: aload         5
+     284: iload         7
+     286: invokeinterface #188,  2          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.getAdvance:(Z)F
+     291: fstore        13
+     293: aload_0
+     294: getfield      #89                 // Field dropShadow:Z
+     297: ifeq          304
+     300: fconst_1
+     301: goto          305
+     304: fconst_0
+     305: fstore        14
+     307: aload_2
+     308: invokevirtual #191                // Method net/minecraft/network/chat/Style.isStrikethrough:()Z
+     311: ifeq          376
+     314: aload_0
+     315: new           #19                 // class net/minecraft/client/gui/font/glyphs/BakedGlyph$Effect
+     318: dup
+     319: aload_0
+     320: getfield      #85                 // Field x:F
+     323: fload         14
+     325: fadd
+     326: fconst_1
+     327: fsub
+     328: aload_0
+     329: getfield      #87                 // Field y:F
+     332: fload         14
+     334: fadd
+     335: ldc           #192                // float 4.5f
+     337: fadd
+     338: aload_0
+     339: getfield      #85                 // Field x:F
+     342: fload         14
+     344: fadd
+     345: fload         13
+     347: fadd
+     348: aload_0
+     349: getfield      #87                 // Field y:F
+     352: fload         14
+     354: fadd
+     355: ldc           #192                // float 4.5f
+     357: fadd
+     358: fconst_1
+     359: fsub
+     360: ldc           #193                // float 0.01f
+     362: fload         8
+     364: fload         9
+     366: fload         10
+     368: fload         11
+     370: invokespecial #196                // Method net/minecraft/client/gui/font/glyphs/BakedGlyph$Effect."<init>":(FFFFFFFFF)V
+     373: invokevirtual #198                // Method addEffect:(Lnet/minecraft/client/gui/font/glyphs/BakedGlyph$Effect;)V
+     376: aload_2
+     377: invokevirtual #201                // Method net/minecraft/network/chat/Style.isUnderlined:()Z
+     380: ifeq          445
+     383: aload_0
+     384: new           #19                 // class net/minecraft/client/gui/font/glyphs/BakedGlyph$Effect
+     387: dup
+     388: aload_0
+     389: getfield      #85                 // Field x:F
+     392: fload         14
+     394: fadd
+     395: fconst_1
+     396: fsub
+     397: aload_0
+     398: getfield      #87                 // Field y:F
+     401: fload         14
+     403: fadd
+     404: ldc           #202                // float 9.0f
+     406: fadd
+     407: aload_0
+     408: getfield      #85                 // Field x:F
+     411: fload         14
+     413: fadd
+     414: fload         13
+     416: fadd
+     417: aload_0
+     418: getfield      #87                 // Field y:F
+     421: fload         14
+     423: fadd
+     424: ldc           #202                // float 9.0f
+     426: fadd
+     427: fconst_1
+     428: fsub
+     429: ldc           #193                // float 0.01f
+     431: fload         8
+     433: fload         9
+     435: fload         10
+     437: fload         11
+     439: invokespecial #196                // Method net/minecraft/client/gui/font/glyphs/BakedGlyph$Effect."<init>":(FFFFFFFFF)V
+     442: invokevirtual #198                // Method addEffect:(Lnet/minecraft/client/gui/font/glyphs/BakedGlyph$Effect;)V
+     445: aload_0
+     446: dup
+     447: getfield      #85                 // Field x:F
+     450: fload         13
+     452: fadd
+     453: putfield      #85                 // Field x:F
+     456: iconst_1
+     457: ireturn
+
+  public float finish(int, float);
+    Code:
+       0: iload_1
+       1: ifeq          98
+       4: iload_1
+       5: bipush        24
+       7: ishr
+       8: sipush        255
+      11: iand
+      12: i2f
+      13: ldc           #95                 // float 255.0f
+      15: fdiv
+      16: fstore_3
+      17: iload_1
+      18: bipush        16
+      20: ishr
+      21: sipush        255
+      24: iand
+      25: i2f
+      26: ldc           #95                 // float 255.0f
+      28: fdiv
+      29: fstore        4
+      31: iload_1
+      32: bipush        8
+      34: ishr
+      35: sipush        255
+      38: iand
+      39: i2f
+      40: ldc           #95                 // float 255.0f
+      42: fdiv
+      43: fstore        5
+      45: iload_1
+      46: sipush        255
+      49: iand
+      50: i2f
+      51: ldc           #95                 // float 255.0f
+      53: fdiv
+      54: fstore        6
+      56: aload_0
+      57: new           #19                 // class net/minecraft/client/gui/font/glyphs/BakedGlyph$Effect
+      60: dup
+      61: fload_2
+      62: fconst_1
+      63: fsub
+      64: aload_0
+      65: getfield      #87                 // Field y:F
+      68: ldc           #202                // float 9.0f
+      70: fadd
+      71: aload_0
+      72: getfield      #85                 // Field x:F
+      75: fconst_1
+      76: fadd
+      77: aload_0
+      78: getfield      #87                 // Field y:F
+      81: fconst_1
+      82: fsub
+      83: ldc           #193                // float 0.01f
+      85: fload         4
+      87: fload         5
+      89: fload         6
+      91: fload_3
+      92: invokespecial #196                // Method net/minecraft/client/gui/font/glyphs/BakedGlyph$Effect."<init>":(FFFFFFFFF)V
+      95: invokevirtual #198                // Method addEffect:(Lnet/minecraft/client/gui/font/glyphs/BakedGlyph$Effect;)V
+      98: aload_0
+      99: getfield      #51                 // Field effects:Ljava/util/List;
+     102: ifnull        190
+     105: aload_0
+     106: getfield      #78                 // Field field_24240:Lnet/minecraft/client/gui/Font;
+     109: getstatic     #224                // Field net/minecraft/network/chat/Style.DEFAULT_FONT:Lnet/minecraft/resources/ResourceLocation;
+     112: invokevirtual #122                // Method net/minecraft/client/gui/Font.getFontSet:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/gui/font/FontSet;
+     115: invokevirtual #228                // Method net/minecraft/client/gui/font/FontSet.whiteGlyph:()Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+     118: astore_3
+     119: aload_0
+     120: getfield      #83                 // Field bufferSource:Lnet/minecraft/client/renderer/MultiBufferSource;
+     123: aload_3
+     124: aload_0
+     125: getfield      #107                // Field mode:Lnet/minecraft/client/gui/Font$DisplayMode;
+     128: invokevirtual #171                // Method net/minecraft/client/gui/font/glyphs/BakedGlyph.renderType:(Lnet/minecraft/client/gui/Font$DisplayMode;)Lnet/minecraft/client/renderer/RenderType;
+     131: invokeinterface #177,  2          // InterfaceMethod net/minecraft/client/renderer/MultiBufferSource.getBuffer:(Lnet/minecraft/client/renderer/RenderType;)Lcom/mojang/blaze3d/vertex/VertexConsumer;
+     136: astore        4
+     138: aload_0
+     139: getfield      #51                 // Field effects:Ljava/util/List;
+     142: invokeinterface #232,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     147: astore        5
+     149: aload         5
+     151: invokeinterface #239,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     156: ifeq          190
+     159: aload         5
+     161: invokeinterface #243,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     166: checkcast     #19                 // class net/minecraft/client/gui/font/glyphs/BakedGlyph$Effect
+     169: astore        6
+     171: aload_3
+     172: aload         6
+     174: aload_0
+     175: getfield      #105                // Field pose:Lorg/joml/Matrix4f;
+     178: aload         4
+     180: aload_0
+     181: getfield      #109                // Field packedLightCoords:I
+     184: invokevirtual #247                // Method net/minecraft/client/gui/font/glyphs/BakedGlyph.renderEffect:(Lnet/minecraft/client/gui/font/glyphs/BakedGlyph$Effect;Lorg/joml/Matrix4f;Lcom/mojang/blaze3d/vertex/VertexConsumer;I)V
+     187: goto          149
+     190: aload_0
+     191: getfield      #85                 // Field x:F
+     194: freturn
+}
+
+===== net.minecraft.client.gui.font.FontSet =====
+Compiled from "FontSet.java"
+public class net.minecraft.client.gui.font.FontSet implements java.lang.AutoCloseable {
+  private static final net.minecraft.util.RandomSource RANDOM;
+
+  private static final float LARGE_FORWARD_ADVANCE;
+
+  private final net.minecraft.client.renderer.texture.TextureManager textureManager;
+
+  private final net.minecraft.resources.ResourceLocation name;
+
+  private net.minecraft.client.gui.font.glyphs.BakedGlyph missingGlyph;
+
+  private net.minecraft.client.gui.font.glyphs.BakedGlyph whiteGlyph;
+
+  private java.util.List<com.mojang.blaze3d.font.GlyphProvider$Conditional> allProviders;
+
+  private java.util.List<com.mojang.blaze3d.font.GlyphProvider> activeProviders;
+
+  private final net.minecraft.client.gui.font.CodepointMap<net.minecraft.client.gui.font.glyphs.BakedGlyph> glyphs;
+
+  private final net.minecraft.client.gui.font.CodepointMap<net.minecraft.client.gui.font.FontSet$GlyphInfoFilter> glyphInfos;
+
+  private final it.unimi.dsi.fastutil.ints.Int2ObjectMap<it.unimi.dsi.fastutil.ints.IntList> glyphsByWidth;
+
+  private final java.util.List<net.minecraft.client.gui.font.FontTexture> textures;
+
+  public net.minecraft.client.gui.font.FontSet(net.minecraft.client.renderer.texture.TextureManager, net.minecraft.resources.ResourceLocation);
+    Code:
+       0: aload_0
+       1: invokespecial #62                 // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: invokestatic  #68                 // InterfaceMethod java/util/List.of:()Ljava/util/List;
+       8: putfield      #70                 // Field allProviders:Ljava/util/List;
+      11: aload_0
+      12: invokestatic  #68                 // InterfaceMethod java/util/List.of:()Ljava/util/List;
+      15: putfield      #72                 // Field activeProviders:Ljava/util/List;
+      18: aload_0
+      19: new           #74                 // class net/minecraft/client/gui/font/CodepointMap
+      22: dup
+      23: invokedynamic #93,  0             // InvokeDynamic #0:apply:()Ljava/util/function/IntFunction;
+      28: invokedynamic #100,  0            // InvokeDynamic #1:apply:()Ljava/util/function/IntFunction;
+      33: invokespecial #103                // Method net/minecraft/client/gui/font/CodepointMap."<init>":(Ljava/util/function/IntFunction;Ljava/util/function/IntFunction;)V
+      36: putfield      #105                // Field glyphs:Lnet/minecraft/client/gui/font/CodepointMap;
+      39: aload_0
+      40: new           #74                 // class net/minecraft/client/gui/font/CodepointMap
+      43: dup
+      44: invokedynamic #112,  0            // InvokeDynamic #2:apply:()Ljava/util/function/IntFunction;
+      49: invokedynamic #119,  0            // InvokeDynamic #3:apply:()Ljava/util/function/IntFunction;
+      54: invokespecial #103                // Method net/minecraft/client/gui/font/CodepointMap."<init>":(Ljava/util/function/IntFunction;Ljava/util/function/IntFunction;)V
+      57: putfield      #121                // Field glyphInfos:Lnet/minecraft/client/gui/font/CodepointMap;
+      60: aload_0
+      61: new           #123                // class it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap
+      64: dup
+      65: invokespecial #124                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap."<init>":()V
+      68: putfield      #126                // Field glyphsByWidth:Lit/unimi/dsi/fastutil/ints/Int2ObjectMap;
+      71: aload_0
+      72: invokestatic  #132                // Method com/google/common/collect/Lists.newArrayList:()Ljava/util/ArrayList;
+      75: putfield      #134                // Field textures:Ljava/util/List;
+      78: aload_0
+      79: aload_1
+      80: putfield      #136                // Field textureManager:Lnet/minecraft/client/renderer/texture/TextureManager;
+      83: aload_0
+      84: aload_2
+      85: putfield      #138                // Field name:Lnet/minecraft/resources/ResourceLocation;
+      88: return
+
+  public void reload(java.util.List<com.mojang.blaze3d.font.GlyphProvider$Conditional>, java.util.Set<net.minecraft.client.gui.font.FontOption>);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: putfield      #70                 // Field allProviders:Ljava/util/List;
+       5: aload_0
+       6: aload_2
+       7: invokevirtual #148                // Method reload:(Ljava/util/Set;)V
+      10: return
+
+  public void reload(java.util.Set<net.minecraft.client.gui.font.FontOption>);
+    Code:
+       0: aload_0
+       1: invokestatic  #68                 // InterfaceMethod java/util/List.of:()Ljava/util/List;
+       4: putfield      #72                 // Field activeProviders:Ljava/util/List;
+       7: aload_0
+       8: invokevirtual #154                // Method resetTextures:()V
+      11: aload_0
+      12: aload_0
+      13: aload_0
+      14: getfield      #70                 // Field allProviders:Ljava/util/List;
+      17: aload_1
+      18: invokevirtual #158                // Method selectProviders:(Ljava/util/List;Ljava/util/Set;)Ljava/util/List;
+      21: putfield      #72                 // Field activeProviders:Ljava/util/List;
+      24: return
+
+  private void resetTextures();
+    Code:
+       0: aload_0
+       1: invokevirtual #161                // Method closeTextures:()V
+       4: aload_0
+       5: getfield      #105                // Field glyphs:Lnet/minecraft/client/gui/font/CodepointMap;
+       8: invokevirtual #164                // Method net/minecraft/client/gui/font/CodepointMap.clear:()V
+      11: aload_0
+      12: getfield      #121                // Field glyphInfos:Lnet/minecraft/client/gui/font/CodepointMap;
+      15: invokevirtual #164                // Method net/minecraft/client/gui/font/CodepointMap.clear:()V
+      18: aload_0
+      19: getfield      #126                // Field glyphsByWidth:Lit/unimi/dsi/fastutil/ints/Int2ObjectMap;
+      22: invokeinterface #167,  1          // InterfaceMethod it/unimi/dsi/fastutil/ints/Int2ObjectMap.clear:()V
+      27: aload_0
+      28: getstatic     #173                // Field net/minecraft/client/gui/font/glyphs/SpecialGlyphs.MISSING:Lnet/minecraft/client/gui/font/glyphs/SpecialGlyphs;
+      31: aload_0
+      32: invokedynamic #184,  0            // InvokeDynamic #4:apply:(Lnet/minecraft/client/gui/font/FontSet;)Ljava/util/function/Function;
+      37: invokevirtual #188                // Method net/minecraft/client/gui/font/glyphs/SpecialGlyphs.bake:(Ljava/util/function/Function;)Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+      40: putfield      #190                // Field missingGlyph:Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+      43: aload_0
+      44: getstatic     #193                // Field net/minecraft/client/gui/font/glyphs/SpecialGlyphs.WHITE:Lnet/minecraft/client/gui/font/glyphs/SpecialGlyphs;
+      47: aload_0
+      48: invokedynamic #184,  0            // InvokeDynamic #4:apply:(Lnet/minecraft/client/gui/font/FontSet;)Ljava/util/function/Function;
+      53: invokevirtual #188                // Method net/minecraft/client/gui/font/glyphs/SpecialGlyphs.bake:(Ljava/util/function/Function;)Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+      56: putfield      #195                // Field whiteGlyph:Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+      59: return
+
+  private java.util.List<com.mojang.blaze3d.font.GlyphProvider> selectProviders(java.util.List<com.mojang.blaze3d.font.GlyphProvider$Conditional>, java.util.Set<net.minecraft.client.gui.font.FontOption>);
+    Code:
+       0: new           #198                // class it/unimi/dsi/fastutil/ints/IntOpenHashSet
+       3: dup
+       4: invokespecial #199                // Method it/unimi/dsi/fastutil/ints/IntOpenHashSet."<init>":()V
+       7: astore_3
+       8: new           #201                // class java/util/ArrayList
+      11: dup
+      12: invokespecial #202                // Method java/util/ArrayList."<init>":()V
+      15: astore        4
+      17: aload_1
+      18: invokeinterface #206,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      23: astore        5
+      25: aload         5
+      27: invokeinterface #214,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      32: ifeq          92
+      35: aload         5
+      37: invokeinterface #218,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      42: checkcast     #15                 // class com/mojang/blaze3d/font/GlyphProvider$Conditional
+      45: astore        6
+      47: aload         6
+      49: invokevirtual #222                // Method com/mojang/blaze3d/font/GlyphProvider$Conditional.filter:()Lnet/minecraft/client/gui/font/FontOption$Filter;
+      52: aload_2
+      53: invokevirtual #225                // Method net/minecraft/client/gui/font/FontOption$Filter.apply:(Ljava/util/Set;)Z
+      56: ifeq          89
+      59: aload         4
+      61: aload         6
+      63: invokevirtual #229                // Method com/mojang/blaze3d/font/GlyphProvider$Conditional.provider:()Lcom/mojang/blaze3d/font/GlyphProvider;
+      66: invokeinterface #233,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+      71: pop
+      72: aload_3
+      73: aload         6
+      75: invokevirtual #229                // Method com/mojang/blaze3d/font/GlyphProvider$Conditional.provider:()Lcom/mojang/blaze3d/font/GlyphProvider;
+      78: invokeinterface #237,  1          // InterfaceMethod com/mojang/blaze3d/font/GlyphProvider.getSupportedGlyphs:()Lit/unimi/dsi/fastutil/ints/IntSet;
+      83: invokeinterface #243,  2          // InterfaceMethod it/unimi/dsi/fastutil/ints/IntSet.addAll:(Lit/unimi/dsi/fastutil/ints/IntCollection;)Z
+      88: pop
+      89: goto          25
+      92: invokestatic  #249                // Method com/google/common/collect/Sets.newHashSet:()Ljava/util/HashSet;
+      95: astore        5
+      97: aload_3
+      98: aload_0
+      99: aload         4
+     101: aload         5
+     103: invokedynamic #260,  0            // InvokeDynamic #5:accept:(Lnet/minecraft/client/gui/font/FontSet;Ljava/util/List;Ljava/util/Set;)Lit/unimi/dsi/fastutil/ints/IntConsumer;
+     108: invokeinterface #264,  2          // InterfaceMethod it/unimi/dsi/fastutil/ints/IntSet.forEach:(Lit/unimi/dsi/fastutil/ints/IntConsumer;)V
+     113: aload         4
+     115: invokeinterface #268,  1          // InterfaceMethod java/util/List.stream:()Ljava/util/stream/Stream;
+     120: aload         5
+     122: dup
+     123: invokestatic  #273                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+     126: pop
+     127: invokedynamic #284,  0            // InvokeDynamic #6:test:(Ljava/util/Set;)Ljava/util/function/Predicate;
+     132: invokeinterface #289,  2          // InterfaceMethod java/util/stream/Stream.filter:(Ljava/util/function/Predicate;)Ljava/util/stream/Stream;
+     137: invokeinterface #292,  1          // InterfaceMethod java/util/stream/Stream.toList:()Ljava/util/List;
+     142: areturn
+
+  public void close();
+    Code:
+       0: aload_0
+       1: invokevirtual #161                // Method closeTextures:()V
+       4: return
+
+  private void closeTextures();
+    Code:
+       0: aload_0
+       1: getfield      #134                // Field textures:Ljava/util/List;
+       4: invokeinterface #206,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       9: astore_1
+      10: aload_1
+      11: invokeinterface #214,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      16: ifeq          36
+      19: aload_1
+      20: invokeinterface #218,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      25: checkcast     #302                // class net/minecraft/client/gui/font/FontTexture
+      28: astore_2
+      29: aload_2
+      30: invokevirtual #304                // Method net/minecraft/client/gui/font/FontTexture.close:()V
+      33: goto          10
+      36: aload_0
+      37: getfield      #134                // Field textures:Ljava/util/List;
+      40: invokeinterface #305,  1          // InterfaceMethod java/util/List.clear:()V
+      45: return
+
+  private static boolean hasFishyAdvance(com.mojang.blaze3d.font.GlyphInfo);
+    Code:
+       0: aload_0
+       1: iconst_0
+       2: invokeinterface #316,  2          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.getAdvance:(Z)F
+       7: fstore_1
+       8: fload_1
+       9: fconst_0
+      10: fcmpg
+      11: iflt          21
+      14: fload_1
+      15: ldc           #34                 // float 32.0f
+      17: fcmpl
+      18: ifle          23
+      21: iconst_1
+      22: ireturn
+      23: aload_0
+      24: iconst_1
+      25: invokeinterface #316,  2          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.getAdvance:(Z)F
+      30: fstore_2
+      31: fload_2
+      32: fconst_0
+      33: fcmpg
+      34: iflt          44
+      37: fload_2
+      38: ldc           #34                 // float 32.0f
+      40: fcmpl
+      41: ifle          46
+      44: iconst_1
+      45: ireturn
+      46: iconst_0
+      47: ireturn
+
+  private net.minecraft.client.gui.font.FontSet$GlyphInfoFilter computeGlyphInfo(int);
+    Code:
+       0: aconst_null
+       1: astore_2
+       2: aload_0
+       3: getfield      #72                 // Field activeProviders:Ljava/util/List;
+       6: invokeinterface #206,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      11: astore_3
+      12: aload_3
+      13: invokeinterface #214,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      18: ifeq          79
+      21: aload_3
+      22: invokeinterface #218,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      27: checkcast     #17                 // class com/mojang/blaze3d/font/GlyphProvider
+      30: astore        4
+      32: aload         4
+      34: iload_1
+      35: invokeinterface #326,  2          // InterfaceMethod com/mojang/blaze3d/font/GlyphProvider.getGlyph:(I)Lcom/mojang/blaze3d/font/GlyphInfo;
+      40: astore        5
+      42: aload         5
+      44: ifnonnull     50
+      47: goto          12
+      50: aload_2
+      51: ifnonnull     57
+      54: aload         5
+      56: astore_2
+      57: aload         5
+      59: invokestatic  #328                // Method hasFishyAdvance:(Lcom/mojang/blaze3d/font/GlyphInfo;)Z
+      62: ifne          76
+      65: new           #13                 // class net/minecraft/client/gui/font/FontSet$GlyphInfoFilter
+      68: dup
+      69: aload_2
+      70: aload         5
+      72: invokespecial #331                // Method net/minecraft/client/gui/font/FontSet$GlyphInfoFilter."<init>":(Lcom/mojang/blaze3d/font/GlyphInfo;Lcom/mojang/blaze3d/font/GlyphInfo;)V
+      75: areturn
+      76: goto          12
+      79: aload_2
+      80: ifnull        95
+      83: new           #13                 // class net/minecraft/client/gui/font/FontSet$GlyphInfoFilter
+      86: dup
+      87: aload_2
+      88: getstatic     #173                // Field net/minecraft/client/gui/font/glyphs/SpecialGlyphs.MISSING:Lnet/minecraft/client/gui/font/glyphs/SpecialGlyphs;
+      91: invokespecial #331                // Method net/minecraft/client/gui/font/FontSet$GlyphInfoFilter."<init>":(Lcom/mojang/blaze3d/font/GlyphInfo;Lcom/mojang/blaze3d/font/GlyphInfo;)V
+      94: areturn
+      95: getstatic     #334                // Field net/minecraft/client/gui/font/FontSet$GlyphInfoFilter.MISSING:Lnet/minecraft/client/gui/font/FontSet$GlyphInfoFilter;
+      98: areturn
+
+  public com.mojang.blaze3d.font.GlyphInfo getGlyphInfo(int, boolean);
+    Code:
+       0: aload_0
+       1: getfield      #121                // Field glyphInfos:Lnet/minecraft/client/gui/font/CodepointMap;
+       4: iload_1
+       5: aload_0
+       6: invokedynamic #348,  0            // InvokeDynamic #7:apply:(Lnet/minecraft/client/gui/font/FontSet;)Ljava/util/function/IntFunction;
+      11: invokevirtual #352                // Method net/minecraft/client/gui/font/CodepointMap.computeIfAbsent:(ILjava/util/function/IntFunction;)Ljava/lang/Object;
+      14: checkcast     #13                 // class net/minecraft/client/gui/font/FontSet$GlyphInfoFilter
+      17: iload_2
+      18: invokevirtual #356                // Method net/minecraft/client/gui/font/FontSet$GlyphInfoFilter.select:(Z)Lcom/mojang/blaze3d/font/GlyphInfo;
+      21: areturn
+
+  private net.minecraft.client.gui.font.glyphs.BakedGlyph computeBakedGlyph(int);
+    Code:
+       0: aload_0
+       1: getfield      #72                 // Field activeProviders:Ljava/util/List;
+       4: invokeinterface #206,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       9: astore_2
+      10: aload_2
+      11: invokeinterface #214,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      16: ifeq          60
+      19: aload_2
+      20: invokeinterface #218,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      25: checkcast     #17                 // class com/mojang/blaze3d/font/GlyphProvider
+      28: astore_3
+      29: aload_3
+      30: iload_1
+      31: invokeinterface #326,  2          // InterfaceMethod com/mojang/blaze3d/font/GlyphProvider.getGlyph:(I)Lcom/mojang/blaze3d/font/GlyphInfo;
+      36: astore        4
+      38: aload         4
+      40: ifnull        57
+      43: aload         4
+      45: aload_0
+      46: invokedynamic #184,  0            // InvokeDynamic #4:apply:(Lnet/minecraft/client/gui/font/FontSet;)Ljava/util/function/Function;
+      51: invokeinterface #360,  2          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.bake:(Ljava/util/function/Function;)Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+      56: areturn
+      57: goto          10
+      60: aload_0
+      61: getfield      #190                // Field missingGlyph:Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+      64: areturn
+
+  public net.minecraft.client.gui.font.glyphs.BakedGlyph getGlyph(int);
+    Code:
+       0: aload_0
+       1: getfield      #105                // Field glyphs:Lnet/minecraft/client/gui/font/CodepointMap;
+       4: iload_1
+       5: aload_0
+       6: invokedynamic #365,  0            // InvokeDynamic #8:apply:(Lnet/minecraft/client/gui/font/FontSet;)Ljava/util/function/IntFunction;
+      11: invokevirtual #352                // Method net/minecraft/client/gui/font/CodepointMap.computeIfAbsent:(ILjava/util/function/IntFunction;)Ljava/lang/Object;
+      14: checkcast     #367                // class net/minecraft/client/gui/font/glyphs/BakedGlyph
+      17: areturn
+
+  private net.minecraft.client.gui.font.glyphs.BakedGlyph stitch(com.mojang.blaze3d.font.SheetGlyphInfo);
+    Code:
+       0: aload_0
+       1: getfield      #134                // Field textures:Ljava/util/List;
+       4: invokeinterface #206,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       9: astore_2
+      10: aload_2
+      11: invokeinterface #214,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      16: ifeq          47
+      19: aload_2
+      20: invokeinterface #218,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      25: checkcast     #302                // class net/minecraft/client/gui/font/FontTexture
+      28: astore_3
+      29: aload_3
+      30: aload_1
+      31: invokevirtual #370                // Method net/minecraft/client/gui/font/FontTexture.add:(Lcom/mojang/blaze3d/font/SheetGlyphInfo;)Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+      34: astore        4
+      36: aload         4
+      38: ifnull        44
+      41: aload         4
+      43: areturn
+      44: goto          10
+      47: aload_0
+      48: getfield      #138                // Field name:Lnet/minecraft/resources/ResourceLocation;
+      51: aload_0
+      52: getfield      #134                // Field textures:Ljava/util/List;
+      55: invokeinterface #374,  1          // InterfaceMethod java/util/List.size:()I
+      60: invokedynamic #386,  0            // InvokeDynamic #9:makeConcatWithConstants:(I)Ljava/lang/String;
+      65: invokevirtual #392                // Method net/minecraft/resources/ResourceLocation.withSuffix:(Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;
+      68: astore_2
+      69: aload_1
+      70: invokeinterface #397,  1          // InterfaceMethod com/mojang/blaze3d/font/SheetGlyphInfo.isColored:()Z
+      75: istore_3
+      76: iload_3
+      77: ifeq          87
+      80: aload_2
+      81: invokestatic  #403                // Method net/minecraft/client/gui/font/GlyphRenderTypes.createForColorTexture:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/gui/font/GlyphRenderTypes;
+      84: goto          91
+      87: aload_2
+      88: invokestatic  #406                // Method net/minecraft/client/gui/font/GlyphRenderTypes.createForIntensityTexture:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/gui/font/GlyphRenderTypes;
+      91: astore        4
+      93: new           #302                // class net/minecraft/client/gui/font/FontTexture
+      96: dup
+      97: aload         4
+      99: iload_3
+     100: invokespecial #409                // Method net/minecraft/client/gui/font/FontTexture."<init>":(Lnet/minecraft/client/gui/font/GlyphRenderTypes;Z)V
+     103: astore        5
+     105: aload_0
+     106: getfield      #134                // Field textures:Ljava/util/List;
+     109: aload         5
+     111: invokeinterface #233,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+     116: pop
+     117: aload_0
+     118: getfield      #136                // Field textureManager:Lnet/minecraft/client/renderer/texture/TextureManager;
+     121: aload_2
+     122: aload         5
+     124: invokevirtual #415                // Method net/minecraft/client/renderer/texture/TextureManager.register:(Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/client/renderer/texture/AbstractTexture;)V
+     127: aload         5
+     129: aload_1
+     130: invokevirtual #370                // Method net/minecraft/client/gui/font/FontTexture.add:(Lcom/mojang/blaze3d/font/SheetGlyphInfo;)Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+     133: astore        6
+     135: aload         6
+     137: ifnonnull     147
+     140: aload_0
+     141: getfield      #190                // Field missingGlyph:Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+     144: goto          149
+     147: aload         6
+     149: areturn
+
+  public net.minecraft.client.gui.font.glyphs.BakedGlyph getRandomGlyph(com.mojang.blaze3d.font.GlyphInfo);
+    Code:
+       0: aload_0
+       1: getfield      #126                // Field glyphsByWidth:Lit/unimi/dsi/fastutil/ints/Int2ObjectMap;
+       4: aload_1
+       5: iconst_0
+       6: invokeinterface #316,  2          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.getAdvance:(Z)F
+      11: invokestatic  #429                // Method net/minecraft/util/Mth.ceil:(F)I
+      14: invokeinterface #432,  2          // InterfaceMethod it/unimi/dsi/fastutil/ints/Int2ObjectMap.get:(I)Ljava/lang/Object;
+      19: checkcast     #434                // class it/unimi/dsi/fastutil/ints/IntList
+      22: astore_2
+      23: aload_2
+      24: ifnull        61
+      27: aload_2
+      28: invokeinterface #437,  1          // InterfaceMethod it/unimi/dsi/fastutil/ints/IntList.isEmpty:()Z
+      33: ifne          61
+      36: aload_0
+      37: aload_2
+      38: getstatic     #439                // Field RANDOM:Lnet/minecraft/util/RandomSource;
+      41: aload_2
+      42: invokeinterface #440,  1          // InterfaceMethod it/unimi/dsi/fastutil/ints/IntList.size:()I
+      47: invokeinterface #446,  2          // InterfaceMethod net/minecraft/util/RandomSource.nextInt:(I)I
+      52: invokeinterface #449,  2          // InterfaceMethod it/unimi/dsi/fastutil/ints/IntList.getInt:(I)I
+      57: invokevirtual #451                // Method getGlyph:(I)Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+      60: areturn
+      61: aload_0
+      62: getfield      #190                // Field missingGlyph:Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+      65: areturn
+
+  public net.minecraft.resources.ResourceLocation name();
+    Code:
+       0: aload_0
+       1: getfield      #138                // Field name:Lnet/minecraft/resources/ResourceLocation;
+       4: areturn
+
+  public net.minecraft.client.gui.font.glyphs.BakedGlyph whiteGlyph();
+    Code:
+       0: aload_0
+       1: getfield      #195                // Field whiteGlyph:Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;
+       4: areturn
+
+  private void method_57035(java.util.List, java.util.Set, int);
+    Code:
+       0: aload_1
+       1: invokeinterface #206,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       6: astore        4
+       8: aload         4
+      10: invokeinterface #214,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      15: ifeq          103
+      18: aload         4
+      20: invokeinterface #218,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      25: checkcast     #17                 // class com/mojang/blaze3d/font/GlyphProvider
+      28: astore        5
+      30: aload         5
+      32: iload_3
+      33: invokeinterface #326,  2          // InterfaceMethod com/mojang/blaze3d/font/GlyphProvider.getGlyph:(I)Lcom/mojang/blaze3d/font/GlyphInfo;
+      38: astore        6
+      40: aload         6
+      42: ifnull        100
+      45: aload_2
+      46: aload         5
+      48: invokeinterface #456,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+      53: pop
+      54: aload         6
+      56: getstatic     #173                // Field net/minecraft/client/gui/font/glyphs/SpecialGlyphs.MISSING:Lnet/minecraft/client/gui/font/glyphs/SpecialGlyphs;
+      59: if_acmpeq     103
+      62: aload_0
+      63: getfield      #126                // Field glyphsByWidth:Lit/unimi/dsi/fastutil/ints/Int2ObjectMap;
+      66: aload         6
+      68: iconst_0
+      69: invokeinterface #316,  2          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.getAdvance:(Z)F
+      74: invokestatic  #429                // Method net/minecraft/util/Mth.ceil:(F)I
+      77: invokedynamic #465,  0            // InvokeDynamic #10:get:()Lit/unimi/dsi/fastutil/ints/Int2ObjectFunction;
+      82: invokeinterface #468,  3          // InterfaceMethod it/unimi/dsi/fastutil/ints/Int2ObjectMap.computeIfAbsent:(ILit/unimi/dsi/fastutil/ints/Int2ObjectFunction;)Ljava/lang/Object;
+      87: checkcast     #434                // class it/unimi/dsi/fastutil/ints/IntList
+      90: iload_3
+      91: invokeinterface #471,  2          // InterfaceMethod it/unimi/dsi/fastutil/ints/IntList.add:(I)Z
+      96: pop
+      97: goto          103
+     100: goto          8
+     103: return
+
+  private static it.unimi.dsi.fastutil.ints.IntList method_57039(int);
+    Code:
+       0: new           #473                // class it/unimi/dsi/fastutil/ints/IntArrayList
+       3: dup
+       4: invokespecial #474                // Method it/unimi/dsi/fastutil/ints/IntArrayList."<init>":()V
+       7: areturn
+
+  private static net.minecraft.client.gui.font.FontSet$GlyphInfoFilter[][] method_51636(int);
+    Code:
+       0: iload_0
+       1: anewarray     #476                // class "[Lnet/minecraft/client/gui/font/FontSet$GlyphInfoFilter;"
+       4: areturn
+
+  private static net.minecraft.client.gui.font.FontSet$GlyphInfoFilter[] method_51637(int);
+    Code:
+       0: iload_0
+       1: anewarray     #13                 // class net/minecraft/client/gui/font/FontSet$GlyphInfoFilter
+       4: areturn
+
+  private static net.minecraft.client.gui.font.glyphs.BakedGlyph[][] method_51638(int);
+    Code:
+       0: iload_0
+       1: anewarray     #478                // class "[Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;"
+       4: areturn
+
+  private static net.minecraft.client.gui.font.glyphs.BakedGlyph[] method_51639(int);
+    Code:
+       0: iload_0
+       1: anewarray     #367                // class net/minecraft/client/gui/font/glyphs/BakedGlyph
+       4: areturn
+
+  static {};
+    Code:
+       0: invokestatic  #483                // InterfaceMethod net/minecraft/util/RandomSource.create:()Lnet/minecraft/util/RandomSource;
+       3: putstatic     #439                // Field RANDOM:Lnet/minecraft/util/RandomSource;
+       6: return
+}
+
+===== net.minecraft.client.gui.Font =====
+Compiled from "Font.java"
+public class net.minecraft.client.gui.Font {
+  private static final float EFFECT_DEPTH;
+
+  private static final org.joml.Vector3f SHADOW_OFFSET;
+
+  public static final int ALPHA_CUTOFF;
+
+  public final int lineHeight;
+
+  public final net.minecraft.util.RandomSource random;
+
+  private final java.util.function.Function<net.minecraft.resources.ResourceLocation, net.minecraft.client.gui.font.FontSet> fonts;
+
+  final boolean filterFishyGlyphs;
+
+  private final net.minecraft.client.StringSplitter splitter;
+
+  public net.minecraft.client.gui.Font(java.util.function.Function<net.minecraft.resources.ResourceLocation, net.minecraft.client.gui.font.FontSet>, boolean);
+    Code:
+       0: aload_0
+       1: invokespecial #52                 // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: bipush        9
+       7: putfield      #54                 // Field lineHeight:I
+      10: aload_0
+      11: invokestatic  #60                 // InterfaceMethod net/minecraft/util/RandomSource.create:()Lnet/minecraft/util/RandomSource;
+      14: putfield      #62                 // Field random:Lnet/minecraft/util/RandomSource;
+      17: aload_0
+      18: aload_1
+      19: putfield      #64                 // Field fonts:Ljava/util/function/Function;
+      22: aload_0
+      23: iload_2
+      24: putfield      #66                 // Field filterFishyGlyphs:Z
+      27: aload_0
+      28: new           #17                 // class net/minecraft/client/StringSplitter
+      31: dup
+      32: aload_0
+      33: invokedynamic #83,  0             // InvokeDynamic #0:getWidth:(Lnet/minecraft/client/gui/Font;)Lnet/minecraft/client/StringSplitter$WidthProvider;
+      38: invokespecial #86                 // Method net/minecraft/client/StringSplitter."<init>":(Lnet/minecraft/client/StringSplitter$WidthProvider;)V
+      41: putfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+      44: return
+
+  net.minecraft.client.gui.font.FontSet getFontSet(net.minecraft.resources.ResourceLocation);
+    Code:
+       0: aload_0
+       1: getfield      #64                 // Field fonts:Ljava/util/function/Function;
+       4: aload_1
+       5: invokeinterface #99,  2           // InterfaceMethod java/util/function/Function.apply:(Ljava/lang/Object;)Ljava/lang/Object;
+      10: checkcast     #101                // class net/minecraft/client/gui/font/FontSet
+      13: areturn
+
+  public java.lang.String bidirectionalShaping(java.lang.String);
+    Code:
+       0: new           #109                // class com/ibm/icu/text/Bidi
+       3: dup
+       4: new           #111                // class com/ibm/icu/text/ArabicShaping
+       7: dup
+       8: bipush        8
+      10: invokespecial #114                // Method com/ibm/icu/text/ArabicShaping."<init>":(I)V
+      13: aload_1
+      14: invokevirtual #117                // Method com/ibm/icu/text/ArabicShaping.shape:(Ljava/lang/String;)Ljava/lang/String;
+      17: bipush        127
+      19: invokespecial #120                // Method com/ibm/icu/text/Bidi."<init>":(Ljava/lang/String;I)V
+      22: astore_2
+      23: aload_2
+      24: iconst_0
+      25: invokevirtual #123                // Method com/ibm/icu/text/Bidi.setReorderingMode:(I)V
+      28: aload_2
+      29: iconst_2
+      30: invokevirtual #127                // Method com/ibm/icu/text/Bidi.writeReordered:(I)Ljava/lang/String;
+      33: areturn
+      34: astore_2
+      35: aload_1
+      36: areturn
+    Exception table:
+       from    to  target type
+           0    33    34   Class com/ibm/icu/text/ArabicShapingException
+
+  public int drawInBatch(java.lang.String, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.client.gui.Font$DisplayMode, int, int);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: fload_2
+       3: fload_3
+       4: iload         4
+       6: iload         5
+       8: aload         6
+      10: aload         7
+      12: aload         8
+      14: iload         9
+      16: iload         10
+      18: aload_0
+      19: invokevirtual #146                // Method isBidirectional:()Z
+      22: invokevirtual #149                // Method drawInBatch:(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I
+      25: ireturn
+
+  public int drawInBatch(java.lang.String, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.client.gui.Font$DisplayMode, int, int, boolean);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: fload_2
+       3: fload_3
+       4: iload         4
+       6: iload         5
+       8: aload         6
+      10: aload         7
+      12: aload         8
+      14: iload         9
+      16: iload         10
+      18: iload         11
+      20: invokevirtual #156                // Method drawInternal:(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)I
+      23: ireturn
+
+  public int drawInBatch(net.minecraft.network.chat.Component, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.client.gui.Font$DisplayMode, int, int);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: invokeinterface #164,  1          // InterfaceMethod net/minecraft/network/chat/Component.getVisualOrderText:()Lnet/minecraft/util/FormattedCharSequence;
+       7: fload_2
+       8: fload_3
+       9: iload         4
+      11: iload         5
+      13: aload         6
+      15: aload         7
+      17: aload         8
+      19: iload         9
+      21: iload         10
+      23: invokevirtual #167                // Method drawInBatch:(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I
+      26: ireturn
+
+  public int drawInBatch(net.minecraft.util.FormattedCharSequence, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.client.gui.Font$DisplayMode, int, int);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: fload_2
+       3: fload_3
+       4: iload         4
+       6: iload         5
+       8: aload         6
+      10: aload         7
+      12: aload         8
+      14: iload         9
+      16: iload         10
+      18: invokevirtual #171                // Method drawInternal:(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)I
+      21: ireturn
+
+  public void drawInBatch8xOutline(net.minecraft.util.FormattedCharSequence, float, float, int, int, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, int);
+    Code:
+       0: iload         5
+       2: invokestatic  #178                // Method adjustColor:(I)I
+       5: istore        9
+       7: new           #11                 // class net/minecraft/client/gui/Font$StringRenderOutput
+      10: dup
+      11: aload_0
+      12: aload         7
+      14: fconst_0
+      15: fconst_0
+      16: iload         9
+      18: iconst_0
+      19: aload         6
+      21: getstatic     #181                // Field net/minecraft/client/gui/Font$DisplayMode.NORMAL:Lnet/minecraft/client/gui/Font$DisplayMode;
+      24: iload         8
+      26: invokespecial #184                // Method net/minecraft/client/gui/Font$StringRenderOutput."<init>":(Lnet/minecraft/client/gui/Font;Lnet/minecraft/client/renderer/MultiBufferSource;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/gui/Font$DisplayMode;I)V
+      29: astore        10
+      31: iconst_m1
+      32: istore        11
+      34: iload         11
+      36: iconst_1
+      37: if_icmpgt     112
+      40: iconst_m1
+      41: istore        12
+      43: iload         12
+      45: iconst_1
+      46: if_icmpgt     106
+      49: iload         11
+      51: ifne          59
+      54: iload         12
+      56: ifeq          100
+      59: iconst_1
+      60: newarray       float
+      62: dup
+      63: iconst_0
+      64: fload_2
+      65: fastore
+      66: astore        13
+      68: iload         11
+      70: istore        14
+      72: iload         12
+      74: istore        15
+      76: aload_1
+      77: aload_0
+      78: aload         10
+      80: aload         13
+      82: iload         14
+      84: fload_3
+      85: iload         15
+      87: iload         9
+      89: invokedynamic #201,  0            // InvokeDynamic #1:accept:(Lnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/Font$StringRenderOutput;[FIFII)Lnet/minecraft/util/FormattedCharSink;
+      94: invokeinterface #204,  2          // InterfaceMethod net/minecraft/util/FormattedCharSequence.accept:(Lnet/minecraft/util/FormattedCharSink;)Z
+      99: pop
+     100: iinc          12, 1
+     103: goto          43
+     106: iinc          11, 1
+     109: goto          34
+     112: new           #11                 // class net/minecraft/client/gui/Font$StringRenderOutput
+     115: dup
+     116: aload_0
+     117: aload         7
+     119: fload_2
+     120: fload_3
+     121: iload         4
+     123: invokestatic  #178                // Method adjustColor:(I)I
+     126: iconst_0
+     127: aload         6
+     129: getstatic     #207                // Field net/minecraft/client/gui/Font$DisplayMode.POLYGON_OFFSET:Lnet/minecraft/client/gui/Font$DisplayMode;
+     132: iload         8
+     134: invokespecial #184                // Method net/minecraft/client/gui/Font$StringRenderOutput."<init>":(Lnet/minecraft/client/gui/Font;Lnet/minecraft/client/renderer/MultiBufferSource;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/gui/Font$DisplayMode;I)V
+     137: astore        11
+     139: aload_1
+     140: aload         11
+     142: invokeinterface #204,  2          // InterfaceMethod net/minecraft/util/FormattedCharSequence.accept:(Lnet/minecraft/util/FormattedCharSink;)Z
+     147: pop
+     148: aload         11
+     150: iconst_0
+     151: fload_2
+     152: invokevirtual #211                // Method net/minecraft/client/gui/Font$StringRenderOutput.finish:(IF)F
+     155: pop
+     156: return
+
+  private static int adjustColor(int);
+    Code:
+       0: iload_0
+       1: ldc           #222                // int -67108864
+       3: iand
+       4: ifne          12
+       7: iload_0
+       8: ldc           #223                // int -16777216
+      10: ior
+      11: ireturn
+      12: iload_0
+      13: ireturn
+
+  private int drawInternal(java.lang.String, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.client.gui.Font$DisplayMode, int, int, boolean);
+    Code:
+       0: iload         11
+       2: ifeq          11
+       5: aload_0
+       6: aload_1
+       7: invokevirtual #225                // Method bidirectionalShaping:(Ljava/lang/String;)Ljava/lang/String;
+      10: astore_1
+      11: iload         4
+      13: invokestatic  #178                // Method adjustColor:(I)I
+      16: istore        4
+      18: new           #188                // class org/joml/Matrix4f
+      21: dup
+      22: aload         6
+      24: invokespecial #228                // Method org/joml/Matrix4f."<init>":(Lorg/joml/Matrix4fc;)V
+      27: astore        12
+      29: iload         5
+      31: ifeq          64
+      34: aload_0
+      35: aload_1
+      36: fload_2
+      37: fload_3
+      38: iload         4
+      40: iconst_1
+      41: aload         6
+      43: aload         7
+      45: aload         8
+      47: iload         9
+      49: iload         10
+      51: invokevirtual #232                // Method renderText:(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)F
+      54: pop
+      55: aload         12
+      57: getstatic     #234                // Field SHADOW_OFFSET:Lorg/joml/Vector3f;
+      60: invokevirtual #238                // Method org/joml/Matrix4f.translate:(Lorg/joml/Vector3fc;)Lorg/joml/Matrix4f;
+      63: pop
+      64: aload_0
+      65: aload_1
+      66: fload_2
+      67: fload_3
+      68: iload         4
+      70: iconst_0
+      71: aload         12
+      73: aload         7
+      75: aload         8
+      77: iload         9
+      79: iload         10
+      81: invokevirtual #232                // Method renderText:(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)F
+      84: fstore_2
+      85: fload_2
+      86: f2i
+      87: iload         5
+      89: ifeq          96
+      92: iconst_1
+      93: goto          97
+      96: iconst_0
+      97: iadd
+      98: ireturn
+
+  private int drawInternal(net.minecraft.util.FormattedCharSequence, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.client.gui.Font$DisplayMode, int, int);
+    Code:
+       0: iload         4
+       2: invokestatic  #178                // Method adjustColor:(I)I
+       5: istore        4
+       7: new           #188                // class org/joml/Matrix4f
+      10: dup
+      11: aload         6
+      13: invokespecial #228                // Method org/joml/Matrix4f."<init>":(Lorg/joml/Matrix4fc;)V
+      16: astore        11
+      18: iload         5
+      20: ifeq          53
+      23: aload_0
+      24: aload_1
+      25: fload_2
+      26: fload_3
+      27: iload         4
+      29: iconst_1
+      30: aload         6
+      32: aload         7
+      34: aload         8
+      36: iload         9
+      38: iload         10
+      40: invokevirtual #242                // Method renderText:(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)F
+      43: pop
+      44: aload         11
+      46: getstatic     #234                // Field SHADOW_OFFSET:Lorg/joml/Vector3f;
+      49: invokevirtual #238                // Method org/joml/Matrix4f.translate:(Lorg/joml/Vector3fc;)Lorg/joml/Matrix4f;
+      52: pop
+      53: aload_0
+      54: aload_1
+      55: fload_2
+      56: fload_3
+      57: iload         4
+      59: iconst_0
+      60: aload         11
+      62: aload         7
+      64: aload         8
+      66: iload         9
+      68: iload         10
+      70: invokevirtual #242                // Method renderText:(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)F
+      73: fstore_2
+      74: fload_2
+      75: f2i
+      76: iload         5
+      78: ifeq          85
+      81: iconst_1
+      82: goto          86
+      85: iconst_0
+      86: iadd
+      87: ireturn
+
+  private float renderText(java.lang.String, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.client.gui.Font$DisplayMode, int, int);
+    Code:
+       0: new           #11                 // class net/minecraft/client/gui/Font$StringRenderOutput
+       3: dup
+       4: aload_0
+       5: aload         7
+       7: fload_2
+       8: fload_3
+       9: iload         4
+      11: iload         5
+      13: aload         6
+      15: aload         8
+      17: iload         10
+      19: invokespecial #184                // Method net/minecraft/client/gui/Font$StringRenderOutput."<init>":(Lnet/minecraft/client/gui/Font;Lnet/minecraft/client/renderer/MultiBufferSource;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/gui/Font$DisplayMode;I)V
+      22: astore        11
+      24: aload_1
+      25: getstatic     #248                // Field net/minecraft/network/chat/Style.EMPTY:Lnet/minecraft/network/chat/Style;
+      28: aload         11
+      30: invokestatic  #254                // Method net/minecraft/util/StringDecomposer.iterateFormatted:(Ljava/lang/String;Lnet/minecraft/network/chat/Style;Lnet/minecraft/util/FormattedCharSink;)Z
+      33: pop
+      34: aload         11
+      36: iload         9
+      38: fload_2
+      39: invokevirtual #211                // Method net/minecraft/client/gui/Font$StringRenderOutput.finish:(IF)F
+      42: freturn
+
+  private float renderText(net.minecraft.util.FormattedCharSequence, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.client.renderer.MultiBufferSource, net.minecraft.client.gui.Font$DisplayMode, int, int);
+    Code:
+       0: new           #11                 // class net/minecraft/client/gui/Font$StringRenderOutput
+       3: dup
+       4: aload_0
+       5: aload         7
+       7: fload_2
+       8: fload_3
+       9: iload         4
+      11: iload         5
+      13: aload         6
+      15: aload         8
+      17: iload         10
+      19: invokespecial #184                // Method net/minecraft/client/gui/Font$StringRenderOutput."<init>":(Lnet/minecraft/client/gui/Font;Lnet/minecraft/client/renderer/MultiBufferSource;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/gui/Font$DisplayMode;I)V
+      22: astore        11
+      24: aload_1
+      25: aload         11
+      27: invokeinterface #204,  2          // InterfaceMethod net/minecraft/util/FormattedCharSequence.accept:(Lnet/minecraft/util/FormattedCharSink;)Z
+      32: pop
+      33: aload         11
+      35: iload         9
+      37: fload_2
+      38: invokevirtual #211                // Method net/minecraft/client/gui/Font$StringRenderOutput.finish:(IF)F
+      41: freturn
+
+  void renderChar(net.minecraft.client.gui.font.glyphs.BakedGlyph, boolean, boolean, float, float, float, org.joml.Matrix4f, com.mojang.blaze3d.vertex.VertexConsumer, float, float, float, float, int);
+    Code:
+       0: aload_1
+       1: iload_3
+       2: fload         5
+       4: fload         6
+       6: aload         7
+       8: aload         8
+      10: fload         9
+      12: fload         10
+      14: fload         11
+      16: fload         12
+      18: iload         13
+      20: invokevirtual #265                // Method net/minecraft/client/gui/font/glyphs/BakedGlyph.render:(ZFFLorg/joml/Matrix4f;Lcom/mojang/blaze3d/vertex/VertexConsumer;FFFFI)V
+      23: iload_2
+      24: ifeq          53
+      27: aload_1
+      28: iload_3
+      29: fload         5
+      31: fload         4
+      33: fadd
+      34: fload         6
+      36: aload         7
+      38: aload         8
+      40: fload         9
+      42: fload         10
+      44: fload         11
+      46: fload         12
+      48: iload         13
+      50: invokevirtual #265                // Method net/minecraft/client/gui/font/glyphs/BakedGlyph.render:(ZFFLorg/joml/Matrix4f;Lcom/mojang/blaze3d/vertex/VertexConsumer;FFFFI)V
+      53: return
+
+  public int width(java.lang.String);
+    Code:
+       0: aload_0
+       1: getfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+       4: aload_1
+       5: invokevirtual #273                // Method net/minecraft/client/StringSplitter.stringWidth:(Ljava/lang/String;)F
+       8: invokestatic  #279                // Method net/minecraft/util/Mth.ceil:(F)I
+      11: ireturn
+
+  public int width(net.minecraft.network.chat.FormattedText);
+    Code:
+       0: aload_0
+       1: getfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+       4: aload_1
+       5: invokevirtual #284                // Method net/minecraft/client/StringSplitter.stringWidth:(Lnet/minecraft/network/chat/FormattedText;)F
+       8: invokestatic  #279                // Method net/minecraft/util/Mth.ceil:(F)I
+      11: ireturn
+
+  public int width(net.minecraft.util.FormattedCharSequence);
+    Code:
+       0: aload_0
+       1: getfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+       4: aload_1
+       5: invokevirtual #289                // Method net/minecraft/client/StringSplitter.stringWidth:(Lnet/minecraft/util/FormattedCharSequence;)F
+       8: invokestatic  #279                // Method net/minecraft/util/Mth.ceil:(F)I
+      11: ireturn
+
+  public java.lang.String plainSubstrByWidth(java.lang.String, int, boolean);
+    Code:
+       0: iload_3
+       1: ifeq          19
+       4: aload_0
+       5: getfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+       8: aload_1
+       9: iload_2
+      10: getstatic     #248                // Field net/minecraft/network/chat/Style.EMPTY:Lnet/minecraft/network/chat/Style;
+      13: invokevirtual #295                // Method net/minecraft/client/StringSplitter.plainTailByWidth:(Ljava/lang/String;ILnet/minecraft/network/chat/Style;)Ljava/lang/String;
+      16: goto          31
+      19: aload_0
+      20: getfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+      23: aload_1
+      24: iload_2
+      25: getstatic     #248                // Field net/minecraft/network/chat/Style.EMPTY:Lnet/minecraft/network/chat/Style;
+      28: invokevirtual #298                // Method net/minecraft/client/StringSplitter.plainHeadByWidth:(Ljava/lang/String;ILnet/minecraft/network/chat/Style;)Ljava/lang/String;
+      31: areturn
+
+  public java.lang.String plainSubstrByWidth(java.lang.String, int);
+    Code:
+       0: aload_0
+       1: getfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+       4: aload_1
+       5: iload_2
+       6: getstatic     #248                // Field net/minecraft/network/chat/Style.EMPTY:Lnet/minecraft/network/chat/Style;
+       9: invokevirtual #298                // Method net/minecraft/client/StringSplitter.plainHeadByWidth:(Ljava/lang/String;ILnet/minecraft/network/chat/Style;)Ljava/lang/String;
+      12: areturn
+
+  public net.minecraft.network.chat.FormattedText substrByWidth(net.minecraft.network.chat.FormattedText, int);
+    Code:
+       0: aload_0
+       1: getfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+       4: aload_1
+       5: iload_2
+       6: getstatic     #248                // Field net/minecraft/network/chat/Style.EMPTY:Lnet/minecraft/network/chat/Style;
+       9: invokevirtual #305                // Method net/minecraft/client/StringSplitter.headByWidth:(Lnet/minecraft/network/chat/FormattedText;ILnet/minecraft/network/chat/Style;)Lnet/minecraft/network/chat/FormattedText;
+      12: areturn
+
+  public int wordWrapHeight(java.lang.String, int);
+    Code:
+       0: bipush        9
+       2: aload_0
+       3: getfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+       6: aload_1
+       7: iload_2
+       8: getstatic     #248                // Field net/minecraft/network/chat/Style.EMPTY:Lnet/minecraft/network/chat/Style;
+      11: invokevirtual #311                // Method net/minecraft/client/StringSplitter.splitLines:(Ljava/lang/String;ILnet/minecraft/network/chat/Style;)Ljava/util/List;
+      14: invokeinterface #317,  1          // InterfaceMethod java/util/List.size:()I
+      19: imul
+      20: ireturn
+
+  public int wordWrapHeight(net.minecraft.network.chat.FormattedText, int);
+    Code:
+       0: bipush        9
+       2: aload_0
+       3: getfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+       6: aload_1
+       7: iload_2
+       8: getstatic     #248                // Field net/minecraft/network/chat/Style.EMPTY:Lnet/minecraft/network/chat/Style;
+      11: invokevirtual #321                // Method net/minecraft/client/StringSplitter.splitLines:(Lnet/minecraft/network/chat/FormattedText;ILnet/minecraft/network/chat/Style;)Ljava/util/List;
+      14: invokeinterface #317,  1          // InterfaceMethod java/util/List.size:()I
+      19: imul
+      20: ireturn
+
+  public java.util.List<net.minecraft.util.FormattedCharSequence> split(net.minecraft.network.chat.FormattedText, int);
+    Code:
+       0: invokestatic  #330                // Method net/minecraft/locale/Language.getInstance:()Lnet/minecraft/locale/Language;
+       3: aload_0
+       4: getfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+       7: aload_1
+       8: iload_2
+       9: getstatic     #248                // Field net/minecraft/network/chat/Style.EMPTY:Lnet/minecraft/network/chat/Style;
+      12: invokevirtual #321                // Method net/minecraft/client/StringSplitter.splitLines:(Lnet/minecraft/network/chat/FormattedText;ILnet/minecraft/network/chat/Style;)Ljava/util/List;
+      15: invokevirtual #334                // Method net/minecraft/locale/Language.getVisualOrder:(Ljava/util/List;)Ljava/util/List;
+      18: areturn
+
+  public boolean isBidirectional();
+    Code:
+       0: invokestatic  #330                // Method net/minecraft/locale/Language.getInstance:()Lnet/minecraft/locale/Language;
+       3: invokevirtual #337                // Method net/minecraft/locale/Language.isDefaultRightToLeft:()Z
+       6: ireturn
+
+  public net.minecraft.client.StringSplitter getSplitter();
+    Code:
+       0: aload_0
+       1: getfield      #88                 // Field splitter:Lnet/minecraft/client/StringSplitter;
+       4: areturn
+
+  private boolean method_37297(net.minecraft.client.gui.Font$StringRenderOutput, float[], int, float, int, int, int, net.minecraft.network.chat.Style, int);
+    Code:
+       0: aload         8
+       2: invokevirtual #343                // Method net/minecraft/network/chat/Style.isBold:()Z
+       5: istore        10
+       7: aload_0
+       8: aload         8
+      10: invokevirtual #347                // Method net/minecraft/network/chat/Style.getFont:()Lnet/minecraft/resources/ResourceLocation;
+      13: invokevirtual #349                // Method getFontSet:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/gui/font/FontSet;
+      16: astore        11
+      18: aload         11
+      20: iload         9
+      22: aload_0
+      23: getfield      #66                 // Field filterFishyGlyphs:Z
+      26: invokevirtual #353                // Method net/minecraft/client/gui/font/FontSet.getGlyphInfo:(IZ)Lcom/mojang/blaze3d/font/GlyphInfo;
+      29: astore        12
+      31: aload_1
+      32: aload_2
+      33: iconst_0
+      34: faload
+      35: iload_3
+      36: i2f
+      37: aload         12
+      39: invokeinterface #359,  1          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.getShadowOffset:()F
+      44: fmul
+      45: fadd
+      46: putfield      #362                // Field net/minecraft/client/gui/Font$StringRenderOutput.x:F
+      49: aload_1
+      50: fload         4
+      52: iload         5
+      54: i2f
+      55: aload         12
+      57: invokeinterface #359,  1          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.getShadowOffset:()F
+      62: fmul
+      63: fadd
+      64: putfield      #365                // Field net/minecraft/client/gui/Font$StringRenderOutput.y:F
+      67: aload_2
+      68: iconst_0
+      69: dup2
+      70: faload
+      71: aload         12
+      73: iload         10
+      75: invokeinterface #369,  2          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.getAdvance:(Z)F
+      80: fadd
+      81: fastore
+      82: aload_1
+      83: iload         7
+      85: aload         8
+      87: iload         6
+      89: invokevirtual #373                // Method net/minecraft/network/chat/Style.withColor:(I)Lnet/minecraft/network/chat/Style;
+      92: iload         9
+      94: invokevirtual #375                // Method net/minecraft/client/gui/Font$StringRenderOutput.accept:(ILnet/minecraft/network/chat/Style;I)Z
+      97: ireturn
+
+  private float method_27516(int, net.minecraft.network.chat.Style);
+    Code:
+       0: aload_0
+       1: aload_2
+       2: invokevirtual #347                // Method net/minecraft/network/chat/Style.getFont:()Lnet/minecraft/resources/ResourceLocation;
+       5: invokevirtual #349                // Method getFontSet:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/gui/font/FontSet;
+       8: iload_1
+       9: aload_0
+      10: getfield      #66                 // Field filterFishyGlyphs:Z
+      13: invokevirtual #353                // Method net/minecraft/client/gui/font/FontSet.getGlyphInfo:(IZ)Lcom/mojang/blaze3d/font/GlyphInfo;
+      16: aload_2
+      17: invokevirtual #343                // Method net/minecraft/network/chat/Style.isBold:()Z
+      20: invokeinterface #369,  2          // InterfaceMethod com/mojang/blaze3d/font/GlyphInfo.getAdvance:(Z)F
+      25: freturn
+
+  static {};
+    Code:
+       0: new           #382                // class org/joml/Vector3f
+       3: dup
+       4: fconst_0
+       5: fconst_0
+       6: ldc_w         #383                // float 0.03f
+       9: invokespecial #386                // Method org/joml/Vector3f."<init>":(FFF)V
+      12: putstatic     #234                // Field SHADOW_OFFSET:Lorg/joml/Vector3f;
+      15: return
+}
+

@@ -1,0 +1,60 @@
+plugins {
+    id 'fabric-loom' version '1.15.5'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    maven {
+        name = 'Aliyun'
+        url = 'https://maven.aliyun.com/repository/public/'
+    }
+    mavenCentral()
+}
+
+configurations {
+    webpNatives
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    implementation "org.sejda.imageio:webp-imageio:${project.webp_imageio_version}"
+    webpNatives "org.sejda.imageio:webp-imageio:${project.webp_imageio_version}"
+}
+
+// WebP 解码依赖 JNI 原生库，必须连同类文件一起打进 mod jar；Loader 的嵌套 jar 只保证加载 classpath，
+// 不保证 native 资源可被 NativeLibraryUtils 从自身 jar 内解出，所以直接展开合并。
+tasks.named('jar', Jar) {
+    from({ zipTree(configurations.webpNatives.singleFile) }) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
+    }
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') {
+        expand version: project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
