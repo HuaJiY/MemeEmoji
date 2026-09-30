@@ -13,7 +13,7 @@ import java.nio.file.Path;
  * 可调项都放在这里。表情图片本身不需要写进配置，丢进 emoji 文件夹就算一张表情，
  * 文件名（去掉扩展名）就是 :名字: 里的名字。
  *
- * <p>表情格大小默认由图片原始尺寸决定（取所有图片的最大宽高 × scale），
+ * <p>表情格大小默认由图片原始尺寸决定（取所有图片的最大宽高 × scale 后再 clamp 到 maxCellSize），
  * 不再需要手动选 small/medium/large。
  */
 public final class MemeEmojiConfig {
@@ -24,6 +24,8 @@ public final class MemeEmojiConfig {
     public boolean sendToClients = true;
     /** 缩放系数，取所有图片最大边 × scale = 实际格大小。1.0 = 原尺寸，0.5 = 一半。 */
     public float scale = 1.0f;
+    /** 格大小上限，防止大图直接撑爆聊天界面。默认 128。 */
+    public int maxCellSize = 128;
 
     public MemeEmojiConfig() {
     }
@@ -55,6 +57,9 @@ public final class MemeEmojiConfig {
             scale = DEFAULT.scale;
         } else {
             scale = Math.clamp(scale, 0.1f, 5.0f);
+        }
+        if (maxCellSize < 8 || maxCellSize > 512) {
+            maxCellSize = DEFAULT.maxCellSize;
         }
     }
 

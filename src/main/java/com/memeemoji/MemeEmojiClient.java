@@ -71,7 +71,7 @@ public final class MemeEmojiClient implements ClientModInitializer {
         return true;
     }
 
-    /** 扫描本地 emoji 文件夹所有图片，取最大边 × scale。没有图片时回退 32。 */
+    /** 扫描本地 emoji 文件夹所有图片，取最大边 × scale，再 clamp 到 maxCellSize。没有图片时回退 32。 */
     private static int computeCell() {
         Path emojiDir = MemeEmoji.emojiDir();
         try {
@@ -81,7 +81,8 @@ public final class MemeEmojiClient implements ClientModInitializer {
             return 32;
         }
 
-        float scale = MemeEmoji.config().scale;
+        MemeEmojiConfig config = MemeEmoji.config();
+        float scale = config.scale;
         int maxDim = 0;
         try (Stream<Path> stream = Files.walk(emojiDir)) {
             for (Path file : (Iterable<Path>) stream.filter(Files::isRegularFile)
@@ -104,7 +105,12 @@ public final class MemeEmojiClient implements ClientModInitializer {
             return 32; // 没有有效图片
         }
         int cell = Math.max(8, Math.round(maxDim * scale));
-        MemeEmoji.LOGGER.info("表情自动格大小：图片最大边={}，scale={}，计算 cell={}", maxDim, scale, cell);
+        int beforeCap = cell;
+        cell = Math.min(cell, config.maxCellSize);
+        if (beforeCap != cell) {
+            MemeEmoji.LOGGER.info("格大小 {} 超出上限 {}，已截断", beforeCap, config.maxCellSize);
+        }
+        MemeEmoji.LOGGER.info("表情自动格大小：图片最大边={}，scale={}，clip={}，结果 cell={}", maxDim, scale, config.maxCellSize, cell);
         return cell;
     }
 
