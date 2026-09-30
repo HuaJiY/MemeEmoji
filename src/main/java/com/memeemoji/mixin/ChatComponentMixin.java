@@ -13,8 +13,8 @@ public class ChatComponentMixin {
     @Inject(method = "getLineHeight", at = @At("RETURN"), cancellable = true)
     private void memeemoji(CallbackInfoReturnable<Integer> cir) {
         int original = cir.getReturnValueI();
-        // 如果不比 emoji 格大，就撑到 emoji 那么大，让背景框能包住图片
-        int needed = Math.max(original, MemeEmoji.glyphHeight());
+        // 使用 lineHeight（cell+3），让背景框在 emoji 底部多 3px 往下拓展
+        int needed = Math.max(original, MemeEmoji.lineHeight());
         cir.setReturnValue(needed);
     }
 }

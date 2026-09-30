@@ -6,8 +6,6 @@
 
 Minecraft 1.21.1 Fabric 模组，把自定义图片/GIF 丢进文件夹，聊天时用 :名字: 就能发送。兼容 ModernUI 现代文本引擎。
 
-不再需要数据包、不需要额外资源包，图片丢进去直接能用。
-
 ---
 
 ## 效果
@@ -16,21 +14,17 @@ Minecraft 1.21.1 Fabric 模组，把自定义图片/GIF 丢进文件夹，聊天
 
 ## 功能
 
-- 🖼️ **图片/GIF 直接丢** — 支持 PNG、JPG、WebP、GIF、BMP，不用转格式
-- 📝 **:名字: 发送** — 中文名也支持，大小写不敏感
+- 🖼️ **图片/GIF 便捷安装** — 支持 PNG、JPG、WebP、GIF、BMP，不用转格式
+- 📝 **:名字: 发送** — 支持中文，不区分大小写
 - 🎨 **ModernUI 兼容** — 与 ModernUI 文本引擎无缝集成，不互相干扰
 - 🔄 **服务端自动同步** — 服务器装了这个 mod，客户端的表情自动下发，无需每个玩家手动装
-- 📐 **三种大小预设** — Small / Medium / Large，点几下配置文件就能调
+- 📐 **表情包大小可控** — Small / Medium / Large，点几下配置文件就能调
 - 🖱️ **表情选择界面** — 聊天框旁边有个按钮，点开选表情
 - 💨 **缓存加速** — 图片裁切后缓存到磁盘，下次启动飞快
 
 ## 安装
 
-1. 安装 [Fabric Loader](https://fabricmc.net/use/)（≥0.16.0）
-2. 下载 [Fabric API](https://modrinth.com/mod/fabric-api) 放进 mods/
-3. 下载 [ModernUI](https://modrinth.com/mod/modern-ui) 放进 mods/（可选但推荐）
-4. 下载 [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) 放进 mods/（ModernUI 的依赖）
-5. 下载 MemeEmoji 放进 mods/
+1. 下载 MemeEmoji 放进 mods/
 
 ## 使用
 

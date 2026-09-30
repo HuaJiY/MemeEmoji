@@ -63,11 +63,16 @@ public final class MemeEmoji implements ModInitializer {
     }
 
     /**
-     * 表情在文字里的基线偏移 = cell，使 emoji 从 baseline - cell 到 baseline，
-     * 正好填满聊天气泡背景框。
+     * 表情的基线偏移 = 2，让 emoji 从聊天气泡背景框顶部（baseline-2）开始渲染，
+     * 表情填满背景框（高度 cell），背景框比表情大 3px 在底部，实现"往下拓宽"。
      */
     public static int glyphAscent() {
-        return Math.max(1, computedCell);
+        return 2;
+    }
+
+    /** 带 3px 底部余白的聊天气泡行高。 */
+    public static int lineHeight() {
+        return computedCell + 3;
     }
 
     /** 表情选择界面每格大小 = cell + 20px 余白。 */
