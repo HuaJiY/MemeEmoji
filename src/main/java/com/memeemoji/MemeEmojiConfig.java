@@ -25,7 +25,7 @@ public final class MemeEmojiConfig {
     /** 缩放系数，取所有图片最大边 × scale = 实际格大小。1.0 = 原尺寸，0.5 = 一半。 */
     public float scale = 1.0f;
     /** 格大小上限，防止大图直接撑爆聊天界面。默认 128。 */
-    public int maxCellSize = 128;
+    public int maxCellSize = 48;
 
     public MemeEmojiConfig() {
     }
