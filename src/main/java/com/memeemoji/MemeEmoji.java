@@ -64,7 +64,8 @@ public final class MemeEmoji implements ModInitializer {
 
     /** 表情在文字里的基线偏移，取 cell 的约 5/8。 */
     public static int glyphAscent() {
-        return (int) Math.round(computedCell * 0.625);
+        // ascent = cell - 8，配合 getLineHeight()=cell，emoji 正好填满聊天气泡背景框
+        return Math.max(1, computedCell - 8);
     }
 
     /** 表情选择界面每格大小 = cell + 20px 余白。 */

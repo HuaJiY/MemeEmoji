@@ -13,6 +13,11 @@ Minecraft 1.21.1 Fabric mod。把图片丢进 config/memeemoji/emoji/，聊天�
 ### 字体渲染
 - PUA 码位从 U+E000 开始，图集第 i 格固定为 U+E000 + i
 - 格大小由自动检测决定：扫描所有图片取最大边 × scale（默认 1.0 = 原尺寸）
+- glyphHeight = cell()（否则 ModernUI mScaleFactor<1 → advance 偏小→重叠），ascent = cell - 8（配合 ChatComponent.getLineHeight 的 mixin，让 emoji 正好填满聊天气泡背景框）
+- StringDecomposerMixin 的 3-arg iterate 和 5-arg iterateFormatted 覆盖全部文本链路
+- ModernUI 的 TextLayoutProcessor、ModernStringSplitter、FormattedTextWrapper 全部走 5-arg hook
+- ChatComponentMixin：包裹 getLineHeight()，返回 max(原始行高, glyphHeight)，使背景框高度适配 emoji 大小
+- 格大小由自动检测决定：扫描所有图片取最大边 × scale（默认 1.0 = 原尺寸）
 - glyphHeight = cell()（否则 ModernUI mScaleFactor<1 → advance 偏小→重叠），ascent ≈ cell×0.625
 - StringDecomposerMixin 的 3-arg iterate 和 5-arg iterateFormatted 覆盖全部文本链路
 - ModernUI 的 TextLayoutProcessor、ModernStringSplitter、FormattedTextWrapper 全部走 5-arg hook
