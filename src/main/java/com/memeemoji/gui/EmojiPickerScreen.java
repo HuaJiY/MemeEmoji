@@ -108,7 +108,7 @@ public final class EmojiPickerScreen extends Screen {
 
     @Override
     public void render(GuiGraphics gr, int mouseX, int mouseY, float delta) {
-        renderBackground(gr, mouseX, mouseY, delta);
+
         gr.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xC0101010);
         gr.renderOutline(panelX, panelY, panelW, panelH, 0xFF555555);
 
@@ -212,3 +212,4 @@ public final class EmojiPickerScreen extends Screen {
         super.removed();
     }
 }
+
