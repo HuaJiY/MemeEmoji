@@ -43,6 +43,8 @@ public final class MemeEmojiClient implements ClientModInitializer {
 
     /** 每个表情对应的 DynamicTexture 引用（防止 GC） */
     private static final List<DynamicTexture> OWNED_TEXTURES = new ArrayList<>();
+    /** 待注册纹理的表情列表，在 Minecraft 完全初始化后延迟注册 */
+    private static List<EmojiTile> pendingTiles;
 
     /** 热加载去抖，最近一次文件变更时间戳（毫秒） */
     private static final AtomicLong LAST_CHANGE = new AtomicLong(0);
@@ -58,6 +60,7 @@ public final class MemeEmojiClient implements ClientModInitializer {
                 (payload, context) -> context.client().execute(() -> onEnd(payload)));
         Minecraft.getInstance().execute(() -> {
             ensurePackOnDisk();
+            registerPendingTextures();
             startWatcher();
         });
     }
@@ -89,6 +92,7 @@ public final class MemeEmojiClient implements ClientModInitializer {
         // 重新读取配置
         MemeEmoji.invalidateConfig();
         generatePack();
+        registerPendingTextures();
         Minecraft.getInstance().reloadResourcePacks();
         MemeEmoji.LOGGER.info("MemeEmoji 热加载完成");
     }
@@ -131,7 +135,8 @@ public final class MemeEmojiClient implements ClientModInitializer {
             return false;
         }
         EmojiRegistry.INSTANCE.apply(tiles, MemeEmoji.config().enabled);
-        registerCustomTextures(tiles);
+        // 纹理注册延迟到 Minecraft 初始化完成后执行
+        pendingTiles = tiles;
         return true;
     }
 
@@ -168,6 +173,13 @@ public final class MemeEmojiClient implements ClientModInitializer {
             }
         }
         MemeEmoji.LOGGER.info("已注册 {} 个自定义纹理 glyph", MemeEmojiClientAccess.size());
+    }
+
+    private static void registerPendingTextures() {
+        if (pendingTiles != null && !pendingTiles.isEmpty()) {
+            registerCustomTextures(pendingTiles);
+            pendingTiles = null;
+        }
     }
 
     // ---- WatchService 热加载 ----
@@ -298,6 +310,7 @@ public final class MemeEmojiClient implements ClientModInitializer {
         }
         packReady = true;
         MemeEmoji.LOGGER.info("已应用服务端下发的 {} 个表情", tiles.size());
+        registerCustomTextures(tiles);
         Minecraft.getInstance().reloadResourcePacks();
     }
 
