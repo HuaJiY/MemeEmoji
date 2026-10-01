@@ -1,0 +1,584 @@
+Compiled from "ModernTextRenderer.java"
+public final class icyllis.modernui.mc.text.ModernTextRenderer {
+  public static final org.joml.Vector3f SHADOW_OFFSET;
+
+  public static final org.joml.Vector3f OUTLINE_OFFSET;
+
+  public static volatile boolean sAllowShadow;
+
+  public static volatile float sShadowOffset;
+
+  public static volatile float sOutlineOffset;
+
+  public static volatile boolean sComputeDeviceFontSize;
+
+  public static volatile boolean sAllowSDFTextIn2D;
+
+  public static volatile boolean sTweakExperienceText;
+
+  private final icyllis.modernui.mc.text.TextLayoutEngine mEngine;
+
+  public icyllis.modernui.mc.text.ModernTextRenderer(icyllis.modernui.mc.text.TextLayoutEngine);
+    Code:
+       0: aload_0
+       1: invokespecial #34                 // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: aload_1
+       6: putfield      #36                 // Field mEngine:Licyllis/modernui/mc/text/TextLayoutEngine;
+       9: return
+
+  public float drawText(java.lang.String, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.class_4597, net.minecraft.class_327$class_6415, int, int);
+    Code:
+       0: aload_1
+       1: invokevirtual #57                 // Method java/lang/String.isEmpty:()Z
+       4: ifeq          9
+       7: fload_2
+       8: freturn
+       9: aload_0
+      10: getfield      #36                 // Field mEngine:Licyllis/modernui/mc/text/TextLayoutEngine;
+      13: aload_1
+      14: invokevirtual #63                 // Method icyllis/modernui/mc/text/TextLayoutEngine.lookupVanillaLayout:(Ljava/lang/String;)Licyllis/modernui/mc/text/TextLayout;
+      17: astore        11
+      19: fload_2
+      20: aload_0
+      21: aload         11
+      23: fload_2
+      24: fload_3
+      25: iload         4
+      27: iload         5
+      29: aload         6
+      31: aload         7
+      33: aload         8
+      35: iload         9
+      37: iload         10
+      39: invokevirtual #66                 // Method drawText:(Licyllis/modernui/mc/text/TextLayout;FFIZLorg/joml/Matrix4f;Lnet/minecraft/class_4597;Lnet/minecraft/class_327$class_6415;II)F
+      42: fadd
+      43: fstore_2
+      44: fload_2
+      45: freturn
+
+  public float drawText(net.minecraft.class_5348, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.class_4597, net.minecraft.class_327$class_6415, int, int);
+    Code:
+       0: aload_1
+       1: getstatic     #80                 // Field net/minecraft/class_5244.field_39003:Lnet/minecraft/class_2561;
+       4: if_acmpeq     14
+       7: aload_1
+       8: getstatic     #86                 // Field net/minecraft/class_5348.field_25310:Lnet/minecraft/class_5348;
+      11: if_acmpne     16
+      14: fload_2
+      15: freturn
+      16: aload_0
+      17: getfield      #36                 // Field mEngine:Licyllis/modernui/mc/text/TextLayoutEngine;
+      20: aload_1
+      21: invokevirtual #90                 // Method icyllis/modernui/mc/text/TextLayoutEngine.lookupFormattedLayout:(Lnet/minecraft/class_5348;)Licyllis/modernui/mc/text/TextLayout;
+      24: astore        11
+      26: fload_2
+      27: aload_0
+      28: aload         11
+      30: fload_2
+      31: fload_3
+      32: iload         4
+      34: iload         5
+      36: aload         6
+      38: aload         7
+      40: aload         8
+      42: iload         9
+      44: iload         10
+      46: invokevirtual #66                 // Method drawText:(Licyllis/modernui/mc/text/TextLayout;FFIZLorg/joml/Matrix4f;Lnet/minecraft/class_4597;Lnet/minecraft/class_327$class_6415;II)F
+      49: fadd
+      50: fstore_2
+      51: fload_2
+      52: freturn
+
+  public float drawText(net.minecraft.class_5481, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.class_4597, net.minecraft.class_327$class_6415, int, int);
+    Code:
+       0: aload_1
+       1: getstatic     #97                 // Field net/minecraft/class_5481.field_26385:Lnet/minecraft/class_5481;
+       4: if_acmpne     9
+       7: fload_2
+       8: freturn
+       9: aload_0
+      10: getfield      #36                 // Field mEngine:Licyllis/modernui/mc/text/TextLayoutEngine;
+      13: aload_1
+      14: invokevirtual #100                // Method icyllis/modernui/mc/text/TextLayoutEngine.lookupFormattedLayout:(Lnet/minecraft/class_5481;)Licyllis/modernui/mc/text/TextLayout;
+      17: astore        11
+      19: fload_2
+      20: aload_0
+      21: aload         11
+      23: fload_2
+      24: fload_3
+      25: iload         4
+      27: iload         5
+      29: aload         6
+      31: aload         7
+      33: aload         8
+      35: iload         9
+      37: iload         10
+      39: invokevirtual #66                 // Method drawText:(Licyllis/modernui/mc/text/TextLayout;FFIZLorg/joml/Matrix4f;Lnet/minecraft/class_4597;Lnet/minecraft/class_327$class_6415;II)F
+      42: fadd
+      43: fstore_2
+      44: fload_2
+      45: freturn
+
+  public float drawText(icyllis.modernui.mc.text.TextLayout, float, float, int, boolean, org.joml.Matrix4f, net.minecraft.class_4597, net.minecraft.class_327$class_6415, int, int);
+    Code:
+       0: iload         4
+       2: bipush        24
+       4: iushr
+       5: istore        11
+       7: iload         11
+       9: iconst_2
+      10: if_icmpgt     18
+      13: sipush        255
+      16: istore        11
+      18: iload         4
+      20: bipush        16
+      22: ishr
+      23: sipush        255
+      26: iand
+      27: istore        12
+      29: iload         4
+      31: bipush        8
+      33: ishr
+      34: sipush        255
+      37: iand
+      38: istore        13
+      40: iload         4
+      42: sipush        255
+      45: iand
+      46: istore        14
+      48: aload_0
+      49: aload         6
+      51: aload         8
+      53: invokevirtual #104                // Method chooseMode:(Lorg/joml/Matrix4f;Lnet/minecraft/class_327$class_6415;)I
+      56: istore        15
+      58: aload         8
+      60: getstatic     #107                // Field net/minecraft/class_327$class_6415.field_33995:Lnet/minecraft/class_327$class_6415;
+      63: if_acmpne     70
+      66: iconst_1
+      67: goto          71
+      70: iconst_0
+      71: istore        16
+      73: aload_1
+      74: invokevirtual #114                // Method icyllis/modernui/mc/text/TextLayout.hasColorEmoji:()Z
+      77: ifeq          99
+      80: aload         7
+      82: instanceof    #12                 // class net/minecraft/class_4597$class_4598
+      85: ifeq          99
+      88: aload         7
+      90: checkcast     #12                 // class net/minecraft/class_4597$class_4598
+      93: invokestatic  #120                // Method net/minecraft/class_4722.method_24071:()Lnet/minecraft/class_1921;
+      96: invokevirtual #124                // Method net/minecraft/class_4597$class_4598.method_22994:(Lnet/minecraft/class_1921;)V
+      99: iconst_0
+     100: istore        17
+     102: fconst_1
+     103: fstore        18
+     105: getstatic     #126                // Field sComputeDeviceFontSize:Z
+     108: ifeq          378
+     111: iload         15
+     113: ifne          127
+     116: aload         6
+     118: invokevirtual #130                // Method org/joml/Matrix4f.properties:()I
+     121: bipush        8
+     123: iand
+     124: ifne          133
+     127: iload         15
+     129: iconst_4
+     130: if_icmpne     378
+     133: invokestatic  #136                // Method com/mojang/blaze3d/systems/RenderSystem.getProjectionMatrix:()Lorg/joml/Matrix4f;
+     136: astore        19
+     138: invokestatic  #140                // Method com/mojang/blaze3d/systems/RenderSystem.getVertexSorting:()Lnet/minecraft/class_8251;
+     141: getstatic     #146                // Field net/minecraft/class_8251.field_43361:Lnet/minecraft/class_8251;
+     144: if_acmpne     365
+     147: aload         19
+     149: invokevirtual #150                // Method org/joml/Matrix4f.m23:()F
+     152: fconst_0
+     153: fcmpl
+     154: ifne          365
+     157: invokestatic  #156                // Method net/minecraft/class_310.method_1551:()Lnet/minecraft/class_310;
+     160: invokevirtual #160                // Method net/minecraft/class_310.method_22683:()Lnet/minecraft/class_1041;
+     163: astore        20
+     165: aload         19
+     167: invokevirtual #163                // Method org/joml/Matrix4f.m00:()F
+     170: aload         20
+     172: invokevirtual #168                // Method net/minecraft/class_1041.method_4489:()I
+     175: i2f
+     176: fmul
+     177: fconst_2
+     178: aload_1
+     179: getfield      #171                // Field icyllis/modernui/mc/text/TextLayout.mCreatedResLevel:I
+     182: i2f
+     183: fmul
+     184: fdiv
+     185: fstore        21
+     187: aload         19
+     189: invokevirtual #174                // Method org/joml/Matrix4f.m11:()F
+     192: aload         20
+     194: invokevirtual #177                // Method net/minecraft/class_1041.method_4506:()I
+     197: i2f
+     198: fmul
+     199: fconst_2
+     200: aload_1
+     201: getfield      #171                // Field icyllis/modernui/mc/text/TextLayout.mCreatedResLevel:I
+     204: i2f
+     205: fmul
+     206: fdiv
+     207: invokestatic  #183                // Method java/lang/Math.abs:(F)F
+     210: fstore        22
+     212: fload         21
+     214: fload         22
+     216: invokestatic  #189                // Method icyllis/modernui/graphics/MathUtil.isApproxEqual:(FF)Z
+     219: ifeq          349
+     222: new           #111                // class org/joml/Matrix4f
+     225: dup
+     226: aload         6
+     228: invokespecial #192                // Method org/joml/Matrix4f."<init>":(Lorg/joml/Matrix4fc;)V
+     231: astore        6
+     233: iconst_1
+     234: istore        17
+     236: fload_2
+     237: aload         6
+     239: invokevirtual #195                // Method org/joml/Matrix4f.m30:()F
+     242: aload         6
+     244: invokevirtual #163                // Method org/joml/Matrix4f.m00:()F
+     247: fdiv
+     248: fadd
+     249: fstore_2
+     250: fload_3
+     251: aload         6
+     253: invokevirtual #198                // Method org/joml/Matrix4f.m31:()F
+     256: aload         6
+     258: invokevirtual #174                // Method org/joml/Matrix4f.m11:()F
+     261: fdiv
+     262: fadd
+     263: fstore_3
+     264: aload         6
+     266: fconst_0
+     267: invokevirtual #201                // Method org/joml/Matrix4f.m30:(F)Lorg/joml/Matrix4f;
+     270: pop
+     271: aload         6
+     273: fconst_0
+     274: invokevirtual #203                // Method org/joml/Matrix4f.m31:(F)Lorg/joml/Matrix4f;
+     277: pop
+     278: aload         6
+     280: invokevirtual #163                // Method org/joml/Matrix4f.m00:()F
+     283: fload         21
+     285: fmul
+     286: fstore        18
+     288: fload         18
+     290: fconst_1
+     291: invokestatic  #189                // Method icyllis/modernui/graphics/MathUtil.isApproxEqual:(FF)Z
+     294: ifeq          303
+     297: iconst_0
+     298: istore        15
+     300: goto          362
+     303: fconst_1
+     304: getstatic     #206                // Field icyllis/modernui/mc/text/TextLayoutEngine.sMinPixelDensityForSDF:I
+     307: i2f
+     308: aload_1
+     309: getfield      #171                // Field icyllis/modernui/mc/text/TextLayout.mCreatedResLevel:I
+     312: i2f
+     313: fdiv
+     314: invokestatic  #210                // Method java/lang/Math.max:(FF)F
+     317: fstore        23
+     319: fload         18
+     321: fload         23
+     323: fcmpg
+     324: ifgt          333
+     327: iconst_4
+     328: istore        15
+     330: goto          346
+     333: getstatic     #212                // Field sAllowSDFTextIn2D:Z
+     336: ifeq          343
+     339: iconst_1
+     340: goto          344
+     343: iconst_0
+     344: istore        15
+     346: goto          362
+     349: getstatic     #212                // Field sAllowSDFTextIn2D:Z
+     352: ifeq          359
+     355: iconst_1
+     356: goto          360
+     359: iconst_0
+     360: istore        15
+     362: goto          378
+     365: getstatic     #212                // Field sAllowSDFTextIn2D:Z
+     368: ifeq          375
+     371: iconst_1
+     372: goto          376
+     375: iconst_0
+     376: istore        15
+     378: iload         5
+     380: ifeq          450
+     383: getstatic     #214                // Field sAllowShadow:Z
+     386: ifeq          450
+     389: aload_1
+     390: aload         6
+     392: aload         7
+     394: fload_2
+     395: fload_3
+     396: iload         12
+     398: iconst_2
+     399: ishr
+     400: iload         13
+     402: iconst_2
+     403: ishr
+     404: iload         14
+     406: iconst_2
+     407: ishr
+     408: iload         11
+     410: iconst_1
+     411: iload         15
+     413: iload         16
+     415: fload         18
+     417: iload         9
+     419: iload         10
+     421: invokevirtual #217                // Method icyllis/modernui/mc/text/TextLayout.drawText:(Lorg/joml/Matrix4f;Lnet/minecraft/class_4597;FFIIIIZIZFII)F
+     424: pop
+     425: iload         17
+     427: ifne          441
+     430: new           #111                // class org/joml/Matrix4f
+     433: dup
+     434: aload         6
+     436: invokespecial #192                // Method org/joml/Matrix4f."<init>":(Lorg/joml/Matrix4fc;)V
+     439: astore        6
+     441: aload         6
+     443: getstatic     #219                // Field SHADOW_OFFSET:Lorg/joml/Vector3f;
+     446: invokevirtual #223                // Method org/joml/Matrix4f.translate:(Lorg/joml/Vector3fc;)Lorg/joml/Matrix4f;
+     449: pop
+     450: aload_1
+     451: aload         6
+     453: aload         7
+     455: fload_2
+     456: fload_3
+     457: iload         12
+     459: iload         13
+     461: iload         14
+     463: iload         11
+     465: iconst_0
+     466: iload         15
+     468: iload         16
+     470: fload         18
+     472: iload         9
+     474: iload         10
+     476: invokevirtual #217                // Method icyllis/modernui/mc/text/TextLayout.drawText:(Lorg/joml/Matrix4f;Lnet/minecraft/class_4597;FFIIIIZIZFII)F
+     479: freturn
+
+  public int chooseMode(org.joml.Matrix4f, net.minecraft.class_327$class_6415);
+    Code:
+       0: aload_2
+       1: getstatic     #241                // Field net/minecraft/class_327$class_6415.field_33994:Lnet/minecraft/class_327$class_6415;
+       4: if_acmpne     9
+       7: iconst_3
+       8: ireturn
+       9: getstatic     #244                // Field icyllis/modernui/mc/text/TextLayoutEngine.sCurrentInWorldRendering:Z
+      12: ifeq          17
+      15: iconst_1
+      16: ireturn
+      17: aload_1
+      18: invokevirtual #130                // Method org/joml/Matrix4f.properties:()I
+      21: bipush        8
+      23: iand
+      24: ifne          117
+      27: getstatic     #126                // Field sComputeDeviceFontSize:Z
+      30: ifeq          109
+      33: aload_1
+      34: invokevirtual #150                // Method org/joml/Matrix4f.m23:()F
+      37: fconst_0
+      38: fcmpl
+      39: ifne          109
+      42: aload_1
+      43: invokevirtual #247                // Method org/joml/Matrix4f.m01:()F
+      46: invokestatic  #251                // Method icyllis/modernui/graphics/MathUtil.isApproxZero:(F)Z
+      49: ifeq          109
+      52: aload_1
+      53: invokevirtual #254                // Method org/joml/Matrix4f.m03:()F
+      56: invokestatic  #251                // Method icyllis/modernui/graphics/MathUtil.isApproxZero:(F)Z
+      59: ifeq          109
+      62: aload_1
+      63: invokevirtual #257                // Method org/joml/Matrix4f.m10:()F
+      66: invokestatic  #251                // Method icyllis/modernui/graphics/MathUtil.isApproxZero:(F)Z
+      69: ifeq          109
+      72: aload_1
+      73: invokevirtual #260                // Method org/joml/Matrix4f.m13:()F
+      76: invokestatic  #251                // Method icyllis/modernui/graphics/MathUtil.isApproxZero:(F)Z
+      79: ifeq          109
+      82: aload_1
+      83: invokevirtual #263                // Method org/joml/Matrix4f.m33:()F
+      86: fconst_1
+      87: invokestatic  #189                // Method icyllis/modernui/graphics/MathUtil.isApproxEqual:(FF)Z
+      90: ifeq          109
+      93: aload_1
+      94: invokevirtual #163                // Method org/joml/Matrix4f.m00:()F
+      97: aload_1
+      98: invokevirtual #174                // Method org/joml/Matrix4f.m11:()F
+     101: invokestatic  #189                // Method icyllis/modernui/graphics/MathUtil.isApproxEqual:(FF)Z
+     104: ifeq          109
+     107: iconst_4
+     108: ireturn
+     109: getstatic     #212                // Field sAllowSDFTextIn2D:Z
+     112: ifeq          117
+     115: iconst_1
+     116: ireturn
+     117: iconst_0
+     118: ireturn
+
+  public void drawText8xOutline(net.minecraft.class_5481, float, float, int, int, org.joml.Matrix4f, net.minecraft.class_4597, int);
+    Code:
+       0: aload_1
+       1: getstatic     #97                 // Field net/minecraft/class_5481.field_26385:Lnet/minecraft/class_5481;
+       4: if_acmpne     8
+       7: return
+       8: iload         4
+      10: ldc_w         #267                // int 16777215
+      13: iand
+      14: ifne          21
+      17: iconst_1
+      18: goto          22
+      21: iconst_0
+      22: istore        9
+      24: iload         9
+      26: ifeq          33
+      29: iload         5
+      31: istore        4
+      33: iload         4
+      35: bipush        24
+      37: iushr
+      38: istore        10
+      40: iload         10
+      42: iconst_2
+      43: if_icmpgt     51
+      46: sipush        255
+      49: istore        10
+      51: iload         4
+      53: bipush        16
+      55: ishr
+      56: sipush        255
+      59: iand
+      60: istore        11
+      62: iload         4
+      64: bipush        8
+      66: ishr
+      67: sipush        255
+      70: iand
+      71: istore        12
+      73: iload         4
+      75: sipush        255
+      78: iand
+      79: istore        13
+      81: aload_0
+      82: getfield      #36                 // Field mEngine:Licyllis/modernui/mc/text/TextLayoutEngine;
+      85: aload_1
+      86: invokevirtual #100                // Method icyllis/modernui/mc/text/TextLayoutEngine.lookupFormattedLayout:(Lnet/minecraft/class_5481;)Licyllis/modernui/mc/text/TextLayout;
+      89: astore        14
+      91: aload         14
+      93: invokevirtual #114                // Method icyllis/modernui/mc/text/TextLayout.hasColorEmoji:()Z
+      96: ifeq          118
+      99: aload         7
+     101: instanceof    #12                 // class net/minecraft/class_4597$class_4598
+     104: ifeq          118
+     107: aload         7
+     109: checkcast     #12                 // class net/minecraft/class_4597$class_4598
+     112: invokestatic  #120                // Method net/minecraft/class_4722.method_24071:()Lnet/minecraft/class_1921;
+     115: invokevirtual #124                // Method net/minecraft/class_4597$class_4598.method_22994:(Lnet/minecraft/class_1921;)V
+     118: aload         14
+     120: aload         6
+     122: aload         7
+     124: fload_2
+     125: fload_3
+     126: iload         11
+     128: iload         12
+     130: iload         13
+     132: iload         10
+     134: iconst_0
+     135: iconst_1
+     136: iconst_0
+     137: fconst_1
+     138: iconst_0
+     139: iload         8
+     141: invokevirtual #217                // Method icyllis/modernui/mc/text/TextLayout.drawText:(Lorg/joml/Matrix4f;Lnet/minecraft/class_4597;FFIIIIZIZFII)F
+     144: pop
+     145: iload         9
+     147: ifne          162
+     150: getstatic     #244                // Field icyllis/modernui/mc/text/TextLayoutEngine.sCurrentInWorldRendering:Z
+     153: ifeq          163
+     156: getstatic     #270                // Field icyllis/modernui/mc/text/TextLayoutEngine.sUseTextShadersInWorld:Z
+     159: ifne          163
+     162: return
+     163: new           #111                // class org/joml/Matrix4f
+     166: dup
+     167: aload         6
+     169: invokespecial #192                // Method org/joml/Matrix4f."<init>":(Lorg/joml/Matrix4fc;)V
+     172: astore        6
+     174: iload         5
+     176: bipush        24
+     178: iushr
+     179: istore        10
+     181: iload         10
+     183: iconst_2
+     184: if_icmpgt     192
+     187: sipush        255
+     190: istore        10
+     192: iload         5
+     194: bipush        16
+     196: ishr
+     197: sipush        255
+     200: iand
+     201: istore        11
+     203: iload         5
+     205: bipush        8
+     207: ishr
+     208: sipush        255
+     211: iand
+     212: istore        12
+     214: iload         5
+     216: sipush        255
+     219: iand
+     220: istore        13
+     222: aload         6
+     224: getstatic     #272                // Field OUTLINE_OFFSET:Lorg/joml/Vector3f;
+     227: invokevirtual #223                // Method org/joml/Matrix4f.translate:(Lorg/joml/Vector3fc;)Lorg/joml/Matrix4f;
+     230: pop
+     231: aload         14
+     233: aload         6
+     235: aload         7
+     237: fload_2
+     238: fload_3
+     239: iload         11
+     241: iload         12
+     243: iload         13
+     245: iload         10
+     247: iload         8
+     249: invokevirtual #276                // Method icyllis/modernui/mc/text/TextLayout.drawTextOutline:(Lorg/joml/Matrix4f;Lnet/minecraft/class_4597;FFIIIII)V
+     252: return
+
+  static {};
+    Code:
+       0: new           #280                // class org/joml/Vector3f
+       3: dup
+       4: fconst_0
+       5: fconst_0
+       6: ldc_w         #281                // float 0.03f
+       9: invokespecial #284                // Method org/joml/Vector3f."<init>":(FFF)V
+      12: putstatic     #219                // Field SHADOW_OFFSET:Lorg/joml/Vector3f;
+      15: new           #280                // class org/joml/Vector3f
+      18: dup
+      19: fconst_0
+      20: fconst_0
+      21: ldc_w         #285                // float 0.01f
+      24: invokespecial #284                // Method org/joml/Vector3f."<init>":(FFF)V
+      27: putstatic     #272                // Field OUTLINE_OFFSET:Lorg/joml/Vector3f;
+      30: iconst_1
+      31: putstatic     #214                // Field sAllowShadow:Z
+      34: fconst_1
+      35: putstatic     #287                // Field sShadowOffset:F
+      38: ldc_w         #288                // float 0.5f
+      41: putstatic     #290                // Field sOutlineOffset:F
+      44: iconst_1
+      45: putstatic     #126                // Field sComputeDeviceFontSize:Z
+      48: iconst_1
+      49: putstatic     #212                // Field sAllowSDFTextIn2D:Z
+      52: iconst_1
+      53: putstatic     #292                // Field sTweakExperienceText:Z
+      56: return
+}

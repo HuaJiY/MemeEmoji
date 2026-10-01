@@ -1,0 +1,1109 @@
+Compiled from "BitmapFont.java"
+public class icyllis.modernui.mc.text.BitmapFont implements icyllis.modernui.graphics.text.Font,java.lang.AutoCloseable {
+  public static final int MAX_ATLAS_DIMENSION;
+
+  public static final int FONT_TEXTURE_SIZE;
+
+  public static float sBitmapOffset;
+
+  private final net.minecraft.class_2960 mName;
+
+  private icyllis.modernui.graphics.Bitmap mBitmap;
+
+  private final it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<icyllis.modernui.mc.text.BitmapFont$Glyph> mGlyphs;
+
+  private icyllis.arc3d.opengl.GLTexture mTexture;
+
+  private it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<icyllis.modernui.mc.text.GLBakedGlyph> mBakedGlyphs;
+
+  private final int mAscent;
+
+  private final int mDescent;
+
+  private final int mSpriteWidth;
+
+  private final int mSpriteHeight;
+
+  private final float mScaleFactor;
+
+  private final int[][] mCodepointGrid;
+
+  static final boolean $assertionsDisabled;
+
+  private icyllis.modernui.mc.text.BitmapFont(net.minecraft.class_2960, icyllis.modernui.graphics.Bitmap, int[][], int, int, int, int);
+    Code:
+       0: aload_0
+       1: invokespecial #77                 // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: new           #79                 // class it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap
+       8: dup
+       9: invokespecial #80                 // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap."<init>":()V
+      12: putfield      #82                 // Field mGlyphs:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+      15: aload_0
+      16: aload_1
+      17: putfield      #84                 // Field mName:Lnet/minecraft/class_2960;
+      20: aload_0
+      21: aload_2
+      22: putfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      25: aload_0
+      26: iload         7
+      28: putfield      #88                 // Field mAscent:I
+      31: aload_0
+      32: iload         6
+      34: iload         7
+      36: isub
+      37: putfield      #90                 // Field mDescent:I
+      40: aload_0
+      41: aload_2
+      42: invokevirtual #94                 // Method icyllis/modernui/graphics/Bitmap.getWidth:()I
+      45: iload         5
+      47: idiv
+      48: putfield      #96                 // Field mSpriteWidth:I
+      51: aload_0
+      52: aload_2
+      53: invokevirtual #99                 // Method icyllis/modernui/graphics/Bitmap.getHeight:()I
+      56: iload         4
+      58: idiv
+      59: putfield      #101                // Field mSpriteHeight:I
+      62: aload_0
+      63: iload         6
+      65: i2f
+      66: aload_0
+      67: getfield      #101                // Field mSpriteHeight:I
+      70: i2f
+      71: fdiv
+      72: putfield      #103                // Field mScaleFactor:F
+      75: aload_0
+      76: aload_3
+      77: putfield      #105                // Field mCodepointGrid:[[I
+      80: iload         6
+      82: ifle          139
+      85: aload_0
+      86: getfield      #96                 // Field mSpriteWidth:I
+      89: ifle          139
+      92: aload_0
+      93: getfield      #101                // Field mSpriteHeight:I
+      96: ifle          139
+      99: aload_0
+     100: getfield      #96                 // Field mSpriteWidth:I
+     103: sipush        256
+     106: if_icmpgt     139
+     109: aload_0
+     110: getfield      #101                // Field mSpriteHeight:I
+     113: sipush        256
+     116: if_icmpgt     139
+     119: aload_2
+     120: invokevirtual #94                 // Method icyllis/modernui/graphics/Bitmap.getWidth:()I
+     123: sipush        32767
+     126: if_icmpgt     139
+     129: aload_2
+     130: invokevirtual #99                 // Method icyllis/modernui/graphics/Bitmap.getHeight:()I
+     133: sipush        32767
+     136: if_icmple     143
+     139: iconst_1
+     140: goto          144
+     143: iconst_0
+     144: istore        8
+     146: iload         8
+     148: ifne          175
+     151: aload_0
+     152: getfield      #96                 // Field mSpriteWidth:I
+     155: sipush        128
+     158: if_icmpgt     171
+     161: aload_0
+     162: getfield      #101                // Field mSpriteHeight:I
+     165: sipush        128
+     168: if_icmple     175
+     171: iconst_1
+     172: goto          176
+     175: iconst_0
+     176: istore        9
+     178: iload         9
+     180: ifeq          194
+     183: aload_0
+     184: new           #79                 // class it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap
+     187: dup
+     188: invokespecial #80                 // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap."<init>":()V
+     191: putfield      #110                // Field mBakedGlyphs:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+     194: iconst_0
+     195: istore        10
+     197: iconst_0
+     198: istore        11
+     200: iload         11
+     202: iload         4
+     204: if_icmpge     478
+     207: iconst_0
+     208: istore        12
+     210: iload         12
+     212: iload         5
+     214: if_icmpge     472
+     217: aload_3
+     218: iload         11
+     220: aaload
+     221: iload         12
+     223: iaload
+     224: istore        13
+     226: iload         13
+     228: ifne          237
+     231: iinc          10, 1
+     234: goto          466
+     237: aload_2
+     238: aload_0
+     239: getfield      #96                 // Field mSpriteWidth:I
+     242: aload_0
+     243: getfield      #101                // Field mSpriteHeight:I
+     246: iload         12
+     248: iload         11
+     250: invokestatic  #114                // Method getActualGlyphWidth:(Licyllis/modernui/graphics/Bitmap;IIII)I
+     253: istore        14
+     255: iload         14
+     257: ifgt          263
+     260: iinc          10, 1
+     263: new           #11                 // class icyllis/modernui/mc/text/BitmapFont$Glyph
+     266: dup
+     267: ldc2_w        #115                // double 0.5d
+     270: iload         14
+     272: i2f
+     273: aload_0
+     274: getfield      #103                // Field mScaleFactor:F
+     277: fmul
+     278: f2d
+     279: dadd
+     280: d2i
+     281: iconst_1
+     282: iadd
+     283: iload         12
+     285: aload_0
+     286: getfield      #96                 // Field mSpriteWidth:I
+     289: imul
+     290: iload         11
+     292: aload_0
+     293: getfield      #101                // Field mSpriteHeight:I
+     296: imul
+     297: iload         14
+     299: ifgt          306
+     302: iconst_1
+     303: goto          307
+     306: iconst_0
+     307: invokespecial #119                // Method icyllis/modernui/mc/text/BitmapFont$Glyph."<init>":(IIIZ)V
+     310: astore        15
+     312: aload_0
+     313: getfield      #82                 // Field mGlyphs:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+     316: iload         13
+     318: aload         15
+     320: invokevirtual #123                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.put:(ILjava/lang/Object;)Ljava/lang/Object;
+     323: ifnull        348
+     326: getstatic     #129                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     329: getstatic     #135                // Field icyllis/modernui/mc/text/GlyphManager.MARKER:Lorg/apache/logging/log4j/Marker;
+     332: ldc           #137                // String Codepoint \'{}\' declared multiple times in {}
+     334: iload         13
+     336: invokestatic  #143                // Method java/lang/Integer.toHexString:(I)Ljava/lang/String;
+     339: aload_0
+     340: getfield      #84                 // Field mName:Lnet/minecraft/class_2960;
+     343: invokeinterface #149,  5          // InterfaceMethod org/apache/logging/log4j/Logger.warn:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V
+     348: iload         9
+     350: ifeq          466
+     353: new           #151                // class icyllis/modernui/mc/text/GLBakedGlyph
+     356: dup
+     357: invokespecial #152                // Method icyllis/modernui/mc/text/GLBakedGlyph."<init>":()V
+     360: astore        16
+     362: aload_0
+     363: aload         16
+     365: invokevirtual #156                // Method setGlyphMetrics:(Licyllis/modernui/mc/text/GLBakedGlyph;)V
+     368: aload         16
+     370: iload         12
+     372: aload_0
+     373: getfield      #96                 // Field mSpriteWidth:I
+     376: imul
+     377: i2f
+     378: aload_0
+     379: invokevirtual #159                // Method getTextureWidth:()I
+     382: i2f
+     383: fdiv
+     384: putfield      #162                // Field icyllis/modernui/mc/text/GLBakedGlyph.u1:F
+     387: aload         16
+     389: iload         11
+     391: aload_0
+     392: getfield      #101                // Field mSpriteHeight:I
+     395: imul
+     396: i2f
+     397: aload_0
+     398: invokevirtual #165                // Method getTextureHeight:()I
+     401: i2f
+     402: fdiv
+     403: putfield      #168                // Field icyllis/modernui/mc/text/GLBakedGlyph.v1:F
+     406: aload         16
+     408: iload         12
+     410: aload_0
+     411: getfield      #96                 // Field mSpriteWidth:I
+     414: imul
+     415: aload_0
+     416: getfield      #96                 // Field mSpriteWidth:I
+     419: iadd
+     420: i2f
+     421: aload_0
+     422: invokevirtual #159                // Method getTextureWidth:()I
+     425: i2f
+     426: fdiv
+     427: putfield      #171                // Field icyllis/modernui/mc/text/GLBakedGlyph.u2:F
+     430: aload         16
+     432: iload         11
+     434: aload_0
+     435: getfield      #101                // Field mSpriteHeight:I
+     438: imul
+     439: aload_0
+     440: getfield      #101                // Field mSpriteHeight:I
+     443: iadd
+     444: i2f
+     445: aload_0
+     446: invokevirtual #165                // Method getTextureHeight:()I
+     449: i2f
+     450: fdiv
+     451: putfield      #174                // Field icyllis/modernui/mc/text/GLBakedGlyph.v2:F
+     454: aload_0
+     455: getfield      #110                // Field mBakedGlyphs:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+     458: iload         13
+     460: aload         16
+     462: invokevirtual #123                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.put:(ILjava/lang/Object;)Ljava/lang/Object;
+     465: pop
+     466: iinc          12, 1
+     469: goto          210
+     472: iinc          11, 1
+     475: goto          200
+     478: iload         8
+     480: ifne          493
+     483: iload         10
+     485: iload         5
+     487: iload         4
+     489: imul
+     490: if_icmpne     510
+     493: aload_0
+     494: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+     497: invokevirtual #177                // Method icyllis/modernui/graphics/Bitmap.close:()V
+     500: aload_0
+     501: aconst_null
+     502: putfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+     505: aload_0
+     506: aconst_null
+     507: putfield      #110                // Field mBakedGlyphs:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+     510: return
+
+  public static icyllis.modernui.mc.text.BitmapFont create(net.minecraft.class_386$class_387, net.minecraft.class_3300);
+    Code:
+       0: aload_0
+       1: invokevirtual #202                // Method net/minecraft/class_386$class_387.comp_1520:()I
+       4: istore_2
+       5: aload_0
+       6: invokevirtual #205                // Method net/minecraft/class_386$class_387.comp_1521:()I
+       9: istore_3
+      10: iload_3
+      11: iload_2
+      12: if_icmple     30
+      15: new           #207                // class com/google/gson/JsonParseException
+      18: dup
+      19: iload_3
+      20: iload_2
+      21: invokedynamic #219,  0            // InvokeDynamic #0:makeConcatWithConstants:(II)Ljava/lang/String;
+      26: invokespecial #222                // Method com/google/gson/JsonParseException."<init>":(Ljava/lang/String;)V
+      29: athrow
+      30: aload_0
+      31: invokevirtual #226                // Method net/minecraft/class_386$class_387.comp_1522:()[[I
+      34: astore        4
+      36: aload         4
+      38: arraylength
+      39: ifeq          50
+      42: aload         4
+      44: iconst_0
+      45: aaload
+      46: arraylength
+      47: ifne          60
+      50: new           #207                // class com/google/gson/JsonParseException
+      53: dup
+      54: ldc           #228                // String Expected to find data in chars, found none.
+      56: invokespecial #222                // Method com/google/gson/JsonParseException."<init>":(Ljava/lang/String;)V
+      59: athrow
+      60: aload         4
+      62: arraylength
+      63: istore        5
+      65: aload         4
+      67: iconst_0
+      68: aaload
+      69: arraylength
+      70: istore        6
+      72: aload_0
+      73: invokevirtual #232                // Method net/minecraft/class_386$class_387.comp_1519:()Lnet/minecraft/class_2960;
+      76: astore        7
+      78: aload         7
+      80: ldc           #234                // String textures/
+      82: invokevirtual #238                // Method net/minecraft/class_2960.method_45138:(Ljava/lang/String;)Lnet/minecraft/class_2960;
+      85: astore        8
+      87: aload_1
+      88: aload         8
+      90: invokeinterface #244,  2          // InterfaceMethod net/minecraft/class_3300.open:(Lnet/minecraft/class_2960;)Ljava/io/InputStream;
+      95: astore        9
+      97: new           #19                 // class icyllis/modernui/graphics/BitmapFactory$Options
+     100: dup
+     101: invokespecial #245                // Method icyllis/modernui/graphics/BitmapFactory$Options."<init>":()V
+     104: astore        10
+     106: aload         10
+     108: getstatic     #249                // Field icyllis/modernui/graphics/Bitmap$Format.RGBA_8888:Licyllis/modernui/graphics/Bitmap$Format;
+     111: putfield      #252                // Field icyllis/modernui/graphics/BitmapFactory$Options.inPreferredFormat:Licyllis/modernui/graphics/Bitmap$Format;
+     114: aload         9
+     116: aload         10
+     118: invokestatic  #256                // Method icyllis/modernui/graphics/BitmapFactory.decodeStream:(Ljava/io/InputStream;Licyllis/modernui/graphics/BitmapFactory$Options;)Licyllis/modernui/graphics/Bitmap;
+     121: astore        11
+     123: aload         11
+     125: invokestatic  #262                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+     128: pop
+     129: new           #2                  // class icyllis/modernui/mc/text/BitmapFont
+     132: dup
+     133: aload         7
+     135: aload         11
+     137: aload         4
+     139: iload         5
+     141: iload         6
+     143: iload_2
+     144: iload_3
+     145: invokespecial #264                // Method "<init>":(Lnet/minecraft/class_2960;Licyllis/modernui/graphics/Bitmap;[[IIIII)V
+     148: astore        12
+     150: aload         9
+     152: ifnull        160
+     155: aload         9
+     157: invokevirtual #267                // Method java/io/InputStream.close:()V
+     160: aload         12
+     162: areturn
+     163: astore        10
+     165: aload         9
+     167: ifnull        187
+     170: aload         9
+     172: invokevirtual #267                // Method java/io/InputStream.close:()V
+     175: goto          187
+     178: astore        11
+     180: aload         10
+     182: aload         11
+     184: invokevirtual #271                // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+     187: aload         10
+     189: athrow
+     190: astore        9
+     192: new           #273                // class java/lang/RuntimeException
+     195: dup
+     196: aload         9
+     198: invokespecial #275                // Method java/lang/RuntimeException."<init>":(Ljava/lang/Throwable;)V
+     201: athrow
+    Exception table:
+       from    to  target type
+          97   150   163   Class java/lang/Throwable
+         170   175   178   Class java/lang/Throwable
+          87   160   190   Class java/lang/Exception
+         163   190   190   Class java/lang/Exception
+
+  private static int getActualGlyphWidth(icyllis.modernui.graphics.Bitmap, int, int, int, int);
+    Code:
+       0: iload_1
+       1: iconst_1
+       2: isub
+       3: istore        5
+       5: iload         5
+       7: iflt          70
+      10: iload_3
+      11: iload_1
+      12: imul
+      13: iload         5
+      15: iadd
+      16: istore        6
+      18: iconst_0
+      19: istore        7
+      21: iload         7
+      23: iload_2
+      24: if_icmpge     64
+      27: iload         4
+      29: iload_2
+      30: imul
+      31: iload         7
+      33: iadd
+      34: istore        8
+      36: aload_0
+      37: iload         6
+      39: iload         8
+      41: invokevirtual #292                // Method icyllis/modernui/graphics/Bitmap.getPixelARGB:(II)I
+      44: bipush        24
+      46: iushr
+      47: ifne          53
+      50: goto          58
+      53: iload         5
+      55: iconst_1
+      56: iadd
+      57: ireturn
+      58: iinc          7, 1
+      61: goto          21
+      64: iinc          5, -1
+      67: goto          5
+      70: iload         5
+      72: iconst_1
+      73: iadd
+      74: ireturn
+
+  private void createTexture();
+    Code:
+       0: getstatic     #299                // Field $assertionsDisabled:Z
+       3: ifne          21
+       6: aload_0
+       7: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      10: ifnonnull     21
+      13: new           #301                // class java/lang/AssertionError
+      16: dup
+      17: invokespecial #302                // Method java/lang/AssertionError."<init>":()V
+      20: athrow
+      21: invokestatic  #308                // Method icyllis/modernui/core/Core.requireImmediateContext:()Licyllis/arc3d/engine/ImmediateContext;
+      24: astore_1
+      25: aload_1
+      26: invokevirtual #314                // Method icyllis/arc3d/engine/ImmediateContext.getCaps:()Licyllis/arc3d/engine/Caps;
+      29: iconst_1
+      30: aload_0
+      31: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      34: invokevirtual #317                // Method icyllis/modernui/graphics/Bitmap.getColorType:()I
+      37: aload_0
+      38: invokevirtual #159                // Method getTextureWidth:()I
+      41: aload_0
+      42: invokevirtual #165                // Method getTextureHeight:()I
+      45: iconst_1
+      46: bipush        8
+      48: invokevirtual #323                // Method icyllis/arc3d/engine/Caps.getDefaultColorImageDesc:(IIIIII)Licyllis/arc3d/engine/ImageDesc;
+      51: astore_2
+      52: aload_2
+      53: invokestatic  #262                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+      56: pop
+      57: aload_0
+      58: aload_1
+      59: invokevirtual #327                // Method icyllis/arc3d/engine/ImmediateContext.getResourceProvider:()Licyllis/arc3d/engine/ResourceProvider;
+      62: aload_2
+      63: iconst_1
+      64: aload_0
+      65: getfield      #84                 // Field mName:Lnet/minecraft/class_2960;
+      68: invokevirtual #331                // Method net/minecraft/class_2960.toString:()Ljava/lang/String;
+      71: invokevirtual #337                // Method icyllis/arc3d/engine/ResourceProvider.findOrCreateImage:(Licyllis/arc3d/engine/ImageDesc;ZLjava/lang/String;)Licyllis/arc3d/engine/Image;
+      74: checkcast     #339                // class icyllis/arc3d/opengl/GLTexture
+      77: putfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+      80: aload_0
+      81: getfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+      84: ifnonnull     106
+      87: getstatic     #129                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+      90: getstatic     #135                // Field icyllis/modernui/mc/text/GlyphManager.MARKER:Lorg/apache/logging/log4j/Marker;
+      93: ldc_w         #343                // String Failed to create font texture for {}
+      96: aload_0
+      97: getfield      #84                 // Field mName:Lnet/minecraft/class_2960;
+     100: invokeinterface #347,  4          // InterfaceMethod org/apache/logging/log4j/Logger.error:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;)V
+     105: return
+     106: aload_1
+     107: invokevirtual #353                // Method icyllis/arc3d/engine/ImmediateContext.getDevice:()Licyllis/arc3d/engine/Device;
+     110: checkcast     #355                // class icyllis/arc3d/opengl/GLDevice
+     113: aload_0
+     114: getfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+     117: iconst_0
+     118: iconst_0
+     119: aload_0
+     120: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+     123: invokevirtual #94                 // Method icyllis/modernui/graphics/Bitmap.getWidth:()I
+     126: aload_0
+     127: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+     130: invokevirtual #99                 // Method icyllis/modernui/graphics/Bitmap.getHeight:()I
+     133: aload_0
+     134: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+     137: invokevirtual #317                // Method icyllis/modernui/graphics/Bitmap.getColorType:()I
+     140: aload_0
+     141: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+     144: invokevirtual #317                // Method icyllis/modernui/graphics/Bitmap.getColorType:()I
+     147: aload_0
+     148: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+     151: invokevirtual #358                // Method icyllis/modernui/graphics/Bitmap.getRowBytes:()I
+     154: aload_0
+     155: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+     158: invokevirtual #362                // Method icyllis/modernui/graphics/Bitmap.getAddress:()J
+     161: invokevirtual #366                // Method icyllis/arc3d/opengl/GLDevice.writePixels:(Licyllis/arc3d/engine/Image;IIIIIIIJ)Z
+     164: istore_3
+     165: getstatic     #299                // Field $assertionsDisabled:Z
+     168: ifne          183
+     171: iload_3
+     172: ifne          183
+     175: new           #301                // class java/lang/AssertionError
+     178: dup
+     179: invokespecial #302                // Method java/lang/AssertionError."<init>":()V
+     182: athrow
+     183: ldc_w         #367                // int 32873
+     186: invokestatic  #373                // Method org/lwjgl/opengl/GL33C.glGetInteger:(I)I
+     189: istore        4
+     191: sipush        3553
+     194: aload_0
+     195: getfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+     198: invokevirtual #376                // Method icyllis/arc3d/opengl/GLTexture.getHandle:()I
+     201: invokestatic  #380                // Method org/lwjgl/opengl/GL33C.glBindTexture:(II)V
+     204: sipush        3553
+     207: sipush        10240
+     210: sipush        9728
+     213: invokestatic  #384                // Method org/lwjgl/opengl/GL33C.glTexParameteri:(III)V
+     216: sipush        3553
+     219: sipush        10241
+     222: sipush        9728
+     225: invokestatic  #384                // Method org/lwjgl/opengl/GL33C.glTexParameteri:(III)V
+     228: sipush        3553
+     231: iload         4
+     233: invokestatic  #380                // Method org/lwjgl/opengl/GL33C.glBindTexture:(II)V
+     236: return
+
+  public void dumpAtlas(int, java.lang.String);
+    Code:
+       0: getstatic     #129                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+       3: getstatic     #135                // Field icyllis/modernui/mc/text/GlyphManager.MARKER:Lorg/apache/logging/log4j/Marker;
+       6: ldc_w         #396                // String BitmapFont {}: {}, ascent: {}, descent: {}, numGlyphs: {}, nothingToDraw: {}, fitsInAtlas: {}, dedicatedTexture: {}
+       9: iload_1
+      10: invokestatic  #400                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+      13: aload_0
+      14: getfield      #84                 // Field mName:Lnet/minecraft/class_2960;
+      17: aload_0
+      18: invokevirtual #403                // Method getAscent:()I
+      21: invokestatic  #400                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+      24: aload_0
+      25: invokevirtual #406                // Method getDescent:()I
+      28: invokestatic  #400                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+      31: aload_0
+      32: getfield      #82                 // Field mGlyphs:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+      35: invokevirtual #409                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.size:()I
+      38: invokestatic  #400                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+      41: aload_0
+      42: invokevirtual #413                // Method nothingToDraw:()Z
+      45: invokestatic  #418                // Method java/lang/Boolean.valueOf:(Z)Ljava/lang/Boolean;
+      48: aload_0
+      49: invokevirtual #421                // Method fitsInAtlas:()Z
+      52: invokestatic  #418                // Method java/lang/Boolean.valueOf:(Z)Ljava/lang/Boolean;
+      55: aload_0
+      56: getfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+      59: invokeinterface #425,  11         // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+      64: aload_2
+      65: ifnull        101
+      68: aload_0
+      69: getfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+      72: ifnull        101
+      75: invokestatic  #428                // Method icyllis/modernui/core/Core.isOnRenderThread:()Z
+      78: ifeq          101
+      81: invokestatic  #308                // Method icyllis/modernui/core/Core.requireImmediateContext:()Licyllis/arc3d/engine/ImmediateContext;
+      84: invokevirtual #314                // Method icyllis/arc3d/engine/ImmediateContext.getCaps:()Licyllis/arc3d/engine/Caps;
+      87: checkcast     #430                // class icyllis/arc3d/opengl/GLCaps
+      90: aload_0
+      91: getfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+      94: getstatic     #249                // Field icyllis/modernui/graphics/Bitmap$Format.RGBA_8888:Licyllis/modernui/graphics/Bitmap$Format;
+      97: aload_2
+      98: invokestatic  #435                // Method icyllis/modernui/mc/text/GLFontAtlas.dumpAtlas:(Licyllis/arc3d/opengl/GLCaps;Licyllis/arc3d/opengl/GLTexture;Licyllis/modernui/graphics/Bitmap$Format;Ljava/lang/String;)V
+     101: return
+
+  public int getStyle();
+    Code:
+       0: iconst_0
+       1: ireturn
+
+  public java.lang.String getFullName(java.util.Locale);
+    Code:
+       0: aload_0
+       1: getfield      #84                 // Field mName:Lnet/minecraft/class_2960;
+       4: invokevirtual #331                // Method net/minecraft/class_2960.toString:()Ljava/lang/String;
+       7: areturn
+
+  public java.lang.String getFamilyName(java.util.Locale);
+    Code:
+       0: aload_0
+       1: getfield      #84                 // Field mName:Lnet/minecraft/class_2960;
+       4: invokevirtual #331                // Method net/minecraft/class_2960.toString:()Ljava/lang/String;
+       7: areturn
+
+  public int getMetrics(icyllis.modernui.graphics.text.FontPaint, icyllis.modernui.graphics.text.FontMetricsInt);
+    Code:
+       0: iconst_0
+       1: ireturn
+
+  public icyllis.modernui.mc.text.BitmapFont$Glyph getGlyph(int);
+    Code:
+       0: aload_0
+       1: getfield      #82                 // Field mGlyphs:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+       4: iload_1
+       5: invokevirtual #455                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.get:(I)Ljava/lang/Object;
+       8: checkcast     #11                 // class icyllis/modernui/mc/text/BitmapFont$Glyph
+      11: areturn
+
+  public boolean nothingToDraw();
+    Code:
+       0: aload_0
+       1: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+       4: ifnonnull     11
+       7: iconst_1
+       8: goto          12
+      11: iconst_0
+      12: ireturn
+
+  public boolean fitsInAtlas();
+    Code:
+       0: aload_0
+       1: getfield      #110                // Field mBakedGlyphs:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+       4: ifnonnull     11
+       7: iconst_1
+       8: goto          12
+      11: iconst_0
+      12: ireturn
+
+  private int getTextureWidth();
+    Code:
+       0: getstatic     #299                // Field $assertionsDisabled:Z
+       3: ifne          21
+       6: aload_0
+       7: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      10: ifnonnull     21
+      13: new           #301                // class java/lang/AssertionError
+      16: dup
+      17: invokespecial #302                // Method java/lang/AssertionError."<init>":()V
+      20: athrow
+      21: aload_0
+      22: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      25: invokevirtual #94                 // Method icyllis/modernui/graphics/Bitmap.getWidth:()I
+      28: sipush        256
+      31: invokestatic  #460                // Method java/lang/Math.max:(II)I
+      34: ireturn
+
+  private int getTextureHeight();
+    Code:
+       0: getstatic     #299                // Field $assertionsDisabled:Z
+       3: ifne          21
+       6: aload_0
+       7: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      10: ifnonnull     21
+      13: new           #301                // class java/lang/AssertionError
+      16: dup
+      17: invokespecial #302                // Method java/lang/AssertionError."<init>":()V
+      20: athrow
+      21: aload_0
+      22: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      25: invokevirtual #99                 // Method icyllis/modernui/graphics/Bitmap.getHeight:()I
+      28: sipush        256
+      31: invokestatic  #460                // Method java/lang/Math.max:(II)I
+      34: ireturn
+
+  public void setGlyphMetrics(icyllis.modernui.mc.text.GLBakedGlyph);
+    Code:
+       0: aload_1
+       1: iconst_0
+       2: putfield      #462                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+       5: aload_1
+       6: aload_0
+       7: getfield      #88                 // Field mAscent:I
+      10: ineg
+      11: bipush        8
+      13: imul
+      14: putfield      #464                // Field icyllis/modernui/mc/text/GLBakedGlyph.y:I
+      17: aload_1
+      18: aload_0
+      19: getfield      #96                 // Field mSpriteWidth:I
+      22: i2f
+      23: aload_0
+      24: getfield      #103                // Field mScaleFactor:F
+      27: fmul
+      28: ldc_w         #465                // float 8.0f
+      31: fmul
+      32: invokestatic  #469                // Method java/lang/Math.round:(F)I
+      35: iconst_0
+      36: sipush        32767
+      39: invokestatic  #475                // Method icyllis/modernui/graphics/MathUtil.clamp:(III)I
+      42: i2s
+      43: putfield      #478                // Field icyllis/modernui/mc/text/GLBakedGlyph.width:S
+      46: aload_1
+      47: aload_0
+      48: getfield      #101                // Field mSpriteHeight:I
+      51: i2f
+      52: aload_0
+      53: getfield      #103                // Field mScaleFactor:F
+      56: fmul
+      57: ldc_w         #465                // float 8.0f
+      60: fmul
+      61: invokestatic  #469                // Method java/lang/Math.round:(F)I
+      64: iconst_0
+      65: sipush        32767
+      68: invokestatic  #475                // Method icyllis/modernui/graphics/MathUtil.clamp:(III)I
+      71: i2s
+      72: putfield      #480                // Field icyllis/modernui/mc/text/GLBakedGlyph.height:S
+      75: return
+
+  public boolean getGlyphImage(int, long);
+    Code:
+       0: getstatic     #299                // Field $assertionsDisabled:Z
+       3: ifne          21
+       6: aload_0
+       7: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      10: ifnonnull     21
+      13: new           #301                // class java/lang/AssertionError
+      16: dup
+      17: invokespecial #302                // Method java/lang/AssertionError."<init>":()V
+      20: athrow
+      21: aload_0
+      22: iload_1
+      23: invokevirtual #485                // Method getGlyph:(I)Licyllis/modernui/mc/text/BitmapFont$Glyph;
+      26: astore        4
+      28: aload         4
+      30: ifnull        41
+      33: aload         4
+      35: getfield      #487                // Field icyllis/modernui/mc/text/BitmapFont$Glyph.isEmpty:Z
+      38: ifeq          43
+      41: iconst_0
+      42: ireturn
+      43: aload_0
+      44: getfield      #96                 // Field mSpriteWidth:I
+      47: aload_0
+      48: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      51: invokevirtual #491                // Method icyllis/modernui/graphics/Bitmap.getFormat:()Licyllis/modernui/graphics/Bitmap$Format;
+      54: invokevirtual #494                // Method icyllis/modernui/graphics/Bitmap$Format.getBytesPerPixel:()I
+      57: imul
+      58: istore        5
+      60: aload_0
+      61: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      64: invokevirtual #498                // Method icyllis/modernui/graphics/Bitmap.getPixmap:()Licyllis/arc3d/core/Pixmap;
+      67: aload         4
+      69: getfield      #501                // Field icyllis/modernui/mc/text/BitmapFont$Glyph.offsetX:S
+      72: aload         4
+      74: getfield      #504                // Field icyllis/modernui/mc/text/BitmapFont$Glyph.offsetY:S
+      77: invokevirtual #509                // Method icyllis/arc3d/core/Pixmap.getAddress:(II)J
+      80: aload_0
+      81: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      84: invokevirtual #358                // Method icyllis/modernui/graphics/Bitmap.getRowBytes:()I
+      87: i2l
+      88: lload_2
+      89: iload         5
+      91: i2l
+      92: iload         5
+      94: i2l
+      95: aload_0
+      96: getfield      #101                // Field mSpriteHeight:I
+      99: invokestatic  #515                // Method icyllis/arc3d/core/PixelUtils.copyImage:(JJJJJI)V
+     102: iconst_1
+     103: ireturn
+
+  public icyllis.modernui.mc.text.GLBakedGlyph getBakedGlyph(int);
+    Code:
+       0: getstatic     #299                // Field $assertionsDisabled:Z
+       3: ifne          28
+       6: aload_0
+       7: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      10: ifnull        20
+      13: aload_0
+      14: getfield      #110                // Field mBakedGlyphs:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+      17: ifnonnull     28
+      20: new           #301                // class java/lang/AssertionError
+      23: dup
+      24: invokespecial #302                // Method java/lang/AssertionError."<init>":()V
+      27: athrow
+      28: aload_0
+      29: getfield      #110                // Field mBakedGlyphs:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+      32: iload_1
+      33: invokevirtual #455                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.get:(I)Ljava/lang/Object;
+      36: checkcast     #151                // class icyllis/modernui/mc/text/GLBakedGlyph
+      39: astore_2
+      40: aload_2
+      41: ifnull        55
+      44: aload_0
+      45: getfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+      48: ifnonnull     55
+      51: aload_0
+      52: invokevirtual #522                // Method createTexture:()V
+      55: aload_2
+      56: areturn
+
+  public int getCurrentTexture();
+    Code:
+       0: aload_0
+       1: getfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+       4: ifnull        17
+       7: aload_0
+       8: getfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+      11: invokevirtual #376                // Method icyllis/arc3d/opengl/GLTexture.getHandle:()I
+      14: goto          18
+      17: iconst_0
+      18: ireturn
+
+  public int getAscent();
+    Code:
+       0: aload_0
+       1: getfield      #88                 // Field mAscent:I
+       4: ireturn
+
+  public int getDescent();
+    Code:
+       0: aload_0
+       1: getfield      #90                 // Field mDescent:I
+       4: ireturn
+
+  public int getSpriteWidth();
+    Code:
+       0: aload_0
+       1: getfield      #96                 // Field mSpriteWidth:I
+       4: ireturn
+
+  public int getSpriteHeight();
+    Code:
+       0: aload_0
+       1: getfield      #101                // Field mSpriteHeight:I
+       4: ireturn
+
+  public float getScaleFactor();
+    Code:
+       0: aload_0
+       1: getfield      #103                // Field mScaleFactor:F
+       4: freturn
+
+  public int[][] getCodepointGrid();
+    Code:
+       0: aload_0
+       1: getfield      #105                // Field mCodepointGrid:[[I
+       4: areturn
+
+  public boolean hasGlyph(int, int);
+    Code:
+       0: aload_0
+       1: getfield      #82                 // Field mGlyphs:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+       4: iload_1
+       5: invokevirtual #536                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.containsKey:(I)Z
+       8: ireturn
+
+  public float doSimpleLayout(char[], int, int, icyllis.modernui.graphics.text.FontPaint, it.unimi.dsi.fastutil.ints.IntArrayList, it.unimi.dsi.fastutil.floats.FloatArrayList, float, float);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: iload_2
+       3: iload_3
+       4: iload_2
+       5: iload_3
+       6: iconst_0
+       7: aload         4
+       9: aload         5
+      11: aload         6
+      13: aconst_null
+      14: iconst_0
+      15: aconst_null
+      16: fload         7
+      18: fload         8
+      20: invokevirtual #547                // Method doComplexLayout:([CIIIIZLicyllis/modernui/graphics/text/FontPaint;Lit/unimi/dsi/fastutil/ints/IntArrayList;Lit/unimi/dsi/fastutil/floats/FloatArrayList;[FILicyllis/modernui/graphics/Rect;FF)F
+      23: freturn
+
+  public float doComplexLayout(char[], int, int, int, int, boolean, icyllis.modernui.graphics.text.FontPaint, it.unimi.dsi.fastutil.ints.IntArrayList, it.unimi.dsi.fastutil.floats.FloatArrayList, float[], int, icyllis.modernui.graphics.Rect, float, float);
+    Code:
+       0: aload         7
+       2: invokevirtual #563                // Method icyllis/modernui/graphics/text/FontPaint.getFontSize:()F
+       5: getstatic     #568                // Field icyllis/modernui/mc/text/TextLayoutProcessor.sBaseFontSize:F
+       8: fdiv
+       9: f2d
+      10: ldc2_w        #115                // double 0.5d
+      13: dadd
+      14: d2i
+      15: i2f
+      16: fstore        15
+      18: fconst_0
+      19: fstore        18
+      21: iload         4
+      23: istore        19
+      25: iload         19
+      27: iload         5
+      29: if_icmpge     199
+      32: iload         19
+      34: istore        21
+      36: aload_1
+      37: iload         19
+      39: caload
+      40: istore        16
+      42: iload         16
+      44: invokestatic  #583                // Method java/lang/Character.isHighSurrogate:(C)Z
+      47: ifeq          97
+      50: iload         19
+      52: iconst_1
+      53: iadd
+      54: iload         5
+      56: if_icmpge     97
+      59: aload_1
+      60: iload         19
+      62: iconst_1
+      63: iadd
+      64: caload
+      65: istore        17
+      67: iload         17
+      69: invokestatic  #586                // Method java/lang/Character.isLowSurrogate:(C)Z
+      72: ifeq          90
+      75: iload         16
+      77: iload         17
+      79: invokestatic  #590                // Method java/lang/Character.toCodePoint:(CC)I
+      82: istore        20
+      84: iinc          19, 1
+      87: goto          101
+      90: iload         16
+      92: istore        20
+      94: goto          101
+      97: iload         16
+      99: istore        20
+     101: aload_0
+     102: iload         20
+     104: invokevirtual #485                // Method getGlyph:(I)Licyllis/modernui/mc/text/BitmapFont$Glyph;
+     107: astore        22
+     109: aload         22
+     111: ifnonnull     117
+     114: goto          193
+     117: aload         22
+     119: getfield      #593                // Field icyllis/modernui/mc/text/BitmapFont$Glyph.advance:F
+     122: fload         15
+     124: fmul
+     125: fstore        23
+     127: aload         10
+     129: ifnull        142
+     132: aload         10
+     134: iload         21
+     136: iload         11
+     138: isub
+     139: fload         23
+     141: fastore
+     142: aload         8
+     144: ifnull        155
+     147: aload         8
+     149: iload         20
+     151: invokevirtual #596                // Method it/unimi/dsi/fastutil/ints/IntArrayList.add:(I)Z
+     154: pop
+     155: aload         9
+     157: ifnull        186
+     160: aload         9
+     162: fload         13
+     164: fload         18
+     166: fadd
+     167: fload         15
+     169: getstatic     #598                // Field sBitmapOffset:F
+     172: fmul
+     173: fadd
+     174: invokevirtual #601                // Method it/unimi/dsi/fastutil/floats/FloatArrayList.add:(F)Z
+     177: pop
+     178: aload         9
+     180: fload         14
+     182: invokevirtual #601                // Method it/unimi/dsi/fastutil/floats/FloatArrayList.add:(F)Z
+     185: pop
+     186: fload         18
+     188: fload         23
+     190: fadd
+     191: fstore        18
+     193: iinc          19, 1
+     196: goto          25
+     199: fload         18
+     201: freturn
+
+  public icyllis.arc3d.sketch.Typeface getNativeTypeface();
+    Code:
+       0: aconst_null
+       1: areturn
+
+  public int hashCode();
+    Code:
+       0: aload_0
+       1: getfield      #84                 // Field mName:Lnet/minecraft/class_2960;
+       4: invokevirtual #612                // Method net/minecraft/class_2960.hashCode:()I
+       7: istore_1
+       8: bipush        31
+      10: iload_1
+      11: imul
+      12: aload_0
+      13: getfield      #88                 // Field mAscent:I
+      16: iadd
+      17: istore_1
+      18: bipush        31
+      20: iload_1
+      21: imul
+      22: aload_0
+      23: getfield      #90                 // Field mDescent:I
+      26: iadd
+      27: istore_1
+      28: bipush        31
+      30: iload_1
+      31: imul
+      32: aload_0
+      33: getfield      #105                // Field mCodepointGrid:[[I
+      36: invokestatic  #618                // Method java/util/Arrays.deepHashCode:([Ljava/lang/Object;)I
+      39: iadd
+      40: istore_1
+      41: iload_1
+      42: ireturn
+
+  public boolean equals(java.lang.Object);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: if_acmpne     7
+       5: iconst_1
+       6: ireturn
+       7: aload_1
+       8: ifnull        22
+      11: aload_0
+      12: invokevirtual #626                // Method java/lang/Object.getClass:()Ljava/lang/Class;
+      15: aload_1
+      16: invokevirtual #626                // Method java/lang/Object.getClass:()Ljava/lang/Class;
+      19: if_acmpeq     24
+      22: iconst_0
+      23: ireturn
+      24: aload_1
+      25: checkcast     #2                  // class icyllis/modernui/mc/text/BitmapFont
+      28: astore_2
+      29: aload_0
+      30: getfield      #88                 // Field mAscent:I
+      33: aload_2
+      34: getfield      #88                 // Field mAscent:I
+      37: if_icmpeq     42
+      40: iconst_0
+      41: ireturn
+      42: aload_0
+      43: getfield      #90                 // Field mDescent:I
+      46: aload_2
+      47: getfield      #90                 // Field mDescent:I
+      50: if_icmpeq     55
+      53: iconst_0
+      54: ireturn
+      55: aload_0
+      56: getfield      #84                 // Field mName:Lnet/minecraft/class_2960;
+      59: aload_2
+      60: getfield      #84                 // Field mName:Lnet/minecraft/class_2960;
+      63: invokevirtual #628                // Method net/minecraft/class_2960.equals:(Ljava/lang/Object;)Z
+      66: ifne          71
+      69: iconst_0
+      70: ireturn
+      71: aload_0
+      72: getfield      #105                // Field mCodepointGrid:[[I
+      75: aload_2
+      76: getfield      #105                // Field mCodepointGrid:[[I
+      79: invokestatic  #632                // Method java/util/Arrays.deepEquals:([Ljava/lang/Object;[Ljava/lang/Object;)Z
+      82: ireturn
+
+  public void close();
+    Code:
+       0: aload_0
+       1: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+       4: ifnull        19
+       7: aload_0
+       8: getfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      11: invokevirtual #177                // Method icyllis/modernui/graphics/Bitmap.close:()V
+      14: aload_0
+      15: aconst_null
+      16: putfield      #86                 // Field mBitmap:Licyllis/modernui/graphics/Bitmap;
+      19: aload_0
+      20: aload_0
+      21: getfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+      24: invokestatic  #640                // Method icyllis/arc3d/core/RefCnt.move:(Licyllis/arc3d/core/RefCounted;)Licyllis/arc3d/core/RefCounted;
+      27: checkcast     #339                // class icyllis/arc3d/opengl/GLTexture
+      30: putfield      #341                // Field mTexture:Licyllis/arc3d/opengl/GLTexture;
+      33: return
+
+  static {};
+    Code:
+       0: ldc           #2                  // class icyllis/modernui/mc/text/BitmapFont
+       2: invokevirtual #646                // Method java/lang/Class.desiredAssertionStatus:()Z
+       5: ifne          12
+       8: iconst_1
+       9: goto          13
+      12: iconst_0
+      13: putstatic     #299                // Field $assertionsDisabled:Z
+      16: ldc_w         #647                // float 0.5f
+      19: putstatic     #598                // Field sBitmapOffset:F
+      22: return
+}

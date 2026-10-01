@@ -1,0 +1,471 @@
+Compiled from "StandardFontSet.java"
+public class icyllis.modernui.mc.text.StandardFontSet extends net.minecraft.class_377 {
+  private java.util.List<icyllis.modernui.graphics.text.FontFamily> mFamilies;
+
+  private net.minecraft.class_8532<net.minecraft.class_382> mGlyphs;
+
+  private final java.util.function.IntFunction<net.minecraft.class_382> mCacheGlyph;
+
+  private net.minecraft.class_8532<net.minecraft.class_379> mGlyphInfos;
+
+  private final java.util.function.IntFunction<net.minecraft.class_379> mCacheGlyphInfo;
+
+  private float mResLevel;
+
+  private final icyllis.modernui.graphics.text.FontPaint mStandardPaint;
+
+  public icyllis.modernui.mc.text.StandardFontSet(net.minecraft.class_1060, net.minecraft.class_2960);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: aload_2
+       3: invokespecial #51                 // Method net/minecraft/class_377."<init>":(Lnet/minecraft/class_1060;Lnet/minecraft/class_2960;)V
+       6: aload_0
+       7: invokestatic  #57                 // Method java/util/Collections.emptyList:()Ljava/util/List;
+      10: putfield      #59                 // Field mFamilies:Ljava/util/List;
+      13: aload_0
+      14: aload_0
+      15: invokedynamic #78,  0             // InvokeDynamic #0:apply:(Licyllis/modernui/mc/text/StandardFontSet;)Ljava/util/function/IntFunction;
+      20: putfield      #80                 // Field mCacheGlyph:Ljava/util/function/IntFunction;
+      23: aload_0
+      24: aload_0
+      25: invokedynamic #87,  0             // InvokeDynamic #1:apply:(Licyllis/modernui/mc/text/StandardFontSet;)Ljava/util/function/IntFunction;
+      30: putfield      #89                 // Field mCacheGlyphInfo:Ljava/util/function/IntFunction;
+      33: aload_0
+      34: fconst_2
+      35: putfield      #91                 // Field mResLevel:F
+      38: aload_0
+      39: new           #93                 // class icyllis/modernui/graphics/text/FontPaint
+      42: dup
+      43: invokespecial #96                 // Method icyllis/modernui/graphics/text/FontPaint."<init>":()V
+      46: putfield      #98                 // Field mStandardPaint:Licyllis/modernui/graphics/text/FontPaint;
+      49: aload_0
+      50: getfield      #98                 // Field mStandardPaint:Licyllis/modernui/graphics/text/FontPaint;
+      53: iconst_0
+      54: invokevirtual #102                // Method icyllis/modernui/graphics/text/FontPaint.setFontStyle:(I)V
+      57: aload_0
+      58: getfield      #98                 // Field mStandardPaint:Licyllis/modernui/graphics/text/FontPaint;
+      61: getstatic     #108                // Field java/util/Locale.ROOT:Ljava/util/Locale;
+      64: invokevirtual #112                // Method icyllis/modernui/graphics/text/FontPaint.setLocale:(Ljava/util/Locale;)V
+      67: return
+
+  public void reload(icyllis.modernui.graphics.text.FontCollection, int);
+    Code:
+       0: aload_0
+       1: invokestatic  #57                 // Method java/util/Collections.emptyList:()Ljava/util/List;
+       4: invokestatic  #124                // Method java/util/Collections.emptySet:()Ljava/util/Set;
+       7: invokespecial #128                // Method net/minecraft/class_377.method_2004:(Ljava/util/List;Ljava/util/Set;)V
+      10: aload_0
+      11: aload_1
+      12: invokevirtual #133                // Method icyllis/modernui/graphics/text/FontCollection.getFamilies:()Ljava/util/List;
+      15: putfield      #59                 // Field mFamilies:Ljava/util/List;
+      18: aload_0
+      19: iload_2
+      20: invokevirtual #136                // Method invalidateCache:(I)V
+      23: return
+
+  public void invalidateCache(int);
+    Code:
+       0: aload_0
+       1: getfield      #140                // Field mGlyphs:Lnet/minecraft/class_8532;
+       4: ifnull        14
+       7: aload_0
+       8: getfield      #140                // Field mGlyphs:Lnet/minecraft/class_8532;
+      11: invokevirtual #145                // Method net/minecraft/class_8532.method_51597:()V
+      14: aload_0
+      15: getfield      #147                // Field mGlyphInfos:Lnet/minecraft/class_8532;
+      18: ifnull        28
+      21: aload_0
+      22: getfield      #147                // Field mGlyphInfos:Lnet/minecraft/class_8532;
+      25: invokevirtual #145                // Method net/minecraft/class_8532.method_51597:()V
+      28: iload_1
+      29: i2f
+      30: invokestatic  #153                // Method icyllis/modernui/mc/text/TextLayoutProcessor.computeFontSize:(F)I
+      33: istore_2
+      34: aload_0
+      35: getfield      #98                 // Field mStandardPaint:Licyllis/modernui/graphics/text/FontPaint;
+      38: iload_2
+      39: i2f
+      40: invokevirtual #157                // Method icyllis/modernui/graphics/text/FontPaint.setFontSize:(F)V
+      43: aload_0
+      44: getfield      #98                 // Field mStandardPaint:Licyllis/modernui/graphics/text/FontPaint;
+      47: getstatic     #163                // Field icyllis/modernui/mc/text/GlyphManager.sAntiAliasing:Z
+      50: invokevirtual #167                // Method icyllis/modernui/graphics/text/FontPaint.setAntiAlias:(Z)V
+      53: aload_0
+      54: getfield      #98                 // Field mStandardPaint:Licyllis/modernui/graphics/text/FontPaint;
+      57: getstatic     #170                // Field icyllis/modernui/mc/text/GlyphManager.sFractionalMetrics:Z
+      60: invokevirtual #173                // Method icyllis/modernui/graphics/text/FontPaint.setLinearMetrics:(Z)V
+      63: aload_0
+      64: iload_1
+      65: i2f
+      66: putfield      #91                 // Field mResLevel:F
+      69: return
+
+  private net.minecraft.class_379 cacheGlyphInfo(int);
+    Code:
+       0: aload_0
+       1: getfield      #59                 // Field mFamilies:Ljava/util/List;
+       4: invokeinterface #181,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       9: astore_2
+      10: aload_2
+      11: invokeinterface #187,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      16: ifeq          193
+      19: aload_2
+      20: invokeinterface #191,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      25: checkcast     #193                // class icyllis/modernui/graphics/text/FontFamily
+      28: astore_3
+      29: aload_3
+      30: iload_1
+      31: invokevirtual #197                // Method icyllis/modernui/graphics/text/FontFamily.hasGlyph:(I)Z
+      34: ifne          40
+      37: goto          10
+      40: aload_3
+      41: iconst_0
+      42: invokevirtual #201                // Method icyllis/modernui/graphics/text/FontFamily.getClosestMatch:(I)Licyllis/modernui/graphics/text/Font;
+      45: astore        4
+      47: aload         4
+      49: instanceof    #13                 // class icyllis/modernui/mc/text/BitmapFont
+      52: ifeq          81
+      55: aload         4
+      57: checkcast     #13                 // class icyllis/modernui/mc/text/BitmapFont
+      60: astore        5
+      62: aload         5
+      64: iload_1
+      65: invokevirtual #205                // Method icyllis/modernui/mc/text/BitmapFont.getGlyph:(I)Licyllis/modernui/mc/text/BitmapFont$Glyph;
+      68: astore        8
+      70: aload         8
+      72: ifnull        78
+      75: aload         8
+      77: areturn
+      78: goto          190
+      81: aload         4
+      83: instanceof    #209                // class icyllis/modernui/mc/text/SpaceFont
+      86: ifeq          123
+      89: aload         4
+      91: checkcast     #209                // class icyllis/modernui/mc/text/SpaceFont
+      94: astore        6
+      96: aload         6
+      98: iload_1
+      99: invokevirtual #213                // Method icyllis/modernui/mc/text/SpaceFont.getAdvance:(I)F
+     102: fstore        8
+     104: fload         8
+     106: invokestatic  #219                // Method java/lang/Float.isNaN:(F)Z
+     109: ifne          120
+     112: fload         8
+     114: invokedynamic #229,  0            // InvokeDynamic #2:getAdvance:(F)Lnet/minecraft/class_379$class_7167;
+     119: areturn
+     120: goto          190
+     123: aload         4
+     125: instanceof    #231                // class icyllis/modernui/graphics/text/OutlineFont
+     128: ifeq          190
+     131: aload         4
+     133: checkcast     #231                // class icyllis/modernui/graphics/text/OutlineFont
+     136: astore        7
+     138: aload         7
+     140: iload_1
+     141: iconst_0
+     142: invokevirtual #234                // Method icyllis/modernui/graphics/text/OutlineFont.hasGlyph:(II)Z
+     145: ifeq          190
+     148: iload_1
+     149: invokestatic  #240                // Method java/lang/Character.toChars:(I)[C
+     152: astore        8
+     154: aload         7
+     156: aload         8
+     158: iconst_0
+     159: aload         8
+     161: arraylength
+     162: aload_0
+     163: getfield      #98                 // Field mStandardPaint:Licyllis/modernui/graphics/text/FontPaint;
+     166: aconst_null
+     167: aconst_null
+     168: fconst_0
+     169: fconst_0
+     170: invokevirtual #244                // Method icyllis/modernui/graphics/text/OutlineFont.doSimpleLayout:([CIILicyllis/modernui/graphics/text/FontPaint;Lit/unimi/dsi/fastutil/ints/IntArrayList;Lit/unimi/dsi/fastutil/floats/FloatArrayList;FF)F
+     173: fstore        9
+     175: new           #9                  // class icyllis/modernui/mc/text/StandardFontSet$StandardGlyphInfo
+     178: dup
+     179: fload         9
+     181: aload_0
+     182: getfield      #91                 // Field mResLevel:F
+     185: fdiv
+     186: invokespecial #246                // Method icyllis/modernui/mc/text/StandardFontSet$StandardGlyphInfo."<init>":(F)V
+     189: areturn
+     190: goto          10
+     193: getstatic     #252                // Field net/minecraft/class_7191.field_37899:Lnet/minecraft/class_7191;
+     196: areturn
+
+  public net.minecraft.class_379 method_2011(int, boolean);
+    Code:
+       0: aload_0
+       1: getfield      #147                // Field mGlyphInfos:Lnet/minecraft/class_8532;
+       4: ifnonnull     28
+       7: aload_0
+       8: new           #142                // class net/minecraft/class_8532
+      11: dup
+      12: invokedynamic #279,  0            // InvokeDynamic #3:apply:()Ljava/util/function/IntFunction;
+      17: invokedynamic #286,  0            // InvokeDynamic #4:apply:()Ljava/util/function/IntFunction;
+      22: invokespecial #289                // Method net/minecraft/class_8532."<init>":(Ljava/util/function/IntFunction;Ljava/util/function/IntFunction;)V
+      25: putfield      #147                // Field mGlyphInfos:Lnet/minecraft/class_8532;
+      28: aload_0
+      29: getfield      #147                // Field mGlyphInfos:Lnet/minecraft/class_8532;
+      32: iload_1
+      33: aload_0
+      34: getfield      #89                 // Field mCacheGlyphInfo:Ljava/util/function/IntFunction;
+      37: invokevirtual #293                // Method net/minecraft/class_8532.method_51600:(ILjava/util/function/IntFunction;)Ljava/lang/Object;
+      40: checkcast     #18                 // class net/minecraft/class_379
+      43: areturn
+
+  private net.minecraft.class_382 cacheGlyph(int);
+    Code:
+       0: aload_0
+       1: getfield      #59                 // Field mFamilies:Ljava/util/List;
+       4: invokeinterface #181,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       9: astore_2
+      10: aload_2
+      11: invokeinterface #187,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      16: ifeq          411
+      19: aload_2
+      20: invokeinterface #191,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      25: checkcast     #193                // class icyllis/modernui/graphics/text/FontFamily
+      28: astore_3
+      29: aload_3
+      30: iload_1
+      31: invokevirtual #197                // Method icyllis/modernui/graphics/text/FontFamily.hasGlyph:(I)Z
+      34: ifne          40
+      37: goto          10
+      40: aload_3
+      41: iconst_0
+      42: invokevirtual #201                // Method icyllis/modernui/graphics/text/FontFamily.getClosestMatch:(I)Licyllis/modernui/graphics/text/Font;
+      45: astore        4
+      47: aload         4
+      49: instanceof    #13                 // class icyllis/modernui/mc/text/BitmapFont
+      52: ifeq          186
+      55: aload         4
+      57: checkcast     #13                 // class icyllis/modernui/mc/text/BitmapFont
+      60: astore        5
+      62: invokestatic  #297                // Method icyllis/modernui/mc/text/GlyphManager.getInstance:()Licyllis/modernui/mc/text/GlyphManager;
+      65: aload         5
+      67: aload_0
+      68: getfield      #98                 // Field mStandardPaint:Licyllis/modernui/graphics/text/FontPaint;
+      71: invokevirtual #300                // Method icyllis/modernui/graphics/text/FontPaint.getFontSize:()F
+      74: f2i
+      75: iload_1
+      76: invokevirtual #304                // Method icyllis/modernui/mc/text/GlyphManager.lookupGlyph:(Licyllis/modernui/graphics/text/Font;II)Licyllis/modernui/mc/text/GLBakedGlyph;
+      79: astore        7
+      81: aload         7
+      83: ifnull        182
+      86: ldc_w         #305                // float 7.0f
+      89: aload         7
+      91: getfield      #310                // Field icyllis/modernui/mc/text/GLBakedGlyph.y:I
+      94: i2f
+      95: ldc_w         #311                // float 8.0f
+      98: fdiv
+      99: fadd
+     100: fstore        8
+     102: aload         7
+     104: getfield      #314                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+     107: i2f
+     108: ldc_w         #311                // float 8.0f
+     111: fdiv
+     112: fstore        9
+     114: fload         9
+     116: aload         7
+     118: getfield      #318                // Field icyllis/modernui/mc/text/GLBakedGlyph.width:S
+     121: i2f
+     122: ldc_w         #311                // float 8.0f
+     125: fdiv
+     126: fadd
+     127: fstore        10
+     129: fload         8
+     131: aload         7
+     133: getfield      #321                // Field icyllis/modernui/mc/text/GLBakedGlyph.height:S
+     136: i2f
+     137: ldc_w         #311                // float 8.0f
+     140: fdiv
+     141: fadd
+     142: fstore        11
+     144: new           #7                  // class icyllis/modernui/mc/text/StandardFontSet$StandardBakedGlyph
+     147: dup
+     148: aload         5
+     150: aload         7
+     152: getfield      #324                // Field icyllis/modernui/mc/text/GLBakedGlyph.u1:F
+     155: aload         7
+     157: getfield      #327                // Field icyllis/modernui/mc/text/GLBakedGlyph.u2:F
+     160: aload         7
+     162: getfield      #330                // Field icyllis/modernui/mc/text/GLBakedGlyph.v1:F
+     165: aload         7
+     167: getfield      #333                // Field icyllis/modernui/mc/text/GLBakedGlyph.v2:F
+     170: fload         9
+     172: fload         10
+     174: fload         8
+     176: fload         11
+     178: invokespecial #336                // Method icyllis/modernui/mc/text/StandardFontSet$StandardBakedGlyph."<init>":(Licyllis/modernui/mc/text/BitmapFont;FFFFFFFF)V
+     181: areturn
+     182: getstatic     #342                // Field net/minecraft/class_384.field_38311:Lnet/minecraft/class_384;
+     185: areturn
+     186: aload         4
+     188: instanceof    #209                // class icyllis/modernui/mc/text/SpaceFont
+     191: ifeq          198
+     194: getstatic     #342                // Field net/minecraft/class_384.field_38311:Lnet/minecraft/class_384;
+     197: areturn
+     198: aload         4
+     200: instanceof    #231                // class icyllis/modernui/graphics/text/OutlineFont
+     203: ifeq          408
+     206: aload         4
+     208: checkcast     #231                // class icyllis/modernui/graphics/text/OutlineFont
+     211: astore        6
+     213: iload_1
+     214: invokestatic  #240                // Method java/lang/Character.toChars:(I)[C
+     217: astore        7
+     219: new           #344                // class it/unimi/dsi/fastutil/ints/IntArrayList
+     222: dup
+     223: iconst_1
+     224: invokespecial #346                // Method it/unimi/dsi/fastutil/ints/IntArrayList."<init>":(I)V
+     227: astore        8
+     229: aload         6
+     231: aload         7
+     233: iconst_0
+     234: aload         7
+     236: arraylength
+     237: aload_0
+     238: getfield      #98                 // Field mStandardPaint:Licyllis/modernui/graphics/text/FontPaint;
+     241: aload         8
+     243: aconst_null
+     244: fconst_0
+     245: fconst_0
+     246: invokevirtual #244                // Method icyllis/modernui/graphics/text/OutlineFont.doSimpleLayout:([CIILicyllis/modernui/graphics/text/FontPaint;Lit/unimi/dsi/fastutil/ints/IntArrayList;Lit/unimi/dsi/fastutil/floats/FloatArrayList;FF)F
+     249: fstore        9
+     251: aload         8
+     253: invokevirtual #350                // Method it/unimi/dsi/fastutil/ints/IntArrayList.size:()I
+     256: iconst_1
+     257: if_icmpne     397
+     260: aload         8
+     262: iconst_0
+     263: invokevirtual #354                // Method it/unimi/dsi/fastutil/ints/IntArrayList.getInt:(I)I
+     266: ifeq          397
+     269: invokestatic  #297                // Method icyllis/modernui/mc/text/GlyphManager.getInstance:()Licyllis/modernui/mc/text/GlyphManager;
+     272: aload         6
+     274: aload_0
+     275: getfield      #98                 // Field mStandardPaint:Licyllis/modernui/graphics/text/FontPaint;
+     278: invokevirtual #300                // Method icyllis/modernui/graphics/text/FontPaint.getFontSize:()F
+     281: f2i
+     282: aload         8
+     284: iconst_0
+     285: invokevirtual #354                // Method it/unimi/dsi/fastutil/ints/IntArrayList.getInt:(I)I
+     288: invokevirtual #304                // Method icyllis/modernui/mc/text/GlyphManager.lookupGlyph:(Licyllis/modernui/graphics/text/Font;II)Licyllis/modernui/mc/text/GLBakedGlyph;
+     291: astore        10
+     293: aload         10
+     295: ifnull        397
+     298: ldc_w         #305                // float 7.0f
+     301: aload         10
+     303: getfield      #310                // Field icyllis/modernui/mc/text/GLBakedGlyph.y:I
+     306: i2f
+     307: aload_0
+     308: getfield      #91                 // Field mResLevel:F
+     311: fdiv
+     312: fadd
+     313: fstore        11
+     315: aload         10
+     317: getfield      #314                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+     320: i2f
+     321: aload_0
+     322: getfield      #91                 // Field mResLevel:F
+     325: fdiv
+     326: fstore        12
+     328: fload         12
+     330: aload         10
+     332: getfield      #318                // Field icyllis/modernui/mc/text/GLBakedGlyph.width:S
+     335: i2f
+     336: aload_0
+     337: getfield      #91                 // Field mResLevel:F
+     340: fdiv
+     341: fadd
+     342: fstore        13
+     344: fload         11
+     346: aload         10
+     348: getfield      #321                // Field icyllis/modernui/mc/text/GLBakedGlyph.height:S
+     351: i2f
+     352: aload_0
+     353: getfield      #91                 // Field mResLevel:F
+     356: fdiv
+     357: fadd
+     358: fstore        14
+     360: new           #7                  // class icyllis/modernui/mc/text/StandardFontSet$StandardBakedGlyph
+     363: dup
+     364: aconst_null
+     365: aload         10
+     367: getfield      #324                // Field icyllis/modernui/mc/text/GLBakedGlyph.u1:F
+     370: aload         10
+     372: getfield      #327                // Field icyllis/modernui/mc/text/GLBakedGlyph.u2:F
+     375: aload         10
+     377: getfield      #330                // Field icyllis/modernui/mc/text/GLBakedGlyph.v1:F
+     380: aload         10
+     382: getfield      #333                // Field icyllis/modernui/mc/text/GLBakedGlyph.v2:F
+     385: fload         12
+     387: fload         13
+     389: fload         11
+     391: fload         14
+     393: invokespecial #336                // Method icyllis/modernui/mc/text/StandardFontSet$StandardBakedGlyph."<init>":(Licyllis/modernui/mc/text/BitmapFont;FFFFFFFF)V
+     396: areturn
+     397: fload         9
+     399: fconst_0
+     400: fcmpl
+     401: ifle          408
+     404: getstatic     #342                // Field net/minecraft/class_384.field_38311:Lnet/minecraft/class_384;
+     407: areturn
+     408: goto          10
+     411: aload_0
+     412: iload_1
+     413: invokespecial #358                // Method net/minecraft/class_377.method_2014:(I)Lnet/minecraft/class_382;
+     416: areturn
+
+  public net.minecraft.class_382 method_2014(int);
+    Code:
+       0: aload_0
+       1: getfield      #140                // Field mGlyphs:Lnet/minecraft/class_8532;
+       4: ifnonnull     28
+       7: aload_0
+       8: new           #142                // class net/minecraft/class_8532
+      11: dup
+      12: invokedynamic #372,  0            // InvokeDynamic #5:apply:()Ljava/util/function/IntFunction;
+      17: invokedynamic #379,  0            // InvokeDynamic #6:apply:()Ljava/util/function/IntFunction;
+      22: invokespecial #289                // Method net/minecraft/class_8532."<init>":(Ljava/util/function/IntFunction;Ljava/util/function/IntFunction;)V
+      25: putfield      #140                // Field mGlyphs:Lnet/minecraft/class_8532;
+      28: aload_0
+      29: getfield      #140                // Field mGlyphs:Lnet/minecraft/class_8532;
+      32: iload_1
+      33: aload_0
+      34: getfield      #80                 // Field mCacheGlyph:Ljava/util/function/IntFunction;
+      37: invokevirtual #293                // Method net/minecraft/class_8532.method_51600:(ILjava/util/function/IntFunction;)Ljava/lang/Object;
+      40: checkcast     #381                // class net/minecraft/class_382
+      43: areturn
+
+  private static net.minecraft.class_382[][] lambda$getGlyph$4(int);
+    Code:
+       0: iload_0
+       1: anewarray     #384                // class "[Lnet/minecraft/class_382;"
+       4: areturn
+
+  private static net.minecraft.class_382[] lambda$getGlyph$3(int);
+    Code:
+       0: iload_0
+       1: anewarray     #381                // class net/minecraft/class_382
+       4: areturn
+
+  private static net.minecraft.class_379[][] lambda$getGlyphInfo$2(int);
+    Code:
+       0: iload_0
+       1: anewarray     #386                // class "[Lnet/minecraft/class_379;"
+       4: areturn
+
+  private static net.minecraft.class_379[] lambda$getGlyphInfo$1(int);
+    Code:
+       0: iload_0
+       1: anewarray     #18                 // class net/minecraft/class_379
+       4: areturn
+
+  private static float lambda$cacheGlyphInfo$0(float);
+    Code:
+       0: fload_0
+       1: freturn
+}

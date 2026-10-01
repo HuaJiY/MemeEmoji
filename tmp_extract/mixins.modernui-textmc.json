@@ -1,0 +1,24 @@
+{
+  "minVersion": "0.8.5",
+  "required": true,
+  "mixinPriority": 3,
+  "compatibilityLevel": "JAVA_17",
+  "plugin": "icyllis.modernui.mc.text.MixinConfigPlugin",
+  "package": "icyllis.modernui.mc.text.mixin",
+  "client": [
+    "AccessBufferSource",
+    "AccessFontManager",
+    "MixinBidiReorder",
+    "MixinClientLanguage",
+    "MixinEditBox",
+    "MixinFontManager",
+    "MixinFontRenderer",
+    "MixinFormattedCharSequence",
+    "MixinGameRenderer",
+    "MixinIngameGui",
+    "MixinLanguage",
+    "MixinLevelRenderer",
+    "MixinSignEditScreen"
+  ],
+  "refmap": "ModernUI-Fabric-ModernUI-Fabric-refmap.json"
+}

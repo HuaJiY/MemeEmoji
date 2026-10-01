@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "modernui",
+  "version": "3.13.0.1",
+  "name": "Modern UI",
+  "description": "    Modern desktop framework from low-level 3D graphics API to high-level view model, for development of 2D/3D rendering software or game engine, with internationalization support and many new technologies.\n    Modern UI is a desktop application framework designed for standalone 2D and 3D rendering software development. It makes use of modern 3D graphical APIs and technologies to provide high real-time rendering performance. For good measure, Modern UI improves and optimizes a set of features used by Android and its own set of internationalization supporting text layout engine meeting Unicode specification.\n    This version is an official version that extends to Minecraft and Fabric, which combines Modern UI with Minecraft and provides a large number of additional features and modding APIs.",
+  "authors": [
+    "BloCamLimb"
+  ],
+  "contributors": [
+    "The Android Open Source Project"
+  ],
+  "contact": {
+    "homepage": "https://curseforge.com/minecraft/mc-mods/modern-ui",
+    "issues": "https://github.com/BloCamLimb/ModernUI/issues",
+    "sources": "https://github.com/BloCamLimb/ModernUI-MC"
+  },
+  "license": "LGPL-3.0-or-later",
+  "icon": "modernui_logo.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "icyllis.modernui.mc.fabric.ModernUIFabric"
+    ],
+    "client": [
+      "icyllis.modernui.mc.fabric.ModernUIFabricClient"
+    ],
+    "modmenu": [
+      "icyllis.modernui.mc.fabric.MuiModMenuApi"
+    ]
+  },
+  "mixins": [
+    "mixins.modernui-fabric.json",
+    "mixins.modernui-textmc.json"
+  ],
+  "accessWidener": "modernui.accesswidener",
+  "depends": {
+    "fabricloader": "\u003e\u003d0.15.0",
+    "minecraft": "\u003e\u003d1.21 \u003c1.21.2",
+    "java": "\u003e\u003d21",
+    "fabric-api": "\u003e\u003d0.90.7",
+    "forgeconfigapiport": "\u003e\u003d21.0.5"
+  },
+  "conflicts": {
+    "blur": "*",
+    "tipthescales": "*"
+  },
+  "jars": [
+    {
+      "file": "META-INF/jars/arc3d-compiler-2026.2.0.jar"
+    },
+    {
+      "file": "META-INF/jars/commonmark-0.25.0.jar"
+    }
+  ]
+}

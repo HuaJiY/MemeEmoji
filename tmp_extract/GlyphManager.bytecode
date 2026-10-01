@@ -1,0 +1,1729 @@
+Compiled from "GlyphManager.java"
+public class icyllis.modernui.mc.text.GlyphManager {
+  public static final org.apache.logging.log4j.Marker MARKER;
+
+  public static final int GLYPH_BORDER;
+
+  public static final int IMAGE_SIZE;
+
+  private static final java.awt.Color BG_COLOR;
+
+  public static volatile boolean sAntiAliasing;
+
+  public static volatile boolean sFractionalMetrics;
+
+  public static final int EMOJI_SIZE;
+
+  public static final int EMOJI_ASCENT;
+
+  public static final int EMOJI_SPACING;
+
+  public static final int EMOJI_BASE;
+
+  private static volatile icyllis.modernui.mc.text.GlyphManager sInstance;
+
+  private icyllis.modernui.mc.text.GLFontAtlas mFontAtlas;
+
+  private icyllis.modernui.mc.text.GLFontAtlas mEmojiAtlas;
+
+  private icyllis.modernui.mc.text.GLFontAtlas mBitmapAtlas;
+
+  private icyllis.arc3d.opengl.GLDevice mDevice;
+
+  private java.util.HashMap<java.awt.Font, icyllis.modernui.mc.text.GlyphManager$GlyphStrike> mFontTable;
+
+  private final java.util.function.Function<java.awt.Font, icyllis.modernui.mc.text.GlyphManager$GlyphStrike> mFontTableMapper;
+
+  private final it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap<icyllis.modernui.graphics.text.EmojiFont> mEmojiFontTable;
+
+  private final java.util.function.ToIntFunction<icyllis.modernui.graphics.text.EmojiFont> mEmojiFontTableMapper;
+
+  private java.util.HashMap<icyllis.modernui.mc.text.BitmapFont, icyllis.modernui.mc.text.GlyphManager$GlyphStrike> mBitmapFontTable;
+
+  private final java.util.function.Function<icyllis.modernui.mc.text.BitmapFont, icyllis.modernui.mc.text.GlyphManager$GlyphStrike> mBitmapFontTableMapper;
+
+  private java.awt.image.BufferedImage mImage;
+
+  private java.awt.Graphics2D mGraphics;
+
+  private int[] mImageData;
+
+  private java.nio.ByteBuffer mImageBuffer;
+
+  private final java.util.concurrent.CopyOnWriteArrayList<java.util.function.Consumer<icyllis.modernui.mc.text.GlyphManager$AtlasInvalidationInfo>> mAtlasInvalidationCallbacks;
+
+  static final boolean $assertionsDisabled;
+
+  private icyllis.modernui.mc.text.GlyphManager();
+    Code:
+       0: aload_0
+       1: invokespecial #102                // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: new           #104                // class java/util/HashMap
+       8: dup
+       9: invokespecial #105                // Method java/util/HashMap."<init>":()V
+      12: putfield      #107                // Field mFontTable:Ljava/util/HashMap;
+      15: aload_0
+      16: aload_0
+      17: invokedynamic #126,  0            // InvokeDynamic #0:apply:(Licyllis/modernui/mc/text/GlyphManager;)Ljava/util/function/Function;
+      22: putfield      #128                // Field mFontTableMapper:Ljava/util/function/Function;
+      25: aload_0
+      26: new           #130                // class it/unimi/dsi/fastutil/objects/Object2IntOpenHashMap
+      29: dup
+      30: invokespecial #131                // Method it/unimi/dsi/fastutil/objects/Object2IntOpenHashMap."<init>":()V
+      33: putfield      #133                // Field mEmojiFontTable:Lit/unimi/dsi/fastutil/objects/Object2IntOpenHashMap;
+      36: aload_0
+      37: aload_0
+      38: invokedynamic #145,  0            // InvokeDynamic #1:applyAsInt:(Licyllis/modernui/mc/text/GlyphManager;)Ljava/util/function/ToIntFunction;
+      43: putfield      #147                // Field mEmojiFontTableMapper:Ljava/util/function/ToIntFunction;
+      46: aload_0
+      47: new           #104                // class java/util/HashMap
+      50: dup
+      51: invokespecial #105                // Method java/util/HashMap."<init>":()V
+      54: putfield      #149                // Field mBitmapFontTable:Ljava/util/HashMap;
+      57: aload_0
+      58: aload_0
+      59: invokedynamic #156,  0            // InvokeDynamic #2:apply:(Licyllis/modernui/mc/text/GlyphManager;)Ljava/util/function/Function;
+      64: putfield      #158                // Field mBitmapFontTableMapper:Ljava/util/function/Function;
+      67: aload_0
+      68: new           #160                // class java/util/concurrent/CopyOnWriteArrayList
+      71: dup
+      72: invokespecial #161                // Method java/util/concurrent/CopyOnWriteArrayList."<init>":()V
+      75: putfield      #163                // Field mAtlasInvalidationCallbacks:Ljava/util/concurrent/CopyOnWriteArrayList;
+      78: aload_0
+      79: invokevirtual #166                // Method reload:()V
+      82: return
+
+  public static icyllis.modernui.mc.text.GlyphManager getInstance();
+    Code:
+       0: getstatic     #172                // Field sInstance:Licyllis/modernui/mc/text/GlyphManager;
+       3: ifnonnull     37
+       6: ldc           #2                  // class icyllis/modernui/mc/text/GlyphManager
+       8: dup
+       9: astore_0
+      10: monitorenter
+      11: getstatic     #172                // Field sInstance:Licyllis/modernui/mc/text/GlyphManager;
+      14: ifnonnull     27
+      17: new           #2                  // class icyllis/modernui/mc/text/GlyphManager
+      20: dup
+      21: invokespecial #173                // Method "<init>":()V
+      24: putstatic     #172                // Field sInstance:Licyllis/modernui/mc/text/GlyphManager;
+      27: aload_0
+      28: monitorexit
+      29: goto          37
+      32: astore_1
+      33: aload_0
+      34: monitorexit
+      35: aload_1
+      36: athrow
+      37: getstatic     #172                // Field sInstance:Licyllis/modernui/mc/text/GlyphManager;
+      40: areturn
+    Exception table:
+       from    to  target type
+          11    29    32   any
+          32    35    32   any
+
+  public void closeAtlases();
+    Code:
+       0: aload_0
+       1: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+       4: ifnull        14
+       7: aload_0
+       8: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      11: invokevirtual #184                // Method icyllis/modernui/mc/text/GLFontAtlas.close:()V
+      14: aload_0
+      15: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      18: ifnull        28
+      21: aload_0
+      22: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      25: invokevirtual #184                // Method icyllis/modernui/mc/text/GLFontAtlas.close:()V
+      28: aload_0
+      29: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      32: ifnull        42
+      35: aload_0
+      36: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      39: invokevirtual #184                // Method icyllis/modernui/mc/text/GLFontAtlas.close:()V
+      42: aload_0
+      43: aconst_null
+      44: putfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      47: aload_0
+      48: aconst_null
+      49: putfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      52: aload_0
+      53: aconst_null
+      54: putfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      57: return
+
+  public void reload();
+    Code:
+       0: aload_0
+       1: invokevirtual #190                // Method closeAtlases:()V
+       4: aload_0
+       5: getfield      #107                // Field mFontTable:Ljava/util/HashMap;
+       8: invokevirtual #194                // Method java/util/HashMap.values:()Ljava/util/Collection;
+      11: invokedynamic #206,  0            // InvokeDynamic #3:accept:()Ljava/util/function/Consumer;
+      16: invokeinterface #212,  2          // InterfaceMethod java/util/Collection.forEach:(Ljava/util/function/Consumer;)V
+      21: aload_0
+      22: getfield      #107                // Field mFontTable:Ljava/util/HashMap;
+      25: invokevirtual #215                // Method java/util/HashMap.clear:()V
+      28: aload_0
+      29: new           #104                // class java/util/HashMap
+      32: dup
+      33: invokespecial #105                // Method java/util/HashMap."<init>":()V
+      36: putfield      #107                // Field mFontTable:Ljava/util/HashMap;
+      39: aload_0
+      40: getfield      #133                // Field mEmojiFontTable:Lit/unimi/dsi/fastutil/objects/Object2IntOpenHashMap;
+      43: invokevirtual #216                // Method it/unimi/dsi/fastutil/objects/Object2IntOpenHashMap.clear:()V
+      46: aload_0
+      47: getfield      #133                // Field mEmojiFontTable:Lit/unimi/dsi/fastutil/objects/Object2IntOpenHashMap;
+      50: invokevirtual #220                // Method it/unimi/dsi/fastutil/objects/Object2IntOpenHashMap.trim:()Z
+      53: pop
+      54: aload_0
+      55: getfield      #149                // Field mBitmapFontTable:Ljava/util/HashMap;
+      58: invokevirtual #194                // Method java/util/HashMap.values:()Ljava/util/Collection;
+      61: invokedynamic #225,  0            // InvokeDynamic #4:accept:()Ljava/util/function/Consumer;
+      66: invokeinterface #212,  2          // InterfaceMethod java/util/Collection.forEach:(Ljava/util/function/Consumer;)V
+      71: aload_0
+      72: getfield      #149                // Field mBitmapFontTable:Ljava/util/HashMap;
+      75: invokevirtual #215                // Method java/util/HashMap.clear:()V
+      78: aload_0
+      79: new           #104                // class java/util/HashMap
+      82: dup
+      83: invokespecial #105                // Method java/util/HashMap."<init>":()V
+      86: putfield      #149                // Field mBitmapFontTable:Ljava/util/HashMap;
+      89: aload_0
+      90: invokevirtual #228                // Method allocateImage:()V
+      93: return
+
+  public java.awt.font.GlyphVector layoutGlyphVector(java.awt.Font, char[], int, int, boolean);
+    Code:
+       0: aload_1
+       1: aload_0
+       2: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+       5: invokevirtual #243                // Method java/awt/Graphics2D.getFontRenderContext:()Ljava/awt/font/FontRenderContext;
+       8: aload_2
+       9: iload_3
+      10: iload         4
+      12: iload         5
+      14: ifeq          21
+      17: iconst_1
+      18: goto          22
+      21: iconst_0
+      22: invokevirtual #252                // Method java/awt/Font.layoutGlyphVector:(Ljava/awt/font/FontRenderContext;[CIII)Ljava/awt/font/GlyphVector;
+      25: areturn
+
+  public java.awt.font.GlyphVector createGlyphVector(java.awt.Font, char[]);
+    Code:
+       0: aload_1
+       1: aload_0
+       2: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+       5: invokevirtual #243                // Method java/awt/Graphics2D.getFontRenderContext:()Ljava/awt/font/FontRenderContext;
+       8: aload_2
+       9: invokevirtual #258                // Method java/awt/Font.createGlyphVector:(Ljava/awt/font/FontRenderContext;[C)Ljava/awt/font/GlyphVector;
+      12: areturn
+
+  private long computeGlyphKey(java.awt.Font, int);
+    Code:
+       0: aload_0
+       1: getfield      #107                // Field mFontTable:Ljava/util/HashMap;
+       4: aload_1
+       5: aload_0
+       6: getfield      #128                // Field mFontTableMapper:Ljava/util/function/Function;
+       9: invokevirtual #265                // Method java/util/HashMap.computeIfAbsent:(Ljava/lang/Object;Ljava/util/function/Function;)Ljava/lang/Object;
+      12: checkcast     #11                 // class icyllis/modernui/mc/text/GlyphManager$GlyphStrike
+      15: getfield      #268                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mStrikeId:I
+      18: i2l
+      19: lstore_3
+      20: lload_3
+      21: bipush        32
+      23: lshl
+      24: iload_2
+      25: i2l
+      26: lor
+      27: lreturn
+
+  private long computeEmojiKey(icyllis.modernui.graphics.text.EmojiFont, int);
+    Code:
+       0: aload_0
+       1: getfield      #133                // Field mEmojiFontTable:Lit/unimi/dsi/fastutil/objects/Object2IntOpenHashMap;
+       4: aload_1
+       5: aload_0
+       6: getfield      #147                // Field mEmojiFontTableMapper:Ljava/util/function/ToIntFunction;
+       9: invokevirtual #277                // Method it/unimi/dsi/fastutil/objects/Object2IntOpenHashMap.computeIfAbsent:(Ljava/lang/Object;Ljava/util/function/ToIntFunction;)I
+      12: i2l
+      13: lstore_3
+      14: lload_3
+      15: bipush        32
+      17: lshl
+      18: iload_2
+      19: i2l
+      20: lor
+      21: lreturn
+
+  private long computeBitmapGlyphKey(icyllis.modernui.mc.text.BitmapFont, int);
+    Code:
+       0: aload_0
+       1: getfield      #149                // Field mBitmapFontTable:Ljava/util/HashMap;
+       4: aload_1
+       5: aload_0
+       6: getfield      #158                // Field mBitmapFontTableMapper:Ljava/util/function/Function;
+       9: invokevirtual #265                // Method java/util/HashMap.computeIfAbsent:(Ljava/lang/Object;Ljava/util/function/Function;)Ljava/lang/Object;
+      12: checkcast     #11                 // class icyllis/modernui/mc/text/GlyphManager$GlyphStrike
+      15: getfield      #268                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mStrikeId:I
+      18: i2l
+      19: lstore_3
+      20: lload_3
+      21: bipush        32
+      23: lshl
+      24: iload_2
+      25: i2l
+      26: lor
+      27: lreturn
+
+  public icyllis.modernui.mc.text.GLBakedGlyph lookupGlyph(icyllis.modernui.graphics.text.Font, int, int);
+    Code:
+       0: aload_1
+       1: instanceof    #287                // class icyllis/modernui/graphics/text/OutlineFont
+       4: ifeq          112
+       7: aload_1
+       8: checkcast     #287                // class icyllis/modernui/graphics/text/OutlineFont
+      11: iload_2
+      12: invokevirtual #291                // Method icyllis/modernui/graphics/text/OutlineFont.chooseFont:(I)Ljava/awt/Font;
+      15: astore        6
+      17: aload_0
+      18: aload         6
+      20: iload_3
+      21: invokevirtual #293                // Method computeGlyphKey:(Ljava/awt/Font;I)J
+      24: lstore        7
+      26: aload_0
+      27: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      30: ifnonnull     66
+      33: invokestatic  #299                // Method icyllis/modernui/core/Core.requireImmediateContext:()Licyllis/arc3d/engine/ImmediateContext;
+      36: astore        9
+      38: aload_0
+      39: new           #181                // class icyllis/modernui/mc/text/GLFontAtlas
+      42: dup
+      43: aload         9
+      45: iconst_0
+      46: iconst_2
+      47: iconst_1
+      48: invokespecial #302                // Method icyllis/modernui/mc/text/GLFontAtlas."<init>":(Licyllis/arc3d/engine/ImmediateContext;IIZ)V
+      51: putfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      54: aload_0
+      55: aload         9
+      57: invokevirtual #308                // Method icyllis/arc3d/engine/ImmediateContext.getDevice:()Licyllis/arc3d/engine/Device;
+      60: checkcast     #310                // class icyllis/arc3d/opengl/GLDevice
+      63: putfield      #312                // Field mDevice:Licyllis/arc3d/opengl/GLDevice;
+      66: aload_0
+      67: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      70: lload         7
+      72: invokevirtual #318                // Method icyllis/modernui/mc/text/GLFontAtlas.getGlyph:(J)Licyllis/modernui/mc/text/GLBakedGlyph;
+      75: astore        9
+      77: aload         9
+      79: ifnull        109
+      82: aload         9
+      84: getfield      #323                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+      87: ldc_w         #324                // int -2147483648
+      90: if_icmpne     109
+      93: aload_0
+      94: aload         6
+      96: iload_3
+      97: aload_0
+      98: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+     101: aload         9
+     103: lload         7
+     105: invokevirtual #328                // Method cacheGlyph:(Ljava/awt/Font;ILicyllis/modernui/mc/text/GLFontAtlas;Licyllis/modernui/mc/text/GLBakedGlyph;J)Licyllis/modernui/mc/text/GLBakedGlyph;
+     108: areturn
+     109: aload         9
+     111: areturn
+     112: aload_1
+     113: instanceof    #330                // class icyllis/modernui/graphics/text/EmojiFont
+     116: ifeq          220
+     119: aload_1
+     120: checkcast     #330                // class icyllis/modernui/graphics/text/EmojiFont
+     123: astore        4
+     125: aload_0
+     126: aload         4
+     128: iload_3
+     129: invokevirtual #332                // Method computeEmojiKey:(Licyllis/modernui/graphics/text/EmojiFont;I)J
+     132: lstore        6
+     134: aload_0
+     135: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+     138: ifnonnull     174
+     141: invokestatic  #299                // Method icyllis/modernui/core/Core.requireImmediateContext:()Licyllis/arc3d/engine/ImmediateContext;
+     144: astore        8
+     146: aload_0
+     147: new           #181                // class icyllis/modernui/mc/text/GLFontAtlas
+     150: dup
+     151: aload         8
+     153: iconst_2
+     154: iconst_0
+     155: iconst_1
+     156: invokespecial #302                // Method icyllis/modernui/mc/text/GLFontAtlas."<init>":(Licyllis/arc3d/engine/ImmediateContext;IIZ)V
+     159: putfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+     162: aload_0
+     163: aload         8
+     165: invokevirtual #308                // Method icyllis/arc3d/engine/ImmediateContext.getDevice:()Licyllis/arc3d/engine/Device;
+     168: checkcast     #310                // class icyllis/arc3d/opengl/GLDevice
+     171: putfield      #312                // Field mDevice:Licyllis/arc3d/opengl/GLDevice;
+     174: aload_0
+     175: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+     178: lload         6
+     180: invokevirtual #318                // Method icyllis/modernui/mc/text/GLFontAtlas.getGlyph:(J)Licyllis/modernui/mc/text/GLBakedGlyph;
+     183: astore        8
+     185: aload         8
+     187: ifnull        217
+     190: aload         8
+     192: getfield      #323                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+     195: ldc_w         #324                // int -2147483648
+     198: if_icmpne     217
+     201: aload_0
+     202: aload         4
+     204: iload_3
+     205: aload_0
+     206: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+     209: aload         8
+     211: lload         6
+     213: invokevirtual #336                // Method cacheEmoji:(Licyllis/modernui/graphics/text/EmojiFont;ILicyllis/modernui/mc/text/GLFontAtlas;Licyllis/modernui/mc/text/GLBakedGlyph;J)Licyllis/modernui/mc/text/GLBakedGlyph;
+     216: areturn
+     217: aload         8
+     219: areturn
+     220: aload_1
+     221: instanceof    #31                 // class icyllis/modernui/mc/text/BitmapFont
+     224: ifeq          353
+     227: aload_1
+     228: checkcast     #31                 // class icyllis/modernui/mc/text/BitmapFont
+     231: astore        5
+     233: aload         5
+     235: invokevirtual #339                // Method icyllis/modernui/mc/text/BitmapFont.nothingToDraw:()Z
+     238: ifeq          243
+     241: aconst_null
+     242: areturn
+     243: aload         5
+     245: invokevirtual #342                // Method icyllis/modernui/mc/text/BitmapFont.fitsInAtlas:()Z
+     248: ifeq          346
+     251: aload_0
+     252: aload         5
+     254: iload_3
+     255: invokevirtual #344                // Method computeBitmapGlyphKey:(Licyllis/modernui/mc/text/BitmapFont;I)J
+     258: lstore        6
+     260: aload_0
+     261: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+     264: ifnonnull     300
+     267: invokestatic  #299                // Method icyllis/modernui/core/Core.requireImmediateContext:()Licyllis/arc3d/engine/ImmediateContext;
+     270: astore        8
+     272: aload_0
+     273: new           #181                // class icyllis/modernui/mc/text/GLFontAtlas
+     276: dup
+     277: aload         8
+     279: iconst_2
+     280: iconst_0
+     281: iconst_0
+     282: invokespecial #302                // Method icyllis/modernui/mc/text/GLFontAtlas."<init>":(Licyllis/arc3d/engine/ImmediateContext;IIZ)V
+     285: putfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+     288: aload_0
+     289: aload         8
+     291: invokevirtual #308                // Method icyllis/arc3d/engine/ImmediateContext.getDevice:()Licyllis/arc3d/engine/Device;
+     294: checkcast     #310                // class icyllis/arc3d/opengl/GLDevice
+     297: putfield      #312                // Field mDevice:Licyllis/arc3d/opengl/GLDevice;
+     300: aload_0
+     301: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+     304: lload         6
+     306: invokevirtual #318                // Method icyllis/modernui/mc/text/GLFontAtlas.getGlyph:(J)Licyllis/modernui/mc/text/GLBakedGlyph;
+     309: astore        8
+     311: aload         8
+     313: ifnull        343
+     316: aload         8
+     318: getfield      #323                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+     321: ldc_w         #324                // int -2147483648
+     324: if_icmpne     343
+     327: aload_0
+     328: aload         5
+     330: iload_3
+     331: aload_0
+     332: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+     335: aload         8
+     337: lload         6
+     339: invokevirtual #348                // Method cacheBitmapGlyph:(Licyllis/modernui/mc/text/BitmapFont;ILicyllis/modernui/mc/text/GLFontAtlas;Licyllis/modernui/mc/text/GLBakedGlyph;J)Licyllis/modernui/mc/text/GLBakedGlyph;
+     342: areturn
+     343: aload         8
+     345: areturn
+     346: aload         5
+     348: iload_3
+     349: invokevirtual #352                // Method icyllis/modernui/mc/text/BitmapFont.getBakedGlyph:(I)Licyllis/modernui/mc/text/GLBakedGlyph;
+     352: areturn
+     353: aconst_null
+     354: areturn
+
+  public int getCurrentTexture(int);
+    Code:
+       0: iload_1
+       1: ifne          40
+       4: aload_0
+       5: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+       8: ifnull        37
+      11: aload_0
+      12: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      15: getfield      #367                // Field icyllis/modernui/mc/text/GLFontAtlas.mTexture:Licyllis/arc3d/opengl/GLTexture;
+      18: dup
+      19: astore_2
+      20: ifnull        37
+      23: aload_0
+      24: getfield      #312                // Field mDevice:Licyllis/arc3d/opengl/GLDevice;
+      27: aload_2
+      28: invokevirtual #371                // Method icyllis/arc3d/opengl/GLDevice.generateMipmaps:(Licyllis/arc3d/engine/Image;)Z
+      31: pop
+      32: aload_2
+      33: invokevirtual #377                // Method icyllis/arc3d/opengl/GLTexture.getHandle:()I
+      36: ireturn
+      37: goto          78
+      40: iload_1
+      41: iconst_2
+      42: if_icmpne     78
+      45: aload_0
+      46: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      49: ifnull        78
+      52: aload_0
+      53: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      56: getfield      #367                // Field icyllis/modernui/mc/text/GLFontAtlas.mTexture:Licyllis/arc3d/opengl/GLTexture;
+      59: dup
+      60: astore_2
+      61: ifnull        78
+      64: aload_0
+      65: getfield      #312                // Field mDevice:Licyllis/arc3d/opengl/GLDevice;
+      68: aload_2
+      69: invokevirtual #371                // Method icyllis/arc3d/opengl/GLDevice.generateMipmaps:(Licyllis/arc3d/engine/Image;)Z
+      72: pop
+      73: aload_2
+      74: invokevirtual #377                // Method icyllis/arc3d/opengl/GLTexture.getHandle:()I
+      77: ireturn
+      78: iconst_0
+      79: ireturn
+
+  public int getFontTexture();
+    Code:
+       0: aload_0
+       1: iconst_0
+       2: invokevirtual #381                // Method getCurrentTexture:(I)I
+       5: ireturn
+
+  public int getEmojiTexture();
+    Code:
+       0: aload_0
+       1: iconst_2
+       2: invokevirtual #381                // Method getCurrentTexture:(I)I
+       5: ireturn
+
+  public int getCurrentTexture(icyllis.modernui.mc.text.BitmapFont);
+    Code:
+       0: aload_1
+       1: invokevirtual #339                // Method icyllis/modernui/mc/text/BitmapFont.nothingToDraw:()Z
+       4: ifeq          9
+       7: iconst_0
+       8: ireturn
+       9: aload_1
+      10: invokevirtual #342                // Method icyllis/modernui/mc/text/BitmapFont.fitsInAtlas:()Z
+      13: ifeq          43
+      16: aload_0
+      17: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      20: ifnull        40
+      23: aload_0
+      24: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      27: getfield      #367                // Field icyllis/modernui/mc/text/GLFontAtlas.mTexture:Licyllis/arc3d/opengl/GLTexture;
+      30: dup
+      31: astore_2
+      32: ifnull        40
+      35: aload_2
+      36: invokevirtual #377                // Method icyllis/arc3d/opengl/GLTexture.getHandle:()I
+      39: ireturn
+      40: goto          48
+      43: aload_1
+      44: invokevirtual #385                // Method icyllis/modernui/mc/text/BitmapFont.getCurrentTexture:()I
+      47: ireturn
+      48: iconst_0
+      49: ireturn
+
+  public void compact();
+    Code:
+       0: iconst_0
+       1: istore_1
+       2: aload_0
+       3: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+       6: ifnull        70
+       9: aload_0
+      10: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      13: invokevirtual #388                // Method icyllis/modernui/mc/text/GLFontAtlas.compact:()Z
+      16: ifeq          70
+      19: new           #9                  // class icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo
+      22: dup
+      23: iconst_0
+      24: iconst_0
+      25: invokespecial #391                // Method icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo."<init>":(IZ)V
+      28: astore_2
+      29: aload_0
+      30: getfield      #163                // Field mAtlasInvalidationCallbacks:Ljava/util/concurrent/CopyOnWriteArrayList;
+      33: invokevirtual #395                // Method java/util/concurrent/CopyOnWriteArrayList.iterator:()Ljava/util/Iterator;
+      36: astore_3
+      37: aload_3
+      38: invokeinterface #400,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      43: ifeq          68
+      46: aload_3
+      47: invokeinterface #404,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      52: checkcast     #406                // class java/util/function/Consumer
+      55: astore        4
+      57: aload         4
+      59: aload_2
+      60: invokeinterface #408,  2          // InterfaceMethod java/util/function/Consumer.accept:(Ljava/lang/Object;)V
+      65: goto          37
+      68: iconst_1
+      69: istore_1
+      70: aload_0
+      71: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      74: ifnull        138
+      77: aload_0
+      78: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      81: invokevirtual #388                // Method icyllis/modernui/mc/text/GLFontAtlas.compact:()Z
+      84: ifeq          138
+      87: new           #9                  // class icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo
+      90: dup
+      91: iconst_2
+      92: iconst_0
+      93: invokespecial #391                // Method icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo."<init>":(IZ)V
+      96: astore_2
+      97: aload_0
+      98: getfield      #163                // Field mAtlasInvalidationCallbacks:Ljava/util/concurrent/CopyOnWriteArrayList;
+     101: invokevirtual #395                // Method java/util/concurrent/CopyOnWriteArrayList.iterator:()Ljava/util/Iterator;
+     104: astore_3
+     105: aload_3
+     106: invokeinterface #400,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     111: ifeq          136
+     114: aload_3
+     115: invokeinterface #404,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     120: checkcast     #406                // class java/util/function/Consumer
+     123: astore        4
+     125: aload         4
+     127: aload_2
+     128: invokeinterface #408,  2          // InterfaceMethod java/util/function/Consumer.accept:(Ljava/lang/Object;)V
+     133: goto          105
+     136: iconst_1
+     137: istore_1
+     138: aload_0
+     139: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+     142: ifnull        206
+     145: aload_0
+     146: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+     149: invokevirtual #388                // Method icyllis/modernui/mc/text/GLFontAtlas.compact:()Z
+     152: ifeq          206
+     155: new           #9                  // class icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo
+     158: dup
+     159: iconst_2
+     160: iconst_0
+     161: invokespecial #391                // Method icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo."<init>":(IZ)V
+     164: astore_2
+     165: aload_0
+     166: getfield      #163                // Field mAtlasInvalidationCallbacks:Ljava/util/concurrent/CopyOnWriteArrayList;
+     169: invokevirtual #395                // Method java/util/concurrent/CopyOnWriteArrayList.iterator:()Ljava/util/Iterator;
+     172: astore_3
+     173: aload_3
+     174: invokeinterface #400,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     179: ifeq          204
+     182: aload_3
+     183: invokeinterface #404,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     188: checkcast     #406                // class java/util/function/Consumer
+     191: astore        4
+     193: aload         4
+     195: aload_2
+     196: invokeinterface #408,  2          // InterfaceMethod java/util/function/Consumer.accept:(Ljava/lang/Object;)V
+     201: goto          173
+     204: iconst_1
+     205: istore_1
+     206: iload_1
+     207: ifeq          386
+     210: aload_0
+     211: getfield      #107                // Field mFontTable:Ljava/util/HashMap;
+     214: invokevirtual #194                // Method java/util/HashMap.values:()Ljava/util/Collection;
+     217: invokeinterface #409,  1          // InterfaceMethod java/util/Collection.iterator:()Ljava/util/Iterator;
+     222: astore_2
+     223: aload_2
+     224: invokeinterface #400,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     229: ifeq          298
+     232: aload_2
+     233: invokeinterface #404,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     238: checkcast     #11                 // class icyllis/modernui/mc/text/GlyphManager$GlyphStrike
+     241: astore_3
+     242: aload_3
+     243: getfield      #413                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mFastCharMap:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+     246: invokevirtual #418                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.values:()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+     249: invokeinterface #423,  1          // InterfaceMethod it/unimi/dsi/fastutil/objects/ObjectCollection.iterator:()Lit/unimi/dsi/fastutil/objects/ObjectIterator;
+     254: astore        4
+     256: aload         4
+     258: invokeinterface #400,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     263: ifeq          295
+     266: aload         4
+     268: invokeinterface #404,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     273: checkcast     #7                  // class icyllis/modernui/mc/text/GlyphManager$FastCharSet
+     276: astore        5
+     278: aload         5
+     280: getfield      #427                // Field icyllis/modernui/mc/text/GlyphManager$FastCharSet.glyphs:Ljava/util/ArrayList;
+     283: invokedynamic #439,  0            // InvokeDynamic #5:test:()Ljava/util/function/Predicate;
+     288: invokevirtual #445                // Method java/util/ArrayList.removeIf:(Ljava/util/function/Predicate;)Z
+     291: pop
+     292: goto          256
+     295: goto          223
+     298: aload_0
+     299: getfield      #149                // Field mBitmapFontTable:Ljava/util/HashMap;
+     302: invokevirtual #194                // Method java/util/HashMap.values:()Ljava/util/Collection;
+     305: invokeinterface #409,  1          // InterfaceMethod java/util/Collection.iterator:()Ljava/util/Iterator;
+     310: astore_2
+     311: aload_2
+     312: invokeinterface #400,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     317: ifeq          386
+     320: aload_2
+     321: invokeinterface #404,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     326: checkcast     #11                 // class icyllis/modernui/mc/text/GlyphManager$GlyphStrike
+     329: astore_3
+     330: aload_3
+     331: getfield      #413                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mFastCharMap:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+     334: invokevirtual #418                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.values:()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+     337: invokeinterface #423,  1          // InterfaceMethod it/unimi/dsi/fastutil/objects/ObjectCollection.iterator:()Lit/unimi/dsi/fastutil/objects/ObjectIterator;
+     342: astore        4
+     344: aload         4
+     346: invokeinterface #400,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     351: ifeq          383
+     354: aload         4
+     356: invokeinterface #404,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     361: checkcast     #7                  // class icyllis/modernui/mc/text/GlyphManager$FastCharSet
+     364: astore        5
+     366: aload         5
+     368: getfield      #427                // Field icyllis/modernui/mc/text/GlyphManager$FastCharSet.glyphs:Ljava/util/ArrayList;
+     371: invokedynamic #450,  0            // InvokeDynamic #6:test:()Ljava/util/function/Predicate;
+     376: invokevirtual #445                // Method java/util/ArrayList.removeIf:(Ljava/util/function/Predicate;)Z
+     379: pop
+     380: goto          344
+     383: goto          311
+     386: return
+
+  public void debug();
+    Code:
+       0: aload_0
+       1: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+       4: ldc_w         #463                // String FontAtlas
+       7: invokestatic  #466                // Method debug:(Licyllis/modernui/mc/text/GLFontAtlas;Ljava/lang/String;)V
+      10: aload_0
+      11: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      14: ldc_w         #468                // String EmojiAtlas
+      17: invokestatic  #466                // Method debug:(Licyllis/modernui/mc/text/GLFontAtlas;Ljava/lang/String;)V
+      20: aload_0
+      21: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      24: ldc_w         #470                // String BitmapAtlas
+      27: invokestatic  #466                // Method debug:(Licyllis/modernui/mc/text/GLFontAtlas;Ljava/lang/String;)V
+      30: return
+
+  private static void debug(icyllis.modernui.mc.text.GLFontAtlas, java.lang.String);
+    Code:
+       0: aload_0
+       1: ifnull        19
+       4: getstatic     #476                // Field icyllis/modernui/graphics/Bitmap$SaveFormat.PNG:Licyllis/modernui/graphics/Bitmap$SaveFormat;
+       7: aconst_null
+       8: aload_1
+       9: invokestatic  #480                // Method icyllis/modernui/graphics/Bitmap.saveDialogGet:(Licyllis/modernui/graphics/Bitmap$SaveFormat;Ljava/lang/CharSequence;Ljava/lang/String;)Ljava/lang/String;
+      12: astore_2
+      13: aload_0
+      14: aload_1
+      15: aload_2
+      16: invokevirtual #483                // Method icyllis/modernui/mc/text/GLFontAtlas.debug:(Ljava/lang/String;Ljava/lang/String;)V
+      19: return
+
+  public void dumpInfo(java.io.PrintWriter);
+    Code:
+       0: aload_0
+       1: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+       4: ifnull        18
+       7: aload_0
+       8: getfield      #179                // Field mFontAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      11: aload_1
+      12: ldc_w         #463                // String FontAtlas
+      15: invokevirtual #491                // Method icyllis/modernui/mc/text/GLFontAtlas.dumpInfo:(Ljava/io/PrintWriter;Ljava/lang/String;)V
+      18: aload_0
+      19: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      22: ifnull        36
+      25: aload_0
+      26: getfield      #186                // Field mEmojiAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      29: aload_1
+      30: ldc_w         #468                // String EmojiAtlas
+      33: invokevirtual #491                // Method icyllis/modernui/mc/text/GLFontAtlas.dumpInfo:(Ljava/io/PrintWriter;Ljava/lang/String;)V
+      36: aload_0
+      37: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      40: ifnull        54
+      43: aload_0
+      44: getfield      #188                // Field mBitmapAtlas:Licyllis/modernui/mc/text/GLFontAtlas;
+      47: aload_1
+      48: ldc_w         #470                // String BitmapAtlas
+      51: invokevirtual #491                // Method icyllis/modernui/mc/text/GLFontAtlas.dumpInfo:(Ljava/io/PrintWriter;Ljava/lang/String;)V
+      54: return
+
+  private icyllis.modernui.mc.text.GLBakedGlyph cacheGlyph(java.awt.Font, int, icyllis.modernui.mc.text.GLFontAtlas, icyllis.modernui.mc.text.GLBakedGlyph, long);
+    Code:
+       0: aload_1
+       1: aload_0
+       2: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+       5: invokevirtual #243                // Method java/awt/Graphics2D.getFontRenderContext:()Ljava/awt/font/FontRenderContext;
+       8: iconst_1
+       9: newarray       int
+      11: dup
+      12: iconst_0
+      13: iload_2
+      14: iastore
+      15: invokevirtual #495                // Method java/awt/Font.createGlyphVector:(Ljava/awt/font/FontRenderContext;[I)Ljava/awt/font/GlyphVector;
+      18: astore        7
+      20: aload         7
+      22: aconst_null
+      23: fconst_0
+      24: fconst_0
+      25: invokevirtual #501                // Method java/awt/font/GlyphVector.getPixelBounds:(Ljava/awt/font/FontRenderContext;FF)Ljava/awt/Rectangle;
+      28: astore        8
+      30: aload         8
+      32: getfield      #506                // Field java/awt/Rectangle.width:I
+      35: ifeq          46
+      38: aload         8
+      40: getfield      #509                // Field java/awt/Rectangle.height:I
+      43: ifne          54
+      46: aload_3
+      47: lload         5
+      49: invokevirtual #513                // Method icyllis/modernui/mc/text/GLFontAtlas.setNoPixels:(J)V
+      52: aconst_null
+      53: areturn
+      54: aload         4
+      56: aload         8
+      58: getfield      #514                // Field java/awt/Rectangle.x:I
+      61: putfield      #323                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+      64: aload         4
+      66: aload         8
+      68: getfield      #517                // Field java/awt/Rectangle.y:I
+      71: putfield      #518                // Field icyllis/modernui/mc/text/GLBakedGlyph.y:I
+      74: aload         4
+      76: aload         8
+      78: getfield      #506                // Field java/awt/Rectangle.width:I
+      81: i2s
+      82: putfield      #521                // Field icyllis/modernui/mc/text/GLBakedGlyph.width:S
+      85: aload         4
+      87: aload         8
+      89: getfield      #509                // Field java/awt/Rectangle.height:I
+      92: i2s
+      93: putfield      #523                // Field icyllis/modernui/mc/text/GLBakedGlyph.height:S
+      96: aload         8
+      98: getfield      #506                // Field java/awt/Rectangle.width:I
+     101: iconst_4
+     102: iadd
+     103: istore        9
+     105: aload         8
+     107: getfield      #509                // Field java/awt/Rectangle.height:I
+     110: iconst_4
+     111: iadd
+     112: istore        10
+     114: iload         9
+     116: aload_0
+     117: getfield      #525                // Field mImage:Ljava/awt/image/BufferedImage;
+     120: invokevirtual #530                // Method java/awt/image/BufferedImage.getWidth:()I
+     123: if_icmpgt     138
+     126: iload         10
+     128: aload_0
+     129: getfield      #525                // Field mImage:Ljava/awt/image/BufferedImage;
+     132: invokevirtual #533                // Method java/awt/image/BufferedImage.getHeight:()I
+     135: if_icmple     146
+     138: aload_3
+     139: lload         5
+     141: invokevirtual #513                // Method icyllis/modernui/mc/text/GLFontAtlas.setNoPixels:(J)V
+     144: aconst_null
+     145: areturn
+     146: aload_0
+     147: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+     150: aload         7
+     152: iconst_2
+     153: aload         8
+     155: getfield      #514                // Field java/awt/Rectangle.x:I
+     158: isub
+     159: i2f
+     160: iconst_2
+     161: aload         8
+     163: getfield      #517                // Field java/awt/Rectangle.y:I
+     166: isub
+     167: i2f
+     168: invokevirtual #537                // Method java/awt/Graphics2D.drawGlyphVector:(Ljava/awt/font/GlyphVector;FF)V
+     171: aload_0
+     172: getfield      #525                // Field mImage:Ljava/awt/image/BufferedImage;
+     175: iconst_0
+     176: iconst_0
+     177: iload         9
+     179: iload         10
+     181: aload_0
+     182: getfield      #539                // Field mImageData:[I
+     185: iconst_0
+     186: iload         9
+     188: invokevirtual #543                // Method java/awt/image/BufferedImage.getRGB:(IIII[III)[I
+     191: pop
+     192: iload         9
+     194: iload         10
+     196: imul
+     197: istore        11
+     199: aload_3
+     200: invokevirtual #546                // Method icyllis/modernui/mc/text/GLFontAtlas.getMaskFormat:()I
+     203: ifne          244
+     206: iconst_0
+     207: istore        12
+     209: iload         12
+     211: iload         11
+     213: if_icmpge     241
+     216: aload_0
+     217: getfield      #548                // Field mImageBuffer:Ljava/nio/ByteBuffer;
+     220: aload_0
+     221: getfield      #539                // Field mImageData:[I
+     224: iload         12
+     226: iaload
+     227: bipush        24
+     229: iushr
+     230: i2b
+     231: invokevirtual #554                // Method java/nio/ByteBuffer.put:(B)Ljava/nio/ByteBuffer;
+     234: pop
+     235: iinc          12, 1
+     238: goto          209
+     241: goto          291
+     244: iconst_0
+     245: istore        12
+     247: iload         12
+     249: iload         11
+     251: if_icmpge     291
+     254: aload_0
+     255: getfield      #548                // Field mImageBuffer:Ljava/nio/ByteBuffer;
+     258: iconst_m1
+     259: invokevirtual #554                // Method java/nio/ByteBuffer.put:(B)Ljava/nio/ByteBuffer;
+     262: iconst_m1
+     263: invokevirtual #554                // Method java/nio/ByteBuffer.put:(B)Ljava/nio/ByteBuffer;
+     266: iconst_m1
+     267: invokevirtual #554                // Method java/nio/ByteBuffer.put:(B)Ljava/nio/ByteBuffer;
+     270: aload_0
+     271: getfield      #539                // Field mImageData:[I
+     274: iload         12
+     276: iaload
+     277: bipush        24
+     279: iushr
+     280: i2b
+     281: invokevirtual #554                // Method java/nio/ByteBuffer.put:(B)Ljava/nio/ByteBuffer;
+     284: pop
+     285: iinc          12, 1
+     288: goto          247
+     291: aload_0
+     292: getfield      #548                // Field mImageBuffer:Ljava/nio/ByteBuffer;
+     295: invokevirtual #558                // Method java/nio/ByteBuffer.flip:()Ljava/nio/ByteBuffer;
+     298: invokestatic  #564                // Method org/lwjgl/system/MemoryUtil.memAddress:(Ljava/nio/ByteBuffer;)J
+     301: lstore        12
+     303: aload_3
+     304: aload         4
+     306: lload         12
+     308: invokevirtual #568                // Method icyllis/modernui/mc/text/GLFontAtlas.stitch:(Licyllis/modernui/mc/text/GLBakedGlyph;J)Z
+     311: istore        14
+     313: iload         14
+     315: ifeq          372
+     318: new           #9                  // class icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo
+     321: dup
+     322: iconst_0
+     323: iconst_1
+     324: invokespecial #391                // Method icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo."<init>":(IZ)V
+     327: astore        15
+     329: aload_0
+     330: getfield      #163                // Field mAtlasInvalidationCallbacks:Ljava/util/concurrent/CopyOnWriteArrayList;
+     333: invokevirtual #395                // Method java/util/concurrent/CopyOnWriteArrayList.iterator:()Ljava/util/Iterator;
+     336: astore        16
+     338: aload         16
+     340: invokeinterface #400,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     345: ifeq          372
+     348: aload         16
+     350: invokeinterface #404,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     355: checkcast     #406                // class java/util/function/Consumer
+     358: astore        17
+     360: aload         17
+     362: aload         15
+     364: invokeinterface #408,  2          // InterfaceMethod java/util/function/Consumer.accept:(Ljava/lang/Object;)V
+     369: goto          338
+     372: aload         4
+     374: aload_1
+     375: invokevirtual #571                // Method java/awt/Font.getSize:()I
+     378: invokestatic  #575                // Method computeStandardWidth:(Licyllis/modernui/mc/text/GLBakedGlyph;I)I
+     381: istore        15
+     383: aload_0
+     384: getfield      #107                // Field mFontTable:Ljava/util/HashMap;
+     387: aload_1
+     388: invokevirtual #578                // Method java/util/HashMap.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     391: checkcast     #11                 // class icyllis/modernui/mc/text/GlyphManager$GlyphStrike
+     394: getfield      #413                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mFastCharMap:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+     397: iload         15
+     399: invokedynamic #589,  0            // InvokeDynamic #7:get:()Lit/unimi/dsi/fastutil/ints/Int2ObjectFunction;
+     404: invokevirtual #592                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.computeIfAbsent:(ILit/unimi/dsi/fastutil/ints/Int2ObjectFunction;)Ljava/lang/Object;
+     407: checkcast     #7                  // class icyllis/modernui/mc/text/GlyphManager$FastCharSet
+     410: getfield      #427                // Field icyllis/modernui/mc/text/GlyphManager$FastCharSet.glyphs:Ljava/util/ArrayList;
+     413: aload         4
+     415: invokevirtual #595                // Method java/util/ArrayList.add:(Ljava/lang/Object;)Z
+     418: pop
+     419: aload_0
+     420: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+     423: iconst_0
+     424: iconst_0
+     425: aload_0
+     426: getfield      #525                // Field mImage:Ljava/awt/image/BufferedImage;
+     429: invokevirtual #530                // Method java/awt/image/BufferedImage.getWidth:()I
+     432: aload_0
+     433: getfield      #525                // Field mImage:Ljava/awt/image/BufferedImage;
+     436: invokevirtual #533                // Method java/awt/image/BufferedImage.getHeight:()I
+     439: invokevirtual #599                // Method java/awt/Graphics2D.clearRect:(IIII)V
+     442: aload_0
+     443: getfield      #548                // Field mImageBuffer:Ljava/nio/ByteBuffer;
+     446: invokevirtual #601                // Method java/nio/ByteBuffer.clear:()Ljava/nio/ByteBuffer;
+     449: pop
+     450: aload         4
+     452: areturn
+
+  private icyllis.modernui.mc.text.GLBakedGlyph cacheEmoji(icyllis.modernui.graphics.text.EmojiFont, int, icyllis.modernui.mc.text.GLFontAtlas, icyllis.modernui.mc.text.GLBakedGlyph, long);
+    Code:
+       0: iload_2
+       1: ifne          12
+       4: aload_3
+       5: lload         5
+       7: invokevirtual #513                // Method icyllis/modernui/mc/text/GLFontAtlas.setNoPixels:(J)V
+      10: aconst_null
+      11: areturn
+      12: aload_1
+      13: iload_2
+      14: invokevirtual #618                // Method icyllis/modernui/graphics/text/EmojiFont.getFileName:(I)Ljava/lang/String;
+      17: invokedynamic #630,  0            // InvokeDynamic #8:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+      22: astore        7
+      24: new           #21                 // class icyllis/modernui/graphics/BitmapFactory$Options
+      27: dup
+      28: invokespecial #631                // Method icyllis/modernui/graphics/BitmapFactory$Options."<init>":()V
+      31: astore        8
+      33: aload         8
+      35: getstatic     #635                // Field icyllis/modernui/graphics/Bitmap$Format.RGBA_8888:Licyllis/modernui/graphics/Bitmap$Format;
+      38: putfield      #638                // Field icyllis/modernui/graphics/BitmapFactory$Options.inPreferredFormat:Licyllis/modernui/graphics/Bitmap$Format;
+      41: invokestatic  #644                // Method net/minecraft/class_310.method_1551:()Lnet/minecraft/class_310;
+      44: invokevirtual #648                // Method net/minecraft/class_310.method_1478:()Lnet/minecraft/class_3300;
+      47: aload         7
+      49: invokestatic  #654                // Method icyllis/modernui/mc/ModernUIMod.location:(Ljava/lang/String;)Lnet/minecraft/class_2960;
+      52: invokeinterface #660,  2          // InterfaceMethod net/minecraft/class_3300.open:(Lnet/minecraft/class_2960;)Ljava/io/InputStream;
+      57: astore        9
+      59: aload         9
+      61: aload         8
+      63: invokestatic  #664                // Method icyllis/modernui/graphics/BitmapFactory.decodeStream:(Ljava/io/InputStream;Licyllis/modernui/graphics/BitmapFactory$Options;)Licyllis/modernui/graphics/Bitmap;
+      66: astore        10
+      68: aload         10
+      70: invokevirtual #665                // Method icyllis/modernui/graphics/Bitmap.getWidth:()I
+      73: bipush        72
+      75: if_icmpne     218
+      78: aload         10
+      80: invokevirtual #666                // Method icyllis/modernui/graphics/Bitmap.getHeight:()I
+      83: bipush        72
+      85: if_icmpne     218
+      88: aload         10
+      90: invokevirtual #670                // Method icyllis/modernui/graphics/Bitmap.getAddress:()J
+      93: lstore        11
+      95: aload         4
+      97: iconst_0
+      98: putfield      #323                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+     101: aload         4
+     103: bipush        -56
+     105: putfield      #518                // Field icyllis/modernui/mc/text/GLBakedGlyph.y:I
+     108: aload         4
+     110: bipush        72
+     112: putfield      #521                // Field icyllis/modernui/mc/text/GLBakedGlyph.width:S
+     115: aload         4
+     117: bipush        72
+     119: putfield      #523                // Field icyllis/modernui/mc/text/GLBakedGlyph.height:S
+     122: aload_3
+     123: aload         4
+     125: lload         11
+     127: invokevirtual #568                // Method icyllis/modernui/mc/text/GLFontAtlas.stitch:(Licyllis/modernui/mc/text/GLBakedGlyph;J)Z
+     130: istore        13
+     132: iload         13
+     134: ifeq          191
+     137: new           #9                  // class icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo
+     140: dup
+     141: iconst_2
+     142: iconst_1
+     143: invokespecial #391                // Method icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo."<init>":(IZ)V
+     146: astore        14
+     148: aload_0
+     149: getfield      #163                // Field mAtlasInvalidationCallbacks:Ljava/util/concurrent/CopyOnWriteArrayList;
+     152: invokevirtual #395                // Method java/util/concurrent/CopyOnWriteArrayList.iterator:()Ljava/util/Iterator;
+     155: astore        15
+     157: aload         15
+     159: invokeinterface #400,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     164: ifeq          191
+     167: aload         15
+     169: invokeinterface #404,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     174: checkcast     #406                // class java/util/function/Consumer
+     177: astore        16
+     179: aload         16
+     181: aload         14
+     183: invokeinterface #408,  2          // InterfaceMethod java/util/function/Consumer.accept:(Ljava/lang/Object;)V
+     188: goto          157
+     191: aload         4
+     193: astore        14
+     195: aload         10
+     197: ifnull        205
+     200: aload         10
+     202: invokevirtual #675                // Method icyllis/modernui/graphics/Bitmap.close:()V
+     205: aload         9
+     207: ifnull        215
+     210: aload         9
+     212: invokevirtual #676                // Method java/io/InputStream.close:()V
+     215: aload         14
+     217: areturn
+     218: aload_3
+     219: lload         5
+     221: invokevirtual #513                // Method icyllis/modernui/mc/text/GLFontAtlas.setNoPixels:(J)V
+     224: getstatic     #680                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     227: getstatic     #682                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     230: ldc_w         #684                // String Emoji is not {}x{}: {} {}
+     233: bipush        72
+     235: invokestatic  #690                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     238: bipush        72
+     240: invokestatic  #690                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     243: aload_1
+     244: invokevirtual #694                // Method icyllis/modernui/graphics/text/EmojiFont.getFamilyName:()Ljava/lang/String;
+     247: aload         7
+     249: invokeinterface #700,  7          // InterfaceMethod org/apache/logging/log4j/Logger.warn:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+     254: aconst_null
+     255: astore        11
+     257: aload         10
+     259: ifnull        267
+     262: aload         10
+     264: invokevirtual #675                // Method icyllis/modernui/graphics/Bitmap.close:()V
+     267: aload         9
+     269: ifnull        277
+     272: aload         9
+     274: invokevirtual #676                // Method java/io/InputStream.close:()V
+     277: aload         11
+     279: areturn
+     280: astore        11
+     282: aload         10
+     284: ifnull        304
+     287: aload         10
+     289: invokevirtual #675                // Method icyllis/modernui/graphics/Bitmap.close:()V
+     292: goto          304
+     295: astore        12
+     297: aload         11
+     299: aload         12
+     301: invokevirtual #704                // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+     304: aload         11
+     306: athrow
+     307: astore        10
+     309: aload         9
+     311: ifnull        331
+     314: aload         9
+     316: invokevirtual #676                // Method java/io/InputStream.close:()V
+     319: goto          331
+     322: astore        11
+     324: aload         10
+     326: aload         11
+     328: invokevirtual #704                // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+     331: aload         10
+     333: athrow
+     334: astore        9
+     336: aload_3
+     337: lload         5
+     339: invokevirtual #513                // Method icyllis/modernui/mc/text/GLFontAtlas.setNoPixels:(J)V
+     342: getstatic     #680                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     345: getstatic     #682                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     348: ldc_w         #706                // String Failed to load emoji: {} {}
+     351: aload_1
+     352: invokevirtual #694                // Method icyllis/modernui/graphics/text/EmojiFont.getFamilyName:()Ljava/lang/String;
+     355: aload         7
+     357: aload         9
+     359: invokeinterface #709,  6          // InterfaceMethod org/apache/logging/log4j/Logger.warn:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+     364: aconst_null
+     365: areturn
+    Exception table:
+       from    to  target type
+          68   195   280   Class java/lang/Throwable
+         218   257   280   Class java/lang/Throwable
+         287   292   295   Class java/lang/Throwable
+          59   205   307   Class java/lang/Throwable
+         218   267   307   Class java/lang/Throwable
+         280   307   307   Class java/lang/Throwable
+         314   319   322   Class java/lang/Throwable
+          41   215   334   Class java/lang/Exception
+         218   277   334   Class java/lang/Exception
+         280   334   334   Class java/lang/Exception
+
+  private icyllis.modernui.mc.text.GLBakedGlyph cacheBitmapGlyph(icyllis.modernui.mc.text.BitmapFont, int, icyllis.modernui.mc.text.GLFontAtlas, icyllis.modernui.mc.text.GLBakedGlyph, long);
+    Code:
+       0: aload_0
+       1: getfield      #548                // Field mImageBuffer:Ljava/nio/ByteBuffer;
+       4: invokestatic  #564                // Method org/lwjgl/system/MemoryUtil.memAddress:(Ljava/nio/ByteBuffer;)J
+       7: lstore        7
+       9: aload_1
+      10: iload_2
+      11: lload         7
+      13: invokevirtual #721                // Method icyllis/modernui/mc/text/BitmapFont.getGlyphImage:(IJ)Z
+      16: ifne          27
+      19: aload_3
+      20: lload         5
+      22: invokevirtual #513                // Method icyllis/modernui/mc/text/GLFontAtlas.setNoPixels:(J)V
+      25: aconst_null
+      26: areturn
+      27: aload         4
+      29: aload_1
+      30: invokevirtual #724                // Method icyllis/modernui/mc/text/BitmapFont.getSpriteWidth:()I
+      33: i2s
+      34: putfield      #521                // Field icyllis/modernui/mc/text/GLBakedGlyph.width:S
+      37: aload         4
+      39: aload_1
+      40: invokevirtual #727                // Method icyllis/modernui/mc/text/BitmapFont.getSpriteHeight:()I
+      43: i2s
+      44: putfield      #523                // Field icyllis/modernui/mc/text/GLBakedGlyph.height:S
+      47: aload_3
+      48: aload         4
+      50: lload         7
+      52: invokevirtual #568                // Method icyllis/modernui/mc/text/GLFontAtlas.stitch:(Licyllis/modernui/mc/text/GLBakedGlyph;J)Z
+      55: istore        9
+      57: aload_1
+      58: aload         4
+      60: invokevirtual #731                // Method icyllis/modernui/mc/text/BitmapFont.setGlyphMetrics:(Licyllis/modernui/mc/text/GLBakedGlyph;)V
+      63: iload         9
+      65: ifeq          122
+      68: new           #9                  // class icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo
+      71: dup
+      72: iconst_2
+      73: iconst_1
+      74: invokespecial #391                // Method icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo."<init>":(IZ)V
+      77: astore        10
+      79: aload_0
+      80: getfield      #163                // Field mAtlasInvalidationCallbacks:Ljava/util/concurrent/CopyOnWriteArrayList;
+      83: invokevirtual #395                // Method java/util/concurrent/CopyOnWriteArrayList.iterator:()Ljava/util/Iterator;
+      86: astore        11
+      88: aload         11
+      90: invokeinterface #400,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      95: ifeq          122
+      98: aload         11
+     100: invokeinterface #404,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     105: checkcast     #406                // class java/util/function/Consumer
+     108: astore        12
+     110: aload         12
+     112: aload         10
+     114: invokeinterface #408,  2          // InterfaceMethod java/util/function/Consumer.accept:(Ljava/lang/Object;)V
+     119: goto          88
+     122: aload_1
+     123: iload_2
+     124: invokevirtual #734                // Method icyllis/modernui/mc/text/BitmapFont.getGlyph:(I)Licyllis/modernui/mc/text/BitmapFont$Glyph;
+     127: astore        10
+     129: getstatic     #736                // Field $assertionsDisabled:Z
+     132: ifne          148
+     135: aload         10
+     137: ifnonnull     148
+     140: new           #738                // class java/lang/AssertionError
+     143: dup
+     144: invokespecial #739                // Method java/lang/AssertionError."<init>":()V
+     147: athrow
+     148: aload         10
+     150: getfield      #743                // Field icyllis/modernui/mc/text/BitmapFont$Glyph.advance:F
+     153: f2i
+     154: istore        11
+     156: aload_0
+     157: getfield      #149                // Field mBitmapFontTable:Ljava/util/HashMap;
+     160: aload_1
+     161: invokevirtual #578                // Method java/util/HashMap.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     164: checkcast     #11                 // class icyllis/modernui/mc/text/GlyphManager$GlyphStrike
+     167: getfield      #413                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mFastCharMap:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+     170: iload         11
+     172: invokedynamic #748,  0            // InvokeDynamic #9:get:()Lit/unimi/dsi/fastutil/ints/Int2ObjectFunction;
+     177: invokevirtual #592                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.computeIfAbsent:(ILit/unimi/dsi/fastutil/ints/Int2ObjectFunction;)Ljava/lang/Object;
+     180: checkcast     #7                  // class icyllis/modernui/mc/text/GlyphManager$FastCharSet
+     183: getfield      #427                // Field icyllis/modernui/mc/text/GlyphManager$FastCharSet.glyphs:Ljava/util/ArrayList;
+     186: aload         4
+     188: invokevirtual #595                // Method java/util/ArrayList.add:(Ljava/lang/Object;)Z
+     191: pop
+     192: aload         4
+     194: areturn
+
+  private void allocateImage();
+    Code:
+       0: aload_0
+       1: new           #527                // class java/awt/image/BufferedImage
+       4: dup
+       5: sipush        256
+       8: sipush        256
+      11: iconst_2
+      12: invokespecial #753                // Method java/awt/image/BufferedImage."<init>":(III)V
+      15: putfield      #525                // Field mImage:Ljava/awt/image/BufferedImage;
+      18: aload_0
+      19: aload_0
+      20: getfield      #525                // Field mImage:Ljava/awt/image/BufferedImage;
+      23: invokevirtual #757                // Method java/awt/image/BufferedImage.createGraphics:()Ljava/awt/Graphics2D;
+      26: putfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+      29: aload_0
+      30: ldc_w         #758                // int 65536
+      33: newarray       int
+      35: putfield      #539                // Field mImageData:[I
+      38: aload_0
+      39: aload_0
+      40: getfield      #539                // Field mImageData:[I
+      43: arraylength
+      44: iconst_4
+      45: imul
+      46: invokestatic  #764                // Method org/lwjgl/BufferUtils.createByteBuffer:(I)Ljava/nio/ByteBuffer;
+      49: putfield      #548                // Field mImageBuffer:Ljava/nio/ByteBuffer;
+      52: aload_0
+      53: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+      56: getstatic     #766                // Field BG_COLOR:Ljava/awt/Color;
+      59: invokevirtual #770                // Method java/awt/Graphics2D.setBackground:(Ljava/awt/Color;)V
+      62: aload_0
+      63: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+      66: getstatic     #776                // Field java/awt/AlphaComposite.Src:Ljava/awt/AlphaComposite;
+      69: invokevirtual #780                // Method java/awt/Graphics2D.setComposite:(Ljava/awt/Composite;)V
+      72: aload_0
+      73: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+      76: getstatic     #784                // Field java/awt/RenderingHints.KEY_ANTIALIASING:Ljava/awt/RenderingHints$Key;
+      79: getstatic     #788                // Field java/awt/RenderingHints.VALUE_ANTIALIAS_OFF:Ljava/lang/Object;
+      82: invokevirtual #792                // Method java/awt/Graphics2D.setRenderingHint:(Ljava/awt/RenderingHints$Key;Ljava/lang/Object;)V
+      85: getstatic     #794                // Field sAntiAliasing:Z
+      88: ifeq          107
+      91: aload_0
+      92: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+      95: getstatic     #797                // Field java/awt/RenderingHints.KEY_TEXT_ANTIALIASING:Ljava/awt/RenderingHints$Key;
+      98: getstatic     #800                // Field java/awt/RenderingHints.VALUE_TEXT_ANTIALIAS_ON:Ljava/lang/Object;
+     101: invokevirtual #792                // Method java/awt/Graphics2D.setRenderingHint:(Ljava/awt/RenderingHints$Key;Ljava/lang/Object;)V
+     104: goto          120
+     107: aload_0
+     108: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+     111: getstatic     #797                // Field java/awt/RenderingHints.KEY_TEXT_ANTIALIASING:Ljava/awt/RenderingHints$Key;
+     114: getstatic     #803                // Field java/awt/RenderingHints.VALUE_TEXT_ANTIALIAS_OFF:Ljava/lang/Object;
+     117: invokevirtual #792                // Method java/awt/Graphics2D.setRenderingHint:(Ljava/awt/RenderingHints$Key;Ljava/lang/Object;)V
+     120: getstatic     #805                // Field sFractionalMetrics:Z
+     123: ifeq          142
+     126: aload_0
+     127: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+     130: getstatic     #808                // Field java/awt/RenderingHints.KEY_FRACTIONALMETRICS:Ljava/awt/RenderingHints$Key;
+     133: getstatic     #811                // Field java/awt/RenderingHints.VALUE_FRACTIONALMETRICS_ON:Ljava/lang/Object;
+     136: invokevirtual #792                // Method java/awt/Graphics2D.setRenderingHint:(Ljava/awt/RenderingHints$Key;Ljava/lang/Object;)V
+     139: goto          155
+     142: aload_0
+     143: getfield      #237                // Field mGraphics:Ljava/awt/Graphics2D;
+     146: getstatic     #808                // Field java/awt/RenderingHints.KEY_FRACTIONALMETRICS:Ljava/awt/RenderingHints$Key;
+     149: getstatic     #814                // Field java/awt/RenderingHints.VALUE_FRACTIONALMETRICS_OFF:Ljava/lang/Object;
+     152: invokevirtual #792                // Method java/awt/Graphics2D.setRenderingHint:(Ljava/awt/RenderingHints$Key;Ljava/lang/Object;)V
+     155: return
+
+  public icyllis.modernui.mc.text.GlyphManager$FastCharSet lookupFastChars(icyllis.modernui.graphics.text.Font, int, int);
+    Code:
+       0: aload_1
+       1: instanceof    #287                // class icyllis/modernui/graphics/text/OutlineFont
+       4: ifne          16
+       7: aload_1
+       8: instanceof    #31                 // class icyllis/modernui/mc/text/BitmapFont
+      11: ifne          16
+      14: aconst_null
+      15: areturn
+      16: aload_0
+      17: aload_1
+      18: iload_2
+      19: iload_3
+      20: invokevirtual #818                // Method lookupGlyph:(Licyllis/modernui/graphics/text/Font;II)Licyllis/modernui/mc/text/GLBakedGlyph;
+      23: astore        4
+      25: aload         4
+      27: ifnonnull     32
+      30: aconst_null
+      31: areturn
+      32: aload_1
+      33: instanceof    #287                // class icyllis/modernui/graphics/text/OutlineFont
+      36: ifeq          130
+      39: aload_1
+      40: checkcast     #287                // class icyllis/modernui/graphics/text/OutlineFont
+      43: iload_2
+      44: invokevirtual #291                // Method icyllis/modernui/graphics/text/OutlineFont.chooseFont:(I)Ljava/awt/Font;
+      47: astore        5
+      49: aload_0
+      50: getfield      #107                // Field mFontTable:Ljava/util/HashMap;
+      53: aload         5
+      55: invokevirtual #578                // Method java/util/HashMap.get:(Ljava/lang/Object;)Ljava/lang/Object;
+      58: checkcast     #11                 // class icyllis/modernui/mc/text/GlyphManager$GlyphStrike
+      61: astore        6
+      63: getstatic     #736                // Field $assertionsDisabled:Z
+      66: ifne          82
+      69: aload         6
+      71: ifnonnull     82
+      74: new           #738                // class java/lang/AssertionError
+      77: dup
+      78: invokespecial #739                // Method java/lang/AssertionError."<init>":()V
+      81: athrow
+      82: aload         6
+      84: getfield      #821                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mPreloadedFastChars:Z
+      87: ifne          104
+      90: aload_0
+      91: aload_1
+      92: iload_2
+      93: aload         5
+      95: invokevirtual #825                // Method cacheFastChars:(Licyllis/modernui/graphics/text/Font;ILjava/awt/Font;)V
+      98: aload         6
+     100: iconst_1
+     101: putfield      #821                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mPreloadedFastChars:Z
+     104: aload         4
+     106: aload         5
+     108: invokevirtual #571                // Method java/awt/Font.getSize:()I
+     111: invokestatic  #575                // Method computeStandardWidth:(Licyllis/modernui/mc/text/GLBakedGlyph;I)I
+     114: istore        7
+     116: aload         6
+     118: getfield      #413                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mFastCharMap:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+     121: iload         7
+     123: invokevirtual #827                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.get:(I)Ljava/lang/Object;
+     126: checkcast     #7                  // class icyllis/modernui/mc/text/GlyphManager$FastCharSet
+     129: areturn
+     130: aload_1
+     131: checkcast     #31                 // class icyllis/modernui/mc/text/BitmapFont
+     134: astore        5
+     136: aload_0
+     137: getfield      #149                // Field mBitmapFontTable:Ljava/util/HashMap;
+     140: aload         5
+     142: invokevirtual #578                // Method java/util/HashMap.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     145: checkcast     #11                 // class icyllis/modernui/mc/text/GlyphManager$GlyphStrike
+     148: astore        6
+     150: aload         6
+     152: ifnonnull     157
+     155: aconst_null
+     156: areturn
+     157: aload         6
+     159: getfield      #821                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mPreloadedFastChars:Z
+     162: ifne          177
+     165: aload_0
+     166: aload         5
+     168: invokevirtual #830                // Method cacheFastChars:(Licyllis/modernui/mc/text/BitmapFont;)V
+     171: aload         6
+     173: iconst_1
+     174: putfield      #821                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mPreloadedFastChars:Z
+     177: aload         5
+     179: iload_3
+     180: invokevirtual #734                // Method icyllis/modernui/mc/text/BitmapFont.getGlyph:(I)Licyllis/modernui/mc/text/BitmapFont$Glyph;
+     183: astore        7
+     185: getstatic     #736                // Field $assertionsDisabled:Z
+     188: ifne          204
+     191: aload         7
+     193: ifnonnull     204
+     196: new           #738                // class java/lang/AssertionError
+     199: dup
+     200: invokespecial #739                // Method java/lang/AssertionError."<init>":()V
+     203: athrow
+     204: aload         7
+     206: getfield      #743                // Field icyllis/modernui/mc/text/BitmapFont$Glyph.advance:F
+     209: f2i
+     210: istore        8
+     212: aload         6
+     214: getfield      #413                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mFastCharMap:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+     217: iload         8
+     219: invokevirtual #827                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.get:(I)Ljava/lang/Object;
+     222: checkcast     #7                  // class icyllis/modernui/mc/text/GlyphManager$FastCharSet
+     225: areturn
+
+  private void cacheFastChars(icyllis.modernui.graphics.text.Font, int, java.awt.Font);
+    Code:
+       0: bipush        33
+       2: bipush        127
+       4: bipush        62
+       6: aload_0
+       7: aload_3
+       8: aload_1
+       9: iload_2
+      10: invokedynamic #841,  0            // InvokeDynamic #10:accept:(Licyllis/modernui/mc/text/GlyphManager;Ljava/awt/Font;Licyllis/modernui/graphics/text/Font;I)Ljava/util/function/IntConsumer;
+      15: invokestatic  #845                // Method forEachRandomGlyph:(IIILjava/util/function/IntConsumer;)V
+      18: iconst_0
+      19: aload_3
+      20: invokevirtual #848                // Method java/awt/Font.getNumGlyphs:()I
+      23: bipush        127
+      25: aload_0
+      26: aload_3
+      27: aload_1
+      28: iload_2
+      29: invokedynamic #853,  0            // InvokeDynamic #11:accept:(Licyllis/modernui/mc/text/GlyphManager;Ljava/awt/Font;Licyllis/modernui/graphics/text/Font;I)Ljava/util/function/IntConsumer;
+      34: invokestatic  #845                // Method forEachRandomGlyph:(IIILjava/util/function/IntConsumer;)V
+      37: return
+
+  private void cacheFastChars(icyllis.modernui.mc.text.BitmapFont);
+    Code:
+       0: aload_1
+       1: invokevirtual #857                // Method icyllis/modernui/mc/text/BitmapFont.getCodepointGrid:()[[I
+       4: astore_2
+       5: aload_2
+       6: iconst_0
+       7: aaload
+       8: arraylength
+       9: istore_3
+      10: iconst_0
+      11: aload_2
+      12: arraylength
+      13: iload_3
+      14: imul
+      15: sipush        160
+      18: aload_0
+      19: aload_2
+      20: iload_3
+      21: aload_1
+      22: invokedynamic #865,  0            // InvokeDynamic #12:accept:(Licyllis/modernui/mc/text/GlyphManager;[[IILicyllis/modernui/mc/text/BitmapFont;)Ljava/util/function/IntConsumer;
+      27: invokestatic  #845                // Method forEachRandomGlyph:(IIILjava/util/function/IntConsumer;)V
+      30: return
+
+  static int computeStandardWidth(icyllis.modernui.mc.text.GLBakedGlyph, int);
+    Code:
+       0: iload_1
+       1: iconst_4
+       2: iadd
+       3: bipush        8
+       5: idiv
+       6: istore_2
+       7: aload_0
+       8: getfield      #521                // Field icyllis/modernui/mc/text/GLBakedGlyph.width:S
+      11: i2f
+      12: iload_2
+      13: i2f
+      14: fdiv
+      15: invokestatic  #874                // Method java/lang/Math.round:(F)I
+      18: iload_2
+      19: imul
+      20: ireturn
+
+  static void forEachRandomGlyph(int, int, int, java.util.function.IntConsumer);
+    Code:
+       0: getstatic     #736                // Field $assertionsDisabled:Z
+       3: ifne          18
+       6: iload_2
+       7: ifgt          18
+      10: new           #738                // class java/lang/AssertionError
+      13: dup
+      14: invokespecial #739                // Method java/lang/AssertionError."<init>":()V
+      17: athrow
+      18: new           #880                // class java/util/Random
+      21: dup
+      22: invokespecial #881                // Method java/util/Random."<init>":()V
+      25: astore        4
+      27: iload_1
+      28: iload_0
+      29: isub
+      30: istore        5
+      32: iload_0
+      33: istore        6
+      35: iload         6
+      37: iload_1
+      38: if_icmpge     79
+      41: aload         4
+      43: iload         5
+      45: invokevirtual #884                // Method java/util/Random.nextInt:(I)I
+      48: iload_2
+      49: if_icmpge     70
+      52: aload_3
+      53: iload         6
+      55: invokeinterface #888,  2          // InterfaceMethod java/util/function/IntConsumer.accept:(I)V
+      60: iinc          2, -1
+      63: iload_2
+      64: ifne          70
+      67: goto          79
+      70: iinc          5, -1
+      73: iinc          6, 1
+      76: goto          35
+      79: return
+
+  public void addAtlasInvalidationCallback(java.util.function.Consumer<icyllis.modernui.mc.text.GlyphManager$AtlasInvalidationInfo>);
+    Code:
+       0: aload_0
+       1: getfield      #163                // Field mAtlasInvalidationCallbacks:Ljava/util/concurrent/CopyOnWriteArrayList;
+       4: aload_1
+       5: invokestatic  #899                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+       8: checkcast     #406                // class java/util/function/Consumer
+      11: invokevirtual #900                // Method java/util/concurrent/CopyOnWriteArrayList.add:(Ljava/lang/Object;)Z
+      14: pop
+      15: return
+
+  public void removeAtlasInvalidationCallback(java.util.function.Consumer<icyllis.modernui.mc.text.GlyphManager$AtlasInvalidationInfo>);
+    Code:
+       0: aload_0
+       1: getfield      #163                // Field mAtlasInvalidationCallbacks:Ljava/util/concurrent/CopyOnWriteArrayList;
+       4: aload_1
+       5: invokestatic  #899                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+       8: invokevirtual #904                // Method java/util/concurrent/CopyOnWriteArrayList.remove:(Ljava/lang/Object;)Z
+      11: pop
+      12: return
+
+  private void lambda$cacheFastChars$11(int[][], int, icyllis.modernui.mc.text.BitmapFont, int);
+    Code:
+       0: aload_1
+       1: iload         4
+       3: iload_2
+       4: idiv
+       5: aaload
+       6: iload         4
+       8: iload_2
+       9: irem
+      10: iaload
+      11: istore        5
+      13: iload         5
+      15: ifeq          28
+      18: aload_0
+      19: aload_3
+      20: bipush        8
+      22: iload         5
+      24: invokevirtual #818                // Method lookupGlyph:(Licyllis/modernui/graphics/text/Font;II)Licyllis/modernui/mc/text/GLBakedGlyph;
+      27: pop
+      28: return
+
+  private void lambda$cacheFastChars$10(java.awt.Font, icyllis.modernui.graphics.text.Font, int, int);
+    Code:
+       0: iload         4
+       2: aload_1
+       3: invokevirtual #909                // Method java/awt/Font.getMissingGlyphCode:()I
+       6: if_icmpeq     18
+       9: aload_0
+      10: aload_2
+      11: iload_3
+      12: iload         4
+      14: invokevirtual #818                // Method lookupGlyph:(Licyllis/modernui/graphics/text/Font;II)Licyllis/modernui/mc/text/GLBakedGlyph;
+      17: pop
+      18: return
+
+  private void lambda$cacheFastChars$9(java.awt.Font, icyllis.modernui.graphics.text.Font, int, int);
+    Code:
+       0: iconst_1
+       1: newarray       char
+       3: dup
+       4: iconst_0
+       5: iload         4
+       7: i2c
+       8: castore
+       9: astore        5
+      11: aload_0
+      12: aload_1
+      13: aload         5
+      15: invokevirtual #911                // Method createGlyphVector:(Ljava/awt/Font;[C)Ljava/awt/font/GlyphVector;
+      18: astore        6
+      20: aload         6
+      22: invokevirtual #912                // Method java/awt/font/GlyphVector.getNumGlyphs:()I
+      25: iconst_1
+      26: if_icmpne     55
+      29: aload         6
+      31: iconst_0
+      32: invokevirtual #915                // Method java/awt/font/GlyphVector.getGlyphCode:(I)I
+      35: aload_1
+      36: invokevirtual #909                // Method java/awt/Font.getMissingGlyphCode:()I
+      39: if_icmpeq     55
+      42: aload_0
+      43: aload_2
+      44: iload_3
+      45: aload         6
+      47: iconst_0
+      48: invokevirtual #915                // Method java/awt/font/GlyphVector.getGlyphCode:(I)I
+      51: invokevirtual #818                // Method lookupGlyph:(Licyllis/modernui/graphics/text/Font;II)Licyllis/modernui/mc/text/GLBakedGlyph;
+      54: pop
+      55: return
+
+  private static icyllis.modernui.mc.text.GlyphManager$FastCharSet lambda$cacheBitmapGlyph$8(int);
+    Code:
+       0: new           #7                  // class icyllis/modernui/mc/text/GlyphManager$FastCharSet
+       3: dup
+       4: invokespecial #918                // Method icyllis/modernui/mc/text/GlyphManager$FastCharSet."<init>":()V
+       7: areturn
+
+  private static icyllis.modernui.mc.text.GlyphManager$FastCharSet lambda$cacheGlyph$7(int);
+    Code:
+       0: new           #7                  // class icyllis/modernui/mc/text/GlyphManager$FastCharSet
+       3: dup
+       4: invokespecial #918                // Method icyllis/modernui/mc/text/GlyphManager$FastCharSet."<init>":()V
+       7: areturn
+
+  private static boolean lambda$compact$6(icyllis.modernui.mc.text.GLBakedGlyph);
+    Code:
+       0: aload_0
+       1: getfield      #323                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+       4: ldc_w         #324                // int -2147483648
+       7: if_icmpne     14
+      10: iconst_1
+      11: goto          15
+      14: iconst_0
+      15: ireturn
+
+  private static boolean lambda$compact$5(icyllis.modernui.mc.text.GLBakedGlyph);
+    Code:
+       0: aload_0
+       1: getfield      #323                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+       4: ldc_w         #324                // int -2147483648
+       7: if_icmpne     14
+      10: iconst_1
+      11: goto          15
+      14: iconst_0
+      15: ireturn
+
+  private static void lambda$reload$4(icyllis.modernui.mc.text.GlyphManager$GlyphStrike);
+    Code:
+       0: aload_0
+       1: getfield      #413                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mFastCharMap:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+       4: invokevirtual #920                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.clear:()V
+       7: return
+
+  private static void lambda$reload$3(icyllis.modernui.mc.text.GlyphManager$GlyphStrike);
+    Code:
+       0: aload_0
+       1: getfield      #413                // Field icyllis/modernui/mc/text/GlyphManager$GlyphStrike.mFastCharMap:Lit/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap;
+       4: invokevirtual #920                // Method it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap.clear:()V
+       7: return
+
+  private icyllis.modernui.mc.text.GlyphManager$GlyphStrike lambda$new$2(icyllis.modernui.mc.text.BitmapFont);
+    Code:
+       0: new           #11                 // class icyllis/modernui/mc/text/GlyphManager$GlyphStrike
+       3: dup
+       4: aload_0
+       5: getfield      #149                // Field mBitmapFontTable:Ljava/util/HashMap;
+       8: invokevirtual #923                // Method java/util/HashMap.size:()I
+      11: iconst_1
+      12: iadd
+      13: invokespecial #925                // Method icyllis/modernui/mc/text/GlyphManager$GlyphStrike."<init>":(I)V
+      16: areturn
+
+  private int lambda$new$1(icyllis.modernui.graphics.text.EmojiFont);
+    Code:
+       0: aload_0
+       1: getfield      #133                // Field mEmojiFontTable:Lit/unimi/dsi/fastutil/objects/Object2IntOpenHashMap;
+       4: invokevirtual #926                // Method it/unimi/dsi/fastutil/objects/Object2IntOpenHashMap.size:()I
+       7: iconst_1
+       8: iadd
+       9: ireturn
+
+  private icyllis.modernui.mc.text.GlyphManager$GlyphStrike lambda$new$0(java.awt.Font);
+    Code:
+       0: new           #11                 // class icyllis/modernui/mc/text/GlyphManager$GlyphStrike
+       3: dup
+       4: aload_0
+       5: getfield      #107                // Field mFontTable:Ljava/util/HashMap;
+       8: invokevirtual #923                // Method java/util/HashMap.size:()I
+      11: iconst_1
+      12: iadd
+      13: invokespecial #925                // Method icyllis/modernui/mc/text/GlyphManager$GlyphStrike."<init>":(I)V
+      16: areturn
+
+  static {};
+    Code:
+       0: ldc           #2                  // class icyllis/modernui/mc/text/GlyphManager
+       2: invokevirtual #932                // Method java/lang/Class.desiredAssertionStatus:()Z
+       5: ifne          12
+       8: iconst_1
+       9: goto          13
+      12: iconst_0
+      13: putstatic     #736                // Field $assertionsDisabled:Z
+      16: ldc_w         #933                // String Glyph
+      19: invokestatic  #939                // Method org/apache/logging/log4j/MarkerManager.getMarker:(Ljava/lang/String;)Lorg/apache/logging/log4j/Marker;
+      22: putstatic     #682                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+      25: new           #941                // class java/awt/Color
+      28: dup
+      29: iconst_0
+      30: iconst_0
+      31: iconst_0
+      32: iconst_0
+      33: invokespecial #943                // Method java/awt/Color."<init>":(IIII)V
+      36: putstatic     #766                // Field BG_COLOR:Ljava/awt/Color;
+      39: iconst_1
+      40: putstatic     #794                // Field sAntiAliasing:Z
+      43: iconst_1
+      44: putstatic     #805                // Field sFractionalMetrics:Z
+      47: return
+}

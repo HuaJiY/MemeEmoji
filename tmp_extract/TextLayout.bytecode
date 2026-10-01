@@ -1,0 +1,2358 @@
+Compiled from "TextLayout.java"
+public class icyllis.modernui.mc.text.TextLayout {
+  private static final java.util.Random RANDOM;
+
+  public static final icyllis.modernui.mc.text.TextLayout EMPTY;
+
+  public static final int STANDARD_BASELINE_OFFSET;
+
+  public static float sBaselineOffset;
+
+  private final char[] mTextBuf;
+
+  private final int[] mGlyphs;
+
+  private transient icyllis.modernui.mc.text.GLBakedGlyph[] mBakedGlyphs;
+
+  private transient icyllis.modernui.mc.text.GLBakedGlyph[] mBakedGlyphsForSDF;
+
+  private transient icyllis.modernui.util.SparseArray<icyllis.modernui.mc.text.GLBakedGlyph[]> mBakedGlyphsArray;
+
+  private final float[] mPositions;
+
+  private final byte[] mFontIndices;
+
+  private final icyllis.modernui.graphics.text.Font[] mFonts;
+
+  private final float[] mAdvances;
+
+  private final int[] mGlyphFlags;
+
+  private final int[] mLineBoundaries;
+
+  private final float mTotalAdvance;
+
+  private final boolean mHasEffect;
+
+  private final boolean mHasColorEmoji;
+
+  final int mCreatedResLevel;
+
+  final int mComputedFlags;
+
+  private transient int mTimer;
+
+  static final boolean $assertionsDisabled;
+
+  private icyllis.modernui.mc.text.TextLayout(icyllis.modernui.mc.text.TextLayout);
+    Code:
+       0: aload_0
+       1: invokespecial #65                 // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: iconst_0
+       6: putfield      #67                 // Field mTimer:I
+       9: aload_0
+      10: aload_1
+      11: getfield      #69                 // Field mTextBuf:[C
+      14: putfield      #69                 // Field mTextBuf:[C
+      17: aload_0
+      18: aload_1
+      19: getfield      #71                 // Field mGlyphs:[I
+      22: putfield      #71                 // Field mGlyphs:[I
+      25: aload_0
+      26: aload_1
+      27: getfield      #73                 // Field mPositions:[F
+      30: putfield      #73                 // Field mPositions:[F
+      33: aload_0
+      34: aload_1
+      35: getfield      #75                 // Field mFontIndices:[B
+      38: putfield      #75                 // Field mFontIndices:[B
+      41: aload_0
+      42: aload_1
+      43: getfield      #77                 // Field mFonts:[Licyllis/modernui/graphics/text/Font;
+      46: putfield      #77                 // Field mFonts:[Licyllis/modernui/graphics/text/Font;
+      49: aload_0
+      50: aload_1
+      51: getfield      #79                 // Field mAdvances:[F
+      54: putfield      #79                 // Field mAdvances:[F
+      57: aload_0
+      58: aload_1
+      59: getfield      #81                 // Field mGlyphFlags:[I
+      62: putfield      #81                 // Field mGlyphFlags:[I
+      65: aload_0
+      66: aload_1
+      67: getfield      #83                 // Field mLineBoundaries:[I
+      70: putfield      #83                 // Field mLineBoundaries:[I
+      73: aload_0
+      74: aload_1
+      75: getfield      #85                 // Field mTotalAdvance:F
+      78: putfield      #85                 // Field mTotalAdvance:F
+      81: aload_0
+      82: aload_1
+      83: getfield      #87                 // Field mHasEffect:Z
+      86: putfield      #87                 // Field mHasEffect:Z
+      89: aload_0
+      90: aload_1
+      91: getfield      #89                 // Field mHasColorEmoji:Z
+      94: putfield      #89                 // Field mHasColorEmoji:Z
+      97: aload_0
+      98: aload_1
+      99: getfield      #91                 // Field mCreatedResLevel:I
+     102: putfield      #91                 // Field mCreatedResLevel:I
+     105: aload_0
+     106: aload_1
+     107: getfield      #93                 // Field mComputedFlags:I
+     110: putfield      #93                 // Field mComputedFlags:I
+     113: return
+
+  icyllis.modernui.mc.text.TextLayout(char[], int[], float[], byte[], icyllis.modernui.graphics.text.Font[], float[], int[], int[], float, boolean, boolean, int, int);
+    Code:
+       0: aload_0
+       1: invokespecial #65                 // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: iconst_0
+       6: putfield      #67                 // Field mTimer:I
+       9: aload_0
+      10: aload_1
+      11: putfield      #69                 // Field mTextBuf:[C
+      14: aload_0
+      15: aload_2
+      16: putfield      #71                 // Field mGlyphs:[I
+      19: aload_0
+      20: aload_3
+      21: putfield      #73                 // Field mPositions:[F
+      24: aload_0
+      25: aload         4
+      27: putfield      #75                 // Field mFontIndices:[B
+      30: aload_0
+      31: aload         5
+      33: putfield      #77                 // Field mFonts:[Licyllis/modernui/graphics/text/Font;
+      36: aload_0
+      37: aload         6
+      39: putfield      #79                 // Field mAdvances:[F
+      42: aload_0
+      43: aload         7
+      45: putfield      #81                 // Field mGlyphFlags:[I
+      48: aload_0
+      49: aload         8
+      51: putfield      #83                 // Field mLineBoundaries:[I
+      54: aload_0
+      55: fload         9
+      57: putfield      #85                 // Field mTotalAdvance:F
+      60: aload_0
+      61: iload         10
+      63: putfield      #87                 // Field mHasEffect:Z
+      66: aload_0
+      67: iload         11
+      69: putfield      #89                 // Field mHasColorEmoji:Z
+      72: aload_0
+      73: iload         12
+      75: putfield      #91                 // Field mCreatedResLevel:I
+      78: aload_0
+      79: iload         13
+      81: putfield      #93                 // Field mComputedFlags:I
+      84: getstatic     #111                // Field $assertionsDisabled:Z
+      87: ifne          118
+      90: aload_0
+      91: getfield      #79                 // Field mAdvances:[F
+      94: ifnull        118
+      97: aload_0
+      98: getfield      #69                 // Field mTextBuf:[C
+     101: arraylength
+     102: aload_0
+     103: getfield      #79                 // Field mAdvances:[F
+     106: arraylength
+     107: if_icmpeq     118
+     110: new           #113                // class java/lang/AssertionError
+     113: dup
+     114: invokespecial #114                // Method java/lang/AssertionError."<init>":()V
+     117: athrow
+     118: getstatic     #111                // Field $assertionsDisabled:Z
+     121: ifne          147
+     124: aload_0
+     125: getfield      #71                 // Field mGlyphs:[I
+     128: arraylength
+     129: iconst_2
+     130: imul
+     131: aload_0
+     132: getfield      #73                 // Field mPositions:[F
+     135: arraylength
+     136: if_icmpeq     147
+     139: new           #113                // class java/lang/AssertionError
+     142: dup
+     143: invokespecial #114                // Method java/lang/AssertionError."<init>":()V
+     146: athrow
+     147: getstatic     #111                // Field $assertionsDisabled:Z
+     150: ifne          174
+     153: aload_0
+     154: getfield      #71                 // Field mGlyphs:[I
+     157: arraylength
+     158: aload_0
+     159: getfield      #81                 // Field mGlyphFlags:[I
+     162: arraylength
+     163: if_icmpeq     174
+     166: new           #113                // class java/lang/AssertionError
+     169: dup
+     170: invokespecial #114                // Method java/lang/AssertionError."<init>":()V
+     173: athrow
+     174: return
+
+  public static icyllis.modernui.mc.text.TextLayout makeEmpty();
+    Code:
+       0: new           #2                  // class icyllis/modernui/mc/text/TextLayout
+       3: dup
+       4: getstatic     #123                // Field EMPTY:Licyllis/modernui/mc/text/TextLayout;
+       7: invokespecial #125                // Method "<init>":(Licyllis/modernui/mc/text/TextLayout;)V
+      10: areturn
+
+  icyllis.modernui.mc.text.TextLayout get();
+    Code:
+       0: aload_0
+       1: iconst_0
+       2: putfield      #67                 // Field mTimer:I
+       5: aload_0
+       6: areturn
+
+  boolean tick(int);
+    Code:
+       0: aload_0
+       1: dup
+       2: getfield      #67                 // Field mTimer:I
+       5: iconst_1
+       6: iadd
+       7: dup_x1
+       8: putfield      #67                 // Field mTimer:I
+      11: iload_1
+      12: if_icmple     19
+      15: iconst_1
+      16: goto          20
+      19: iconst_0
+      20: ireturn
+
+  private icyllis.modernui.mc.text.GLBakedGlyph[] prepareGlyphs(int);
+    Code:
+       0: invokestatic  #136                // Method icyllis/modernui/mc/text/GlyphManager.getInstance:()Licyllis/modernui/mc/text/GlyphManager;
+       3: astore_2
+       4: aload_0
+       5: getfield      #71                 // Field mGlyphs:[I
+       8: arraylength
+       9: anewarray     #138                // class icyllis/modernui/mc/text/GLBakedGlyph
+      12: astore_3
+      13: iconst_0
+      14: istore        4
+      16: iload         4
+      18: aload_3
+      19: arraylength
+      20: if_icmpge     89
+      23: aload_0
+      24: getfield      #81                 // Field mGlyphFlags:[I
+      27: iload         4
+      29: iaload
+      30: ldc           #140                // int 268435456
+      32: iand
+      33: ifeq          61
+      36: aload_3
+      37: iload         4
+      39: aload_2
+      40: aload_0
+      41: iload         4
+      43: invokevirtual #144                // Method getFont:(I)Licyllis/modernui/graphics/text/Font;
+      46: iload_1
+      47: aload_0
+      48: getfield      #71                 // Field mGlyphs:[I
+      51: iload         4
+      53: iaload
+      54: invokevirtual #148                // Method icyllis/modernui/mc/text/GlyphManager.lookupFastChars:(Licyllis/modernui/graphics/text/Font;II)Licyllis/modernui/mc/text/GlyphManager$FastCharSet;
+      57: aastore
+      58: goto          83
+      61: aload_3
+      62: iload         4
+      64: aload_2
+      65: aload_0
+      66: iload         4
+      68: invokevirtual #144                // Method getFont:(I)Licyllis/modernui/graphics/text/Font;
+      71: iload_1
+      72: aload_0
+      73: getfield      #71                 // Field mGlyphs:[I
+      76: iload         4
+      78: iaload
+      79: invokevirtual #152                // Method icyllis/modernui/mc/text/GlyphManager.lookupGlyph:(Licyllis/modernui/graphics/text/Font;II)Licyllis/modernui/mc/text/GLBakedGlyph;
+      82: aastore
+      83: iinc          4, 1
+      86: goto          16
+      89: aload_3
+      90: areturn
+
+  private icyllis.modernui.mc.text.GLBakedGlyph[] getGlyphs(int);
+    Code:
+       0: iload_1
+       1: aload_0
+       2: getfield      #91                 // Field mCreatedResLevel:I
+       5: if_icmpne     35
+       8: aload_0
+       9: getfield      #159                // Field mBakedGlyphs:[Licyllis/modernui/mc/text/GLBakedGlyph;
+      12: ifnonnull     30
+      15: iload_1
+      16: i2f
+      17: invokestatic  #165                // Method icyllis/modernui/mc/text/TextLayoutProcessor.computeFontSize:(F)I
+      20: istore_2
+      21: aload_0
+      22: aload_0
+      23: iload_2
+      24: invokevirtual #167                // Method prepareGlyphs:(I)[Licyllis/modernui/mc/text/GLBakedGlyph;
+      27: putfield      #159                // Field mBakedGlyphs:[Licyllis/modernui/mc/text/GLBakedGlyph;
+      30: aload_0
+      31: getfield      #159                // Field mBakedGlyphs:[Licyllis/modernui/mc/text/GLBakedGlyph;
+      34: areturn
+      35: aload_0
+      36: getfield      #169                // Field mBakedGlyphsForSDF:[Licyllis/modernui/mc/text/GLBakedGlyph;
+      39: ifnonnull     57
+      42: iload_1
+      43: i2f
+      44: invokestatic  #165                // Method icyllis/modernui/mc/text/TextLayoutProcessor.computeFontSize:(F)I
+      47: istore_2
+      48: aload_0
+      49: aload_0
+      50: iload_2
+      51: invokevirtual #167                // Method prepareGlyphs:(I)[Licyllis/modernui/mc/text/GLBakedGlyph;
+      54: putfield      #169                // Field mBakedGlyphsForSDF:[Licyllis/modernui/mc/text/GLBakedGlyph;
+      57: aload_0
+      58: getfield      #169                // Field mBakedGlyphsForSDF:[Licyllis/modernui/mc/text/GLBakedGlyph;
+      61: areturn
+
+  private icyllis.modernui.mc.text.GLBakedGlyph[] getGlyphsUniformScale(float);
+    Code:
+       0: aload_0
+       1: getfield      #174                // Field mBakedGlyphsArray:Licyllis/modernui/util/SparseArray;
+       4: ifnonnull     18
+       7: aload_0
+       8: new           #176                // class icyllis/modernui/util/SparseArray
+      11: dup
+      12: invokespecial #177                // Method icyllis/modernui/util/SparseArray."<init>":()V
+      15: putfield      #174                // Field mBakedGlyphsArray:Licyllis/modernui/util/SparseArray;
+      18: fload_1
+      19: invokestatic  #165                // Method icyllis/modernui/mc/text/TextLayoutProcessor.computeFontSize:(F)I
+      22: istore_2
+      23: aload_0
+      24: getfield      #174                // Field mBakedGlyphsArray:Licyllis/modernui/util/SparseArray;
+      27: iload_2
+      28: invokevirtual #180                // Method icyllis/modernui/util/SparseArray.get:(I)Ljava/lang/Object;
+      31: checkcast     #139                // class "[Licyllis/modernui/mc/text/GLBakedGlyph;"
+      34: astore_3
+      35: aload_3
+      36: ifnonnull     55
+      39: aload_0
+      40: iload_2
+      41: invokevirtual #167                // Method prepareGlyphs:(I)[Licyllis/modernui/mc/text/GLBakedGlyph;
+      44: astore_3
+      45: aload_0
+      46: getfield      #174                // Field mBakedGlyphsArray:Licyllis/modernui/util/SparseArray;
+      49: iload_2
+      50: aload_3
+      51: invokevirtual #184                // Method icyllis/modernui/util/SparseArray.put:(ILjava/lang/Object;)Ljava/lang/Object;
+      54: pop
+      55: aload_3
+      56: areturn
+
+  public float drawText(org.joml.Matrix4f, net.minecraft.class_4597, float, float, int, int, int, int, boolean, int, boolean, float, int, int);
+    Code:
+       0: iload         5
+       2: istore        15
+       4: iload         6
+       6: istore        16
+       8: iload         7
+      10: istore        17
+      12: iload         10
+      14: iconst_1
+      15: if_icmpne     43
+      18: aload_0
+      19: getfield      #91                 // Field mCreatedResLevel:I
+      22: invokestatic  #206                // Method icyllis/modernui/mc/text/TextLayoutEngine.adjustPixelDensityForSDF:(I)I
+      25: istore        20
+      27: aload_0
+      28: iload         20
+      30: invokevirtual #208                // Method getGlyphs:(I)[Licyllis/modernui/mc/text/GLBakedGlyph;
+      33: astore        19
+      35: iload         20
+      37: i2f
+      38: fstore        18
+      40: goto          103
+      43: iload         10
+      45: iconst_4
+      46: if_icmpne     86
+      49: fload         12
+      51: ldc           #209                // float 0.001f
+      53: fcmpg
+      54: ifgt          62
+      57: aload_0
+      58: getfield      #85                 // Field mTotalAdvance:F
+      61: freturn
+      62: aload_0
+      63: getfield      #91                 // Field mCreatedResLevel:I
+      66: i2f
+      67: fload         12
+      69: fmul
+      70: fstore        18
+      72: aload_0
+      73: fload         18
+      75: invokevirtual #211                // Method getGlyphsUniformScale:(F)[Licyllis/modernui/mc/text/GLBakedGlyph;
+      78: astore        19
+      80: iconst_0
+      81: istore        10
+      83: goto          103
+      86: aload_0
+      87: aload_0
+      88: getfield      #91                 // Field mCreatedResLevel:I
+      91: invokevirtual #208                // Method getGlyphs:(I)[Licyllis/modernui/mc/text/GLBakedGlyph;
+      94: astore        19
+      96: aload_0
+      97: getfield      #91                 // Field mCreatedResLevel:I
+     100: i2f
+     101: fstore        18
+     103: fconst_1
+     104: fload         18
+     106: fdiv
+     107: fstore        20
+     109: fconst_0
+     110: fstore        21
+     112: iload         9
+     114: ifeq          153
+     117: getstatic     #216                // Field icyllis/modernui/mc/text/ModernTextRenderer.sShadowOffset:F
+     120: fstore        21
+     122: iload         10
+     124: ifne          141
+     127: fload         21
+     129: fload         18
+     131: fmul
+     132: invokestatic  #221                // Method java/lang/Math.round:(F)I
+     135: i2f
+     136: fload         20
+     138: fmul
+     139: fstore        21
+     141: fload_3
+     142: fload         21
+     144: fadd
+     145: fstore_3
+     146: fload         4
+     148: fload         21
+     150: fadd
+     151: fstore        4
+     153: aload_0
+     154: getfield      #73                 // Field mPositions:[F
+     157: astore        22
+     159: aload_0
+     160: getfield      #81                 // Field mGlyphFlags:[I
+     163: astore        23
+     165: fload         4
+     167: getstatic     #223                // Field sBaselineOffset:F
+     170: fadd
+     171: fstore        24
+     173: iconst_m1
+     174: istore        25
+     176: iconst_m1
+     177: istore        26
+     179: aconst_null
+     180: astore        27
+     182: aconst_null
+     183: astore        28
+     185: iconst_m1
+     186: istore        29
+     188: iload         10
+     190: iconst_3
+     191: if_icmpne     198
+     194: iconst_1
+     195: goto          199
+     198: iconst_0
+     199: istore        30
+     201: iconst_0
+     202: istore        31
+     204: aload         19
+     206: arraylength
+     207: istore        32
+     209: iload         31
+     211: iload         32
+     213: if_icmpge     1109
+     216: aload         19
+     218: iload         31
+     220: aaload
+     221: astore        33
+     223: aload         33
+     225: ifnonnull     231
+     228: goto          1103
+     231: aload         23
+     233: iload         31
+     235: iaload
+     236: istore        34
+     238: iconst_0
+     239: istore        41
+     241: iconst_0
+     242: istore        42
+     244: aconst_null
+     245: astore        43
+     247: iconst_0
+     248: istore        44
+     250: iconst_0
+     251: istore        45
+     253: iload         34
+     255: ldc           #230                // int 1073741824
+     257: iand
+     258: ifeq          269
+     261: iload         9
+     263: ifeq          269
+     266: goto          1103
+     269: iload         34
+     271: ldc           #140                // int 268435456
+     273: iand
+     274: ifeq          315
+     277: aload         33
+     279: checkcast     #9                  // class icyllis/modernui/mc/text/GlyphManager$FastCharSet
+     282: astore        46
+     284: getstatic     #232                // Field RANDOM:Ljava/util/Random;
+     287: aload         46
+     289: getfield      #235                // Field icyllis/modernui/mc/text/GlyphManager$FastCharSet.glyphs:Ljava/util/ArrayList;
+     292: invokevirtual #241                // Method java/util/ArrayList.size:()I
+     295: invokevirtual #246                // Method java/util/Random.nextInt:(I)I
+     298: istore        47
+     300: aload         46
+     302: getfield      #235                // Field icyllis/modernui/mc/text/GlyphManager$FastCharSet.glyphs:Ljava/util/ArrayList;
+     305: iload         47
+     307: invokevirtual #247                // Method java/util/ArrayList.get:(I)Ljava/lang/Object;
+     310: checkcast     #138                // class icyllis/modernui/mc/text/GLBakedGlyph
+     313: astore        33
+     315: iload         34
+     317: ldc           #248                // int 536870912
+     319: iand
+     320: ifeq          559
+     323: aload_0
+     324: iload         31
+     326: invokevirtual #144                // Method getFont:(I)Licyllis/modernui/graphics/text/Font;
+     329: astore        48
+     331: aload         48
+     333: instanceof    #250                // class icyllis/modernui/mc/text/BitmapFont
+     336: ifeq          374
+     339: aload         48
+     341: checkcast     #250                // class icyllis/modernui/mc/text/BitmapFont
+     344: astore        47
+     346: invokestatic  #136                // Method icyllis/modernui/mc/text/GlyphManager.getInstance:()Licyllis/modernui/mc/text/GlyphManager;
+     349: aload         47
+     351: invokevirtual #254                // Method icyllis/modernui/mc/text/GlyphManager.getCurrentTexture:(Licyllis/modernui/mc/text/BitmapFont;)I
+     354: istore        40
+     356: aload         47
+     358: invokevirtual #257                // Method icyllis/modernui/mc/text/BitmapFont.getAscent:()I
+     361: istore        42
+     363: ldc_w         #258                // float 0.125f
+     366: fstore        46
+     368: iconst_1
+     369: istore        44
+     371: goto          406
+     374: iload         9
+     376: ifeq          382
+     379: goto          1103
+     382: invokestatic  #136                // Method icyllis/modernui/mc/text/GlyphManager.getInstance:()Licyllis/modernui/mc/text/GlyphManager;
+     385: invokevirtual #261                // Method icyllis/modernui/mc/text/GlyphManager.getEmojiTexture:()I
+     388: istore        40
+     390: bipush        7
+     392: istore        42
+     394: getstatic     #264                // Field icyllis/modernui/mc/text/TextLayoutProcessor.sBaseFontSize:F
+     397: ldc_w         #265                // float 64.0f
+     400: fdiv
+     401: fstore        46
+     403: iconst_1
+     404: istore        45
+     406: iload         34
+     408: ldc_w         #266                // int 33554432
+     411: iand
+     412: ifeq          419
+     415: iconst_1
+     416: goto          420
+     419: iconst_0
+     420: istore        41
+     422: fload_3
+     423: aload         22
+     425: iload         31
+     427: iconst_1
+     428: ishl
+     429: faload
+     430: fadd
+     431: aload         33
+     433: getfield      #268                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+     436: i2f
+     437: fload         46
+     439: fmul
+     440: fadd
+     441: fstore        35
+     443: fload         24
+     445: aload         22
+     447: iload         31
+     449: iconst_1
+     450: ishl
+     451: iconst_1
+     452: ior
+     453: faload
+     454: fadd
+     455: aload         33
+     457: getfield      #271                // Field icyllis/modernui/mc/text/GLBakedGlyph.y:I
+     460: i2f
+     461: fload         46
+     463: fmul
+     464: fadd
+     465: fstore        36
+     467: iload         9
+     469: ifeq          490
+     472: fload         35
+     474: fconst_1
+     475: fload         21
+     477: fsub
+     478: fadd
+     479: fstore        35
+     481: fload         36
+     483: fconst_1
+     484: fload         21
+     486: fsub
+     487: fadd
+     488: fstore        36
+     490: aload         33
+     492: getfield      #275                // Field icyllis/modernui/mc/text/GLBakedGlyph.width:S
+     495: i2f
+     496: fload         46
+     498: fmul
+     499: fstore        37
+     501: aload         33
+     503: getfield      #278                // Field icyllis/modernui/mc/text/GLBakedGlyph.height:S
+     506: i2f
+     507: fload         46
+     509: fmul
+     510: fstore        38
+     512: iload         30
+     514: ifeq          522
+     517: iload         10
+     519: goto          523
+     522: iconst_0
+     523: istore        39
+     525: iload         44
+     527: ifeq          546
+     530: iload         30
+     532: ifeq          541
+     535: getstatic     #282                // Field net/minecraft/class_327$class_6415.field_33994:Lnet/minecraft/class_327$class_6415;
+     538: goto          544
+     541: getstatic     #285                // Field net/minecraft/class_327$class_6415.field_33993:Lnet/minecraft/class_327$class_6415;
+     544: astore        43
+     546: iload         11
+     548: ifeq          556
+     551: getstatic     #288                // Field net/minecraft/class_327$class_6415.field_33995:Lnet/minecraft/class_327$class_6415;
+     554: astore        43
+     556: goto          648
+     559: iload         10
+     561: istore        39
+     563: fload_3
+     564: aload         22
+     566: iload         31
+     568: iconst_1
+     569: ishl
+     570: faload
+     571: fadd
+     572: aload         33
+     574: getfield      #268                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+     577: i2f
+     578: fload         20
+     580: fmul
+     581: fadd
+     582: fstore        35
+     584: fload         24
+     586: aload         22
+     588: iload         31
+     590: iconst_1
+     591: ishl
+     592: iconst_1
+     593: ior
+     594: faload
+     595: fadd
+     596: aload         33
+     598: getfield      #271                // Field icyllis/modernui/mc/text/GLBakedGlyph.y:I
+     601: i2f
+     602: fload         20
+     604: fmul
+     605: fadd
+     606: fstore        36
+     608: aload         33
+     610: getfield      #275                // Field icyllis/modernui/mc/text/GLBakedGlyph.width:S
+     613: i2f
+     614: fload         20
+     616: fmul
+     617: fstore        37
+     619: aload         33
+     621: getfield      #278                // Field icyllis/modernui/mc/text/GLBakedGlyph.height:S
+     624: i2f
+     625: fload         20
+     627: fmul
+     628: fstore        38
+     630: iload         29
+     632: iconst_m1
+     633: if_icmpne     644
+     636: invokestatic  #136                // Method icyllis/modernui/mc/text/GlyphManager.getInstance:()Licyllis/modernui/mc/text/GlyphManager;
+     639: invokevirtual #291                // Method icyllis/modernui/mc/text/GlyphManager.getFontTexture:()I
+     642: istore        29
+     644: iload         29
+     646: istore        40
+     648: iload         10
+     650: ifne          681
+     653: fload         35
+     655: fload         18
+     657: fmul
+     658: invokestatic  #221                // Method java/lang/Math.round:(F)I
+     661: i2f
+     662: fload         20
+     664: fmul
+     665: fstore        35
+     667: fload         36
+     669: fload         18
+     671: fmul
+     672: invokestatic  #221                // Method java/lang/Math.round:(F)I
+     675: i2f
+     676: fload         20
+     678: fmul
+     679: fstore        36
+     681: iload         45
+     683: ifeq          704
+     686: sipush        255
+     689: istore        5
+     691: sipush        255
+     694: istore        6
+     696: sipush        255
+     699: istore        7
+     701: goto          781
+     704: iload         34
+     706: ldc_w         #292                // int -2147483648
+     709: iand
+     710: ifeq          728
+     713: iload         15
+     715: istore        5
+     717: iload         16
+     719: istore        6
+     721: iload         17
+     723: istore        7
+     725: goto          781
+     728: iload         34
+     730: bipush        16
+     732: ishr
+     733: sipush        255
+     736: iand
+     737: istore        5
+     739: iload         34
+     741: bipush        8
+     743: ishr
+     744: sipush        255
+     747: iand
+     748: istore        6
+     750: iload         34
+     752: sipush        255
+     755: iand
+     756: istore        7
+     758: iload         9
+     760: ifeq          781
+     763: iload         5
+     765: iconst_2
+     766: ishr
+     767: istore        5
+     769: iload         6
+     771: iconst_2
+     772: ishr
+     773: istore        6
+     775: iload         7
+     777: iconst_2
+     778: ishr
+     779: istore        7
+     781: aload         28
+     783: ifnull        807
+     786: iload         25
+     788: iload         40
+     790: if_icmpne     807
+     793: iload         26
+     795: iload         39
+     797: if_icmpne     807
+     800: aload         27
+     802: aload         43
+     804: if_acmpeq     851
+     807: iload         40
+     809: istore        25
+     811: iload         39
+     813: istore        26
+     815: aload         43
+     817: astore        27
+     819: aload_2
+     820: aload         43
+     822: ifnull        837
+     825: iload         40
+     827: aload         43
+     829: iload         44
+     831: invokestatic  #298                // Method icyllis/modernui/mc/text/TextRenderType.getOrCreate:(ILnet/minecraft/class_327$class_6415;Z)Licyllis/modernui/mc/text/TextRenderType;
+     834: goto          844
+     837: iload         40
+     839: iload         39
+     841: invokestatic  #301                // Method icyllis/modernui/mc/text/TextRenderType.getOrCreate:(II)Licyllis/modernui/mc/text/TextRenderType;
+     844: invokeinterface #307,  2          // InterfaceMethod net/minecraft/class_4597.getBuffer:(Lnet/minecraft/class_1921;)Lnet/minecraft/class_4588;
+     849: astore        28
+     851: fconst_0
+     852: fstore        46
+     854: fconst_0
+     855: fstore        47
+     857: iload         41
+     859: ifeq          883
+     862: ldc_w         #308                // float 0.25f
+     865: iload         42
+     867: i2f
+     868: fmul
+     869: fstore        46
+     871: ldc_w         #308                // float 0.25f
+     874: iload         42
+     876: i2f
+     877: fload         38
+     879: fsub
+     880: fmul
+     881: fstore        47
+     883: aload         28
+     885: aload_1
+     886: fload         35
+     888: fload         46
+     890: fadd
+     891: fload         36
+     893: fconst_0
+     894: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+     899: iload         5
+     901: iload         6
+     903: iload         7
+     905: iload         8
+     907: invokeinterface #316,  5          // InterfaceMethod net/minecraft/class_4588.method_1336:(IIII)Lnet/minecraft/class_4588;
+     912: aload         33
+     914: getfield      #319                // Field icyllis/modernui/mc/text/GLBakedGlyph.u1:F
+     917: aload         33
+     919: getfield      #322                // Field icyllis/modernui/mc/text/GLBakedGlyph.v1:F
+     922: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+     927: iload         14
+     929: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+     934: pop
+     935: aload         28
+     937: aload_1
+     938: fload         35
+     940: fload         47
+     942: fadd
+     943: fload         36
+     945: fload         38
+     947: fadd
+     948: fconst_0
+     949: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+     954: iload         5
+     956: iload         6
+     958: iload         7
+     960: iload         8
+     962: invokeinterface #316,  5          // InterfaceMethod net/minecraft/class_4588.method_1336:(IIII)Lnet/minecraft/class_4588;
+     967: aload         33
+     969: getfield      #319                // Field icyllis/modernui/mc/text/GLBakedGlyph.u1:F
+     972: aload         33
+     974: getfield      #333                // Field icyllis/modernui/mc/text/GLBakedGlyph.v2:F
+     977: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+     982: iload         14
+     984: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+     989: pop
+     990: aload         28
+     992: aload_1
+     993: fload         35
+     995: fload         37
+     997: fadd
+     998: fload         47
+    1000: fadd
+    1001: fload         36
+    1003: fload         38
+    1005: fadd
+    1006: fconst_0
+    1007: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+    1012: iload         5
+    1014: iload         6
+    1016: iload         7
+    1018: iload         8
+    1020: invokeinterface #316,  5          // InterfaceMethod net/minecraft/class_4588.method_1336:(IIII)Lnet/minecraft/class_4588;
+    1025: aload         33
+    1027: getfield      #336                // Field icyllis/modernui/mc/text/GLBakedGlyph.u2:F
+    1030: aload         33
+    1032: getfield      #333                // Field icyllis/modernui/mc/text/GLBakedGlyph.v2:F
+    1035: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+    1040: iload         14
+    1042: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+    1047: pop
+    1048: aload         28
+    1050: aload_1
+    1051: fload         35
+    1053: fload         37
+    1055: fadd
+    1056: fload         46
+    1058: fadd
+    1059: fload         36
+    1061: fconst_0
+    1062: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+    1067: iload         5
+    1069: iload         6
+    1071: iload         7
+    1073: iload         8
+    1075: invokeinterface #316,  5          // InterfaceMethod net/minecraft/class_4588.method_1336:(IIII)Lnet/minecraft/class_4588;
+    1080: aload         33
+    1082: getfield      #336                // Field icyllis/modernui/mc/text/GLBakedGlyph.u2:F
+    1085: aload         33
+    1087: getfield      #322                // Field icyllis/modernui/mc/text/GLBakedGlyph.v1:F
+    1090: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+    1095: iload         14
+    1097: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+    1102: pop
+    1103: iinc          31, 1
+    1106: goto          209
+    1109: aconst_null
+    1110: astore        28
+    1112: aload_0
+    1113: getfield      #87                 // Field mHasEffect:Z
+    1116: ifeq          1353
+    1119: aload_2
+    1120: iload         30
+    1122: iload         11
+    1124: invokestatic  #342                // Method icyllis/modernui/mc/text/EffectRenderType.getRenderType:(ZZ)Licyllis/modernui/mc/text/EffectRenderType;
+    1127: invokeinterface #307,  2          // InterfaceMethod net/minecraft/class_4597.getBuffer:(Lnet/minecraft/class_1921;)Lnet/minecraft/class_4588;
+    1132: astore        28
+    1134: iconst_0
+    1135: istore        31
+    1137: aload         19
+    1139: arraylength
+    1140: istore        32
+    1142: iload         31
+    1144: iload         32
+    1146: if_icmpge     1353
+    1149: aload         23
+    1151: iload         31
+    1153: iaload
+    1154: istore        33
+    1156: iload         33
+    1158: ldc_w         #343                // int 201326592
+    1161: iand
+    1162: ifne          1168
+    1165: goto          1347
+    1168: iload         33
+    1170: ldc_w         #292                // int -2147483648
+    1173: iand
+    1174: ifeq          1192
+    1177: iload         15
+    1179: istore        5
+    1181: iload         16
+    1183: istore        6
+    1185: iload         17
+    1187: istore        7
+    1189: goto          1245
+    1192: iload         33
+    1194: bipush        16
+    1196: ishr
+    1197: sipush        255
+    1200: iand
+    1201: istore        5
+    1203: iload         33
+    1205: bipush        8
+    1207: ishr
+    1208: sipush        255
+    1211: iand
+    1212: istore        6
+    1214: iload         33
+    1216: sipush        255
+    1219: iand
+    1220: istore        7
+    1222: iload         9
+    1224: ifeq          1245
+    1227: iload         5
+    1229: iconst_2
+    1230: ishr
+    1231: istore        5
+    1233: iload         6
+    1235: iconst_2
+    1236: ishr
+    1237: istore        6
+    1239: iload         7
+    1241: iconst_2
+    1242: ishr
+    1243: istore        7
+    1245: fload_3
+    1246: aload         22
+    1248: iload         31
+    1250: iconst_1
+    1251: ishl
+    1252: faload
+    1253: fadd
+    1254: fstore        34
+    1256: fload_3
+    1257: iload         31
+    1259: iconst_1
+    1260: iadd
+    1261: iload         32
+    1263: if_icmpne     1273
+    1266: aload_0
+    1267: getfield      #85                 // Field mTotalAdvance:F
+    1270: goto          1282
+    1273: aload         22
+    1275: iload         31
+    1277: iconst_1
+    1278: iadd
+    1279: iconst_1
+    1280: ishl
+    1281: faload
+    1282: fadd
+    1283: fstore        35
+    1285: iload         33
+    1287: ldc_w         #344                // int 134217728
+    1290: iand
+    1291: ifeq          1316
+    1294: aload_1
+    1295: aload         28
+    1297: fload         34
+    1299: fload         35
+    1301: fload         24
+    1303: iload         5
+    1305: iload         6
+    1307: iload         7
+    1309: iload         8
+    1311: iload         14
+    1313: invokestatic  #350                // Method icyllis/modernui/mc/text/TextRenderEffect.drawStrikethrough:(Lorg/joml/Matrix4f;Lnet/minecraft/class_4588;FFFIIIII)V
+    1316: iload         33
+    1318: ldc_w         #351                // int 67108864
+    1321: iand
+    1322: ifeq          1347
+    1325: aload_1
+    1326: aload         28
+    1328: fload         34
+    1330: fload         35
+    1332: fload         24
+    1334: iload         5
+    1336: iload         6
+    1338: iload         7
+    1340: iload         8
+    1342: iload         14
+    1344: invokestatic  #354                // Method icyllis/modernui/mc/text/TextRenderEffect.drawUnderline:(Lorg/joml/Matrix4f;Lnet/minecraft/class_4588;FFFIIIII)V
+    1347: iinc          31, 1
+    1350: goto          1142
+    1353: iload         13
+    1355: ldc_w         #355                // int -16777216
+    1358: iand
+    1359: ifeq          1556
+    1362: aload         28
+    1364: ifnonnull     1382
+    1367: aload_2
+    1368: iload         30
+    1370: iload         11
+    1372: invokestatic  #342                // Method icyllis/modernui/mc/text/EffectRenderType.getRenderType:(ZZ)Licyllis/modernui/mc/text/EffectRenderType;
+    1375: invokeinterface #307,  2          // InterfaceMethod net/minecraft/class_4597.getBuffer:(Lnet/minecraft/class_1921;)Lnet/minecraft/class_4588;
+    1380: astore        28
+    1382: aload         28
+    1384: aload_1
+    1385: fload_3
+    1386: fconst_1
+    1387: fsub
+    1388: fload         4
+    1390: ldc_w         #356                // float 9.0f
+    1393: fadd
+    1394: ldc_w         #357                // float 0.01f
+    1397: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+    1402: iload         13
+    1404: invokeinterface #360,  2          // InterfaceMethod net/minecraft/class_4588.method_39415:(I)Lnet/minecraft/class_4588;
+    1409: fconst_0
+    1410: fconst_1
+    1411: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+    1416: iload         14
+    1418: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+    1423: pop
+    1424: aload         28
+    1426: aload_1
+    1427: fload_3
+    1428: aload_0
+    1429: getfield      #85                 // Field mTotalAdvance:F
+    1432: fadd
+    1433: fconst_1
+    1434: fadd
+    1435: fload         4
+    1437: ldc_w         #356                // float 9.0f
+    1440: fadd
+    1441: ldc_w         #357                // float 0.01f
+    1444: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+    1449: iload         13
+    1451: invokeinterface #360,  2          // InterfaceMethod net/minecraft/class_4588.method_39415:(I)Lnet/minecraft/class_4588;
+    1456: fconst_1
+    1457: fconst_1
+    1458: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+    1463: iload         14
+    1465: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+    1470: pop
+    1471: aload         28
+    1473: aload_1
+    1474: fload_3
+    1475: aload_0
+    1476: getfield      #85                 // Field mTotalAdvance:F
+    1479: fadd
+    1480: fconst_1
+    1481: fadd
+    1482: fload         4
+    1484: fconst_1
+    1485: fsub
+    1486: ldc_w         #357                // float 0.01f
+    1489: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+    1494: iload         13
+    1496: invokeinterface #360,  2          // InterfaceMethod net/minecraft/class_4588.method_39415:(I)Lnet/minecraft/class_4588;
+    1501: fconst_1
+    1502: fconst_0
+    1503: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+    1508: iload         14
+    1510: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+    1515: pop
+    1516: aload         28
+    1518: aload_1
+    1519: fload_3
+    1520: fconst_1
+    1521: fsub
+    1522: fload         4
+    1524: fconst_1
+    1525: fsub
+    1526: ldc_w         #357                // float 0.01f
+    1529: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+    1534: iload         13
+    1536: invokeinterface #360,  2          // InterfaceMethod net/minecraft/class_4588.method_39415:(I)Lnet/minecraft/class_4588;
+    1541: fconst_0
+    1542: fconst_0
+    1543: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+    1548: iload         14
+    1550: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+    1555: pop
+    1556: aload_0
+    1557: getfield      #85                 // Field mTotalAdvance:F
+    1560: freturn
+
+  public void drawTextOutline(org.joml.Matrix4f, net.minecraft.class_4597, float, float, int, int, int, int, int);
+    Code:
+       0: aload_0
+       1: getfield      #91                 // Field mCreatedResLevel:I
+       4: invokestatic  #206                // Method icyllis/modernui/mc/text/TextLayoutEngine.adjustPixelDensityForSDF:(I)I
+       7: i2f
+       8: fstore        10
+      10: aload_0
+      11: fload         10
+      13: f2i
+      14: invokevirtual #208                // Method getGlyphs:(I)[Licyllis/modernui/mc/text/GLBakedGlyph;
+      17: astore        11
+      19: aload_0
+      20: getfield      #73                 // Field mPositions:[F
+      23: astore        12
+      25: aload_0
+      26: getfield      #81                 // Field mGlyphFlags:[I
+      29: astore        13
+      31: fload         4
+      33: getstatic     #223                // Field sBaselineOffset:F
+      36: fadd
+      37: fstore        14
+      39: iconst_m1
+      40: istore        15
+      42: aconst_null
+      43: astore        16
+      45: iconst_m1
+      46: istore        17
+      48: fconst_1
+      49: fload         10
+      51: fdiv
+      52: fstore        18
+      54: iconst_0
+      55: istore        19
+      57: aload         11
+      59: arraylength
+      60: istore        20
+      62: iload         19
+      64: iload         20
+      66: if_icmpge     567
+      69: aload         11
+      71: iload         19
+      73: aaload
+      74: astore        21
+      76: aload         21
+      78: ifnonnull     84
+      81: goto          561
+      84: aload         13
+      86: iload         19
+      88: iaload
+      89: istore        22
+      91: iload         22
+      93: ldc           #248                // int 536870912
+      95: iand
+      96: ifeq          102
+      99: goto          561
+     102: iload         22
+     104: ldc           #140                // int 268435456
+     106: iand
+     107: ifeq          148
+     110: aload         21
+     112: checkcast     #9                  // class icyllis/modernui/mc/text/GlyphManager$FastCharSet
+     115: astore        28
+     117: getstatic     #232                // Field RANDOM:Ljava/util/Random;
+     120: aload         28
+     122: getfield      #235                // Field icyllis/modernui/mc/text/GlyphManager$FastCharSet.glyphs:Ljava/util/ArrayList;
+     125: invokevirtual #241                // Method java/util/ArrayList.size:()I
+     128: invokevirtual #246                // Method java/util/Random.nextInt:(I)I
+     131: istore        29
+     133: aload         28
+     135: getfield      #235                // Field icyllis/modernui/mc/text/GlyphManager$FastCharSet.glyphs:Ljava/util/ArrayList;
+     138: iload         29
+     140: invokevirtual #247                // Method java/util/ArrayList.get:(I)Ljava/lang/Object;
+     143: checkcast     #138                // class icyllis/modernui/mc/text/GLBakedGlyph
+     146: astore        21
+     148: fload_3
+     149: aload         12
+     151: iload         19
+     153: iconst_1
+     154: ishl
+     155: faload
+     156: fadd
+     157: aload         21
+     159: getfield      #268                // Field icyllis/modernui/mc/text/GLBakedGlyph.x:I
+     162: i2f
+     163: fload         10
+     165: fdiv
+     166: fadd
+     167: fstore        23
+     169: fload         14
+     171: aload         12
+     173: iload         19
+     175: iconst_1
+     176: ishl
+     177: iconst_1
+     178: ior
+     179: faload
+     180: fadd
+     181: aload         21
+     183: getfield      #271                // Field icyllis/modernui/mc/text/GLBakedGlyph.y:I
+     186: i2f
+     187: fload         10
+     189: fdiv
+     190: fadd
+     191: fstore        24
+     193: aload         21
+     195: getfield      #275                // Field icyllis/modernui/mc/text/GLBakedGlyph.width:S
+     198: i2f
+     199: fload         10
+     201: fdiv
+     202: fstore        25
+     204: aload         21
+     206: getfield      #278                // Field icyllis/modernui/mc/text/GLBakedGlyph.height:S
+     209: i2f
+     210: fload         10
+     212: fdiv
+     213: fstore        26
+     215: iload         17
+     217: iconst_m1
+     218: if_icmpne     229
+     221: invokestatic  #136                // Method icyllis/modernui/mc/text/GlyphManager.getInstance:()Licyllis/modernui/mc/text/GlyphManager;
+     224: invokevirtual #291                // Method icyllis/modernui/mc/text/GlyphManager.getFontTexture:()I
+     227: istore        17
+     229: iload         17
+     231: istore        27
+     233: aload         16
+     235: ifnull        245
+     238: iload         15
+     240: iload         27
+     242: if_icmpeq     263
+     245: iload         27
+     247: istore        15
+     249: aload_2
+     250: iload         15
+     252: iconst_2
+     253: invokestatic  #301                // Method icyllis/modernui/mc/text/TextRenderType.getOrCreate:(II)Licyllis/modernui/mc/text/TextRenderType;
+     256: invokeinterface #307,  2          // InterfaceMethod net/minecraft/class_4597.getBuffer:(Lnet/minecraft/class_1921;)Lnet/minecraft/class_4588;
+     261: astore        16
+     263: aload         21
+     265: getfield      #336                // Field icyllis/modernui/mc/text/GLBakedGlyph.u2:F
+     268: aload         21
+     270: getfield      #319                // Field icyllis/modernui/mc/text/GLBakedGlyph.u1:F
+     273: fsub
+     274: aload         21
+     276: getfield      #275                // Field icyllis/modernui/mc/text/GLBakedGlyph.width:S
+     279: i2f
+     280: fdiv
+     281: fstore        28
+     283: aload         21
+     285: getfield      #333                // Field icyllis/modernui/mc/text/GLBakedGlyph.v2:F
+     288: aload         21
+     290: getfield      #322                // Field icyllis/modernui/mc/text/GLBakedGlyph.v1:F
+     293: fsub
+     294: aload         21
+     296: getfield      #278                // Field icyllis/modernui/mc/text/GLBakedGlyph.height:S
+     299: i2f
+     300: fdiv
+     301: fstore        29
+     303: aload         16
+     305: aload_1
+     306: fload         23
+     308: fload         18
+     310: fsub
+     311: fload         24
+     313: fload         18
+     315: fsub
+     316: ldc           #209                // float 0.001f
+     318: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+     323: iload         5
+     325: iload         6
+     327: iload         7
+     329: iload         8
+     331: invokeinterface #316,  5          // InterfaceMethod net/minecraft/class_4588.method_1336:(IIII)Lnet/minecraft/class_4588;
+     336: aload         21
+     338: getfield      #319                // Field icyllis/modernui/mc/text/GLBakedGlyph.u1:F
+     341: fload         28
+     343: fsub
+     344: aload         21
+     346: getfield      #322                // Field icyllis/modernui/mc/text/GLBakedGlyph.v1:F
+     349: fload         29
+     351: fsub
+     352: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+     357: iload         9
+     359: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+     364: pop
+     365: aload         16
+     367: aload_1
+     368: fload         23
+     370: fload         18
+     372: fsub
+     373: fload         24
+     375: fload         26
+     377: fadd
+     378: fload         18
+     380: fadd
+     381: ldc           #209                // float 0.001f
+     383: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+     388: iload         5
+     390: iload         6
+     392: iload         7
+     394: iload         8
+     396: invokeinterface #316,  5          // InterfaceMethod net/minecraft/class_4588.method_1336:(IIII)Lnet/minecraft/class_4588;
+     401: aload         21
+     403: getfield      #319                // Field icyllis/modernui/mc/text/GLBakedGlyph.u1:F
+     406: fload         28
+     408: fsub
+     409: aload         21
+     411: getfield      #333                // Field icyllis/modernui/mc/text/GLBakedGlyph.v2:F
+     414: fload         29
+     416: fadd
+     417: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+     422: iload         9
+     424: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+     429: pop
+     430: aload         16
+     432: aload_1
+     433: fload         23
+     435: fload         25
+     437: fadd
+     438: fload         18
+     440: fadd
+     441: fload         24
+     443: fload         26
+     445: fadd
+     446: fload         18
+     448: fadd
+     449: fconst_0
+     450: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+     455: iload         5
+     457: iload         6
+     459: iload         7
+     461: iload         8
+     463: invokeinterface #316,  5          // InterfaceMethod net/minecraft/class_4588.method_1336:(IIII)Lnet/minecraft/class_4588;
+     468: aload         21
+     470: getfield      #336                // Field icyllis/modernui/mc/text/GLBakedGlyph.u2:F
+     473: fload         28
+     475: fadd
+     476: aload         21
+     478: getfield      #333                // Field icyllis/modernui/mc/text/GLBakedGlyph.v2:F
+     481: fload         29
+     483: fadd
+     484: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+     489: iload         9
+     491: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+     496: pop
+     497: aload         16
+     499: aload_1
+     500: fload         23
+     502: fload         25
+     504: fadd
+     505: fload         18
+     507: fadd
+     508: fload         24
+     510: fload         18
+     512: fsub
+     513: fconst_0
+     514: invokeinterface #312,  5          // InterfaceMethod net/minecraft/class_4588.method_22918:(Lorg/joml/Matrix4f;FFF)Lnet/minecraft/class_4588;
+     519: iload         5
+     521: iload         6
+     523: iload         7
+     525: iload         8
+     527: invokeinterface #316,  5          // InterfaceMethod net/minecraft/class_4588.method_1336:(IIII)Lnet/minecraft/class_4588;
+     532: aload         21
+     534: getfield      #336                // Field icyllis/modernui/mc/text/GLBakedGlyph.u2:F
+     537: fload         28
+     539: fadd
+     540: aload         21
+     542: getfield      #322                // Field icyllis/modernui/mc/text/GLBakedGlyph.v1:F
+     545: fload         29
+     547: fsub
+     548: invokeinterface #326,  3          // InterfaceMethod net/minecraft/class_4588.method_22913:(FF)Lnet/minecraft/class_4588;
+     553: iload         9
+     555: invokeinterface #330,  2          // InterfaceMethod net/minecraft/class_4588.method_60803:(I)Lnet/minecraft/class_4588;
+     560: pop
+     561: iinc          19, 1
+     564: goto          62
+     567: return
+
+  public char[] getTextBuf();
+    Code:
+       0: aload_0
+       1: getfield      #69                 // Field mTextBuf:[C
+       4: areturn
+
+  public int[] getGlyphs();
+    Code:
+       0: aload_0
+       1: getfield      #71                 // Field mGlyphs:[I
+       4: areturn
+
+  public float[] getPositions();
+    Code:
+       0: aload_0
+       1: getfield      #73                 // Field mPositions:[F
+       4: areturn
+
+  public float[] getAdvances();
+    Code:
+       0: aload_0
+       1: getfield      #79                 // Field mAdvances:[F
+       4: areturn
+
+  public icyllis.modernui.graphics.text.Font getFont(int);
+    Code:
+       0: aload_0
+       1: getfield      #75                 // Field mFontIndices:[B
+       4: ifnull        23
+       7: aload_0
+       8: getfield      #77                 // Field mFonts:[Licyllis/modernui/graphics/text/Font;
+      11: aload_0
+      12: getfield      #75                 // Field mFontIndices:[B
+      15: iload_1
+      16: baload
+      17: sipush        255
+      20: iand
+      21: aaload
+      22: areturn
+      23: aload_0
+      24: getfield      #77                 // Field mFonts:[Licyllis/modernui/graphics/text/Font;
+      27: iconst_0
+      28: aaload
+      29: areturn
+
+  public int getCharCount();
+    Code:
+       0: aload_0
+       1: getfield      #69                 // Field mTextBuf:[C
+       4: arraylength
+       5: ireturn
+
+  public int[] getGlyphFlags();
+    Code:
+       0: aload_0
+       1: getfield      #81                 // Field mGlyphFlags:[I
+       4: areturn
+
+  public byte[] getFontIndices();
+    Code:
+       0: aload_0
+       1: getfield      #75                 // Field mFontIndices:[B
+       4: areturn
+
+  public icyllis.modernui.graphics.text.Font[] getFontVector();
+    Code:
+       0: aload_0
+       1: getfield      #77                 // Field mFonts:[Licyllis/modernui/graphics/text/Font;
+       4: areturn
+
+  public int[] getLineBoundaries();
+    Code:
+       0: aload_0
+       1: getfield      #83                 // Field mLineBoundaries:[I
+       4: areturn
+
+  public float getTotalAdvance();
+    Code:
+       0: aload_0
+       1: getfield      #85                 // Field mTotalAdvance:F
+       4: freturn
+
+  public boolean hasEffect();
+    Code:
+       0: aload_0
+       1: getfield      #87                 // Field mHasEffect:Z
+       4: ireturn
+
+  public boolean hasColorEmoji();
+    Code:
+       0: aload_0
+       1: getfield      #89                 // Field mHasColorEmoji:Z
+       4: ireturn
+
+  public int getMemorySize();
+    Code:
+       0: iconst_0
+       1: istore_1
+       2: iload_1
+       3: bipush        16
+       5: aload_0
+       6: getfield      #69                 // Field mTextBuf:[C
+       9: arraylength
+      10: iconst_1
+      11: ishl
+      12: invokestatic  #428                // Method icyllis/modernui/graphics/MathUtil.align8:(I)I
+      15: iadd
+      16: iadd
+      17: istore_1
+      18: iload_1
+      19: bipush        16
+      21: aload_0
+      22: getfield      #71                 // Field mGlyphs:[I
+      25: arraylength
+      26: iconst_2
+      27: ishl
+      28: invokestatic  #428                // Method icyllis/modernui/graphics/MathUtil.align8:(I)I
+      31: iadd
+      32: iadd
+      33: istore_1
+      34: iload_1
+      35: bipush        16
+      37: aload_0
+      38: getfield      #73                 // Field mPositions:[F
+      41: arraylength
+      42: iconst_2
+      43: ishl
+      44: invokestatic  #428                // Method icyllis/modernui/graphics/MathUtil.align8:(I)I
+      47: iadd
+      48: iadd
+      49: istore_1
+      50: aload_0
+      51: getfield      #75                 // Field mFontIndices:[B
+      54: ifnull        71
+      57: iload_1
+      58: bipush        16
+      60: aload_0
+      61: getfield      #75                 // Field mFontIndices:[B
+      64: arraylength
+      65: invokestatic  #428                // Method icyllis/modernui/graphics/MathUtil.align8:(I)I
+      68: iadd
+      69: iadd
+      70: istore_1
+      71: iload_1
+      72: bipush        16
+      74: aload_0
+      75: getfield      #77                 // Field mFonts:[Licyllis/modernui/graphics/text/Font;
+      78: arraylength
+      79: iconst_2
+      80: ishl
+      81: invokestatic  #428                // Method icyllis/modernui/graphics/MathUtil.align8:(I)I
+      84: iadd
+      85: iadd
+      86: istore_1
+      87: aload_0
+      88: getfield      #79                 // Field mAdvances:[F
+      91: ifnull        110
+      94: iload_1
+      95: bipush        16
+      97: aload_0
+      98: getfield      #79                 // Field mAdvances:[F
+     101: arraylength
+     102: iconst_2
+     103: ishl
+     104: invokestatic  #428                // Method icyllis/modernui/graphics/MathUtil.align8:(I)I
+     107: iadd
+     108: iadd
+     109: istore_1
+     110: iload_1
+     111: bipush        16
+     113: aload_0
+     114: getfield      #81                 // Field mGlyphFlags:[I
+     117: arraylength
+     118: iconst_2
+     119: ishl
+     120: invokestatic  #428                // Method icyllis/modernui/graphics/MathUtil.align8:(I)I
+     123: iadd
+     124: iadd
+     125: istore_1
+     126: aload_0
+     127: getfield      #83                 // Field mLineBoundaries:[I
+     130: ifnull        149
+     133: iload_1
+     134: bipush        16
+     136: aload_0
+     137: getfield      #83                 // Field mLineBoundaries:[I
+     140: arraylength
+     141: iconst_2
+     142: ishl
+     143: invokestatic  #428                // Method icyllis/modernui/graphics/MathUtil.align8:(I)I
+     146: iadd
+     147: iadd
+     148: istore_1
+     149: aload_0
+     150: getfield      #159                // Field mBakedGlyphs:[Licyllis/modernui/mc/text/GLBakedGlyph;
+     153: ifnull        172
+     156: iload_1
+     157: bipush        16
+     159: aload_0
+     160: getfield      #159                // Field mBakedGlyphs:[Licyllis/modernui/mc/text/GLBakedGlyph;
+     163: arraylength
+     164: iconst_2
+     165: ishl
+     166: invokestatic  #428                // Method icyllis/modernui/graphics/MathUtil.align8:(I)I
+     169: iadd
+     170: iadd
+     171: istore_1
+     172: aload_0
+     173: getfield      #169                // Field mBakedGlyphsForSDF:[Licyllis/modernui/mc/text/GLBakedGlyph;
+     176: ifnull        195
+     179: iload_1
+     180: bipush        16
+     182: aload_0
+     183: getfield      #169                // Field mBakedGlyphsForSDF:[Licyllis/modernui/mc/text/GLBakedGlyph;
+     186: arraylength
+     187: iconst_2
+     188: ishl
+     189: invokestatic  #428                // Method icyllis/modernui/graphics/MathUtil.align8:(I)I
+     192: iadd
+     193: iadd
+     194: istore_1
+     195: aload_0
+     196: getfield      #174                // Field mBakedGlyphsArray:Licyllis/modernui/util/SparseArray;
+     199: ifnull        233
+     202: iload_1
+     203: bipush        16
+     205: aload_0
+     206: getfield      #174                // Field mBakedGlyphsArray:Licyllis/modernui/util/SparseArray;
+     209: iconst_0
+     210: invokevirtual #431                // Method icyllis/modernui/util/SparseArray.valueAt:(I)Ljava/lang/Object;
+     213: checkcast     #139                // class "[Licyllis/modernui/mc/text/GLBakedGlyph;"
+     216: arraylength
+     217: iconst_2
+     218: ishl
+     219: invokestatic  #428                // Method icyllis/modernui/graphics/MathUtil.align8:(I)I
+     222: iadd
+     223: aload_0
+     224: getfield      #174                // Field mBakedGlyphsArray:Licyllis/modernui/util/SparseArray;
+     227: invokevirtual #432                // Method icyllis/modernui/util/SparseArray.size:()I
+     230: imul
+     231: iadd
+     232: istore_1
+     233: iload_1
+     234: bipush        64
+     236: iadd
+     237: ireturn
+
+  public java.lang.String toString();
+    Code:
+       0: aload_0
+       1: getfield      #69                 // Field mTextBuf:[C
+       4: invokestatic  #439                // Method toEscapeChars:([C)Ljava/lang/String;
+       7: aload_0
+       8: getfield      #71                 // Field mGlyphs:[I
+      11: arraylength
+      12: aload_0
+      13: getfield      #69                 // Field mTextBuf:[C
+      16: arraylength
+      17: aload_0
+      18: getfield      #73                 // Field mPositions:[F
+      21: invokestatic  #443                // Method toPositionString:([F)Ljava/lang/String;
+      24: aload_0
+      25: getfield      #79                 // Field mAdvances:[F
+      28: invokestatic  #447                // Method java/util/Arrays.toString:([F)Ljava/lang/String;
+      31: aload_0
+      32: getfield      #81                 // Field mGlyphFlags:[I
+      35: invokestatic  #451                // Method toFlagString:([I)Ljava/lang/String;
+      38: aload_0
+      39: getfield      #83                 // Field mLineBoundaries:[I
+      42: invokestatic  #453                // Method java/util/Arrays.toString:([I)Ljava/lang/String;
+      45: aload_0
+      46: getfield      #85                 // Field mTotalAdvance:F
+      49: aload_0
+      50: getfield      #87                 // Field mHasEffect:Z
+      53: aload_0
+      54: getfield      #89                 // Field mHasColorEmoji:Z
+      57: invokedynamic #465,  0            // InvokeDynamic #0:makeConcatWithConstants:(Ljava/lang/String;IILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;FZZ)Ljava/lang/String;
+      62: areturn
+
+  public java.lang.String toDetailedString();
+    Code:
+       0: new           #468                // class java/lang/StringBuilder
+       3: dup
+       4: invokespecial #469                // Method java/lang/StringBuilder."<init>":()V
+       7: astore_1
+       8: aload_0
+       9: getfield      #69                 // Field mTextBuf:[C
+      12: astore_2
+      13: aload_1
+      14: ldc_w         #471                // String chars:
+      17: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      20: aload_2
+      21: arraylength
+      22: invokevirtual #478                // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+      25: bipush        10
+      27: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      30: pop
+      31: aload_0
+      32: getfield      #79                 // Field mAdvances:[F
+      35: astore_3
+      36: aload_0
+      37: getfield      #83                 // Field mLineBoundaries:[I
+      40: astore        4
+      42: iconst_0
+      43: istore        5
+      45: aload         4
+      47: ifnull        61
+      50: aload         4
+      52: iload         5
+      54: iinc          5, 1
+      57: iaload
+      58: goto          62
+      61: iconst_m1
+      62: istore        6
+      64: iconst_0
+      65: istore        7
+      67: iload         7
+      69: aload_2
+      70: arraylength
+      71: if_icmpge     313
+      74: aload_1
+      75: ldc_w         #483                // String  %04X
+      78: iconst_1
+      79: anewarray     #4                  // class java/lang/Object
+      82: dup
+      83: iconst_0
+      84: iload         7
+      86: invokestatic  #489                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+      89: aastore
+      90: invokestatic  #495                // Method java/lang/String.format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+      93: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      96: pop
+      97: iload         7
+      99: bipush        8
+     101: iadd
+     102: aload_2
+     103: arraylength
+     104: invokestatic  #499                // Method java/lang/Math.min:(II)I
+     107: istore        8
+     109: iload         7
+     111: istore        9
+     113: iload         9
+     115: iload         8
+     117: if_icmpge     151
+     120: aload_1
+     121: ldc_w         #501                // String \\u%04X
+     124: iconst_1
+     125: anewarray     #4                  // class java/lang/Object
+     128: dup
+     129: iconst_0
+     130: aload_2
+     131: iload         9
+     133: caload
+     134: invokestatic  #489                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     137: aastore
+     138: invokestatic  #495                // Method java/lang/String.format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+     141: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     144: pop
+     145: iinc          9, 1
+     148: goto          113
+     151: aload_3
+     152: ifnull        205
+     155: aload_1
+     156: ldc_w         #503                // String \n
+     159: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     162: pop
+     163: iload         7
+     165: istore        9
+     167: iload         9
+     169: iload         8
+     171: if_icmpge     205
+     174: aload_1
+     175: ldc_w         #505                // String  %5.1f
+     178: iconst_1
+     179: anewarray     #4                  // class java/lang/Object
+     182: dup
+     183: iconst_0
+     184: aload_3
+     185: iload         9
+     187: faload
+     188: invokestatic  #510                // Method java/lang/Float.valueOf:(F)Ljava/lang/Float;
+     191: aastore
+     192: invokestatic  #495                // Method java/lang/String.format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+     195: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     198: pop
+     199: iinc          9, 1
+     202: goto          167
+     205: aload_3
+     206: ifnonnull     214
+     209: aload         4
+     211: ifnull        299
+     214: aload_1
+     215: ldc_w         #503                // String \n
+     218: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     221: pop
+     222: iload         7
+     224: istore        9
+     226: iload         9
+     228: iload         8
+     230: if_icmpge     299
+     233: iload         9
+     235: iload         6
+     237: if_icmpne     261
+     240: aload_1
+     241: ldc_w         #512                // String LB
+     244: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     247: pop
+     248: aload         4
+     250: iload         5
+     252: iinc          5, 1
+     255: iaload
+     256: istore        6
+     258: goto          293
+     261: aload_3
+     262: ifnull        285
+     265: aload_3
+     266: iload         9
+     268: faload
+     269: fconst_0
+     270: fcmpl
+     271: ifeq          285
+     274: aload_1
+     275: ldc_w         #514                // String GB
+     278: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     281: pop
+     282: goto          293
+     285: aload_1
+     286: ldc_w         #516                // String NB
+     289: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     292: pop
+     293: iinc          9, 1
+     296: goto          226
+     299: aload_1
+     300: bipush        10
+     302: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+     305: pop
+     306: iload         8
+     308: istore        7
+     310: goto          67
+     313: aload_0
+     314: getfield      #71                 // Field mGlyphs:[I
+     317: astore        7
+     319: aload_1
+     320: ldc_w         #518                // String glyphs:
+     323: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     326: aload         7
+     328: arraylength
+     329: invokevirtual #478                // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+     332: bipush        10
+     334: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+     337: pop
+     338: aload_0
+     339: getfield      #73                 // Field mPositions:[F
+     342: astore        8
+     344: aload_0
+     345: getfield      #75                 // Field mFontIndices:[B
+     348: astore        9
+     350: aload_0
+     351: getfield      #81                 // Field mGlyphFlags:[I
+     354: astore        10
+     356: iconst_0
+     357: istore        11
+     359: iload         11
+     361: aload         7
+     363: arraylength
+     364: if_icmpge     624
+     367: aload_1
+     368: ldc_w         #483                // String  %04X
+     371: iconst_1
+     372: anewarray     #4                  // class java/lang/Object
+     375: dup
+     376: iconst_0
+     377: iload         11
+     379: invokestatic  #489                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     382: aastore
+     383: invokestatic  #495                // Method java/lang/String.format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+     386: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     389: pop
+     390: iload         11
+     392: iconst_4
+     393: iadd
+     394: aload         7
+     396: arraylength
+     397: invokestatic  #499                // Method java/lang/Math.min:(II)I
+     400: istore        12
+     402: iload         11
+     404: istore        13
+     406: iload         13
+     408: iload         12
+     410: if_icmpge     493
+     413: aload         9
+     415: ifnonnull     424
+     418: iconst_0
+     419: istore        14
+     421: goto          435
+     424: aload         9
+     426: iload         13
+     428: baload
+     429: sipush        255
+     432: iand
+     433: istore        14
+     435: aload_1
+     436: ldc_w         #520                // String  %02X %02X %04X
+     439: iconst_3
+     440: anewarray     #4                  // class java/lang/Object
+     443: dup
+     444: iconst_0
+     445: iload         14
+     447: invokestatic  #489                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     450: aastore
+     451: dup
+     452: iconst_1
+     453: aload         7
+     455: iload         13
+     457: iaload
+     458: bipush        24
+     460: iushr
+     461: invokestatic  #489                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     464: aastore
+     465: dup
+     466: iconst_2
+     467: aload         7
+     469: iload         13
+     471: iaload
+     472: ldc_w         #521                // int 65535
+     475: iand
+     476: invokestatic  #489                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     479: aastore
+     480: invokestatic  #495                // Method java/lang/String.format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+     483: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     486: pop
+     487: iinc          13, 1
+     490: goto          406
+     493: aload_1
+     494: ldc_w         #503                // String \n
+     497: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     500: pop
+     501: iload         11
+     503: istore        13
+     505: iload         13
+     507: iload         12
+     509: if_icmpge     561
+     512: aload_1
+     513: ldc_w         #523                // String %6.1f,%4.1f
+     516: iconst_2
+     517: anewarray     #4                  // class java/lang/Object
+     520: dup
+     521: iconst_0
+     522: aload         8
+     524: iload         13
+     526: iconst_1
+     527: ishl
+     528: faload
+     529: invokestatic  #510                // Method java/lang/Float.valueOf:(F)Ljava/lang/Float;
+     532: aastore
+     533: dup
+     534: iconst_1
+     535: aload         8
+     537: iload         13
+     539: iconst_1
+     540: ishl
+     541: iconst_1
+     542: ior
+     543: faload
+     544: invokestatic  #510                // Method java/lang/Float.valueOf:(F)Ljava/lang/Float;
+     547: aastore
+     548: invokestatic  #495                // Method java/lang/String.format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+     551: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     554: pop
+     555: iinc          13, 1
+     558: goto          505
+     561: aload_1
+     562: ldc_w         #503                // String \n
+     565: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     568: pop
+     569: iload         11
+     571: istore        13
+     573: iload         13
+     575: iload         12
+     577: if_icmpge     610
+     580: aload_1
+     581: bipush        32
+     583: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+     586: pop
+     587: aload_1
+     588: aload         10
+     590: iload         13
+     592: iaload
+     593: invokestatic  #526                // Method toFlagString:(Ljava/lang/StringBuilder;I)V
+     596: aload_1
+     597: ldc_w         #528                // String
+     600: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     603: pop
+     604: iinc          13, 1
+     607: goto          573
+     610: aload_1
+     611: bipush        10
+     613: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+     616: pop
+     617: iload         12
+     619: istore        11
+     621: goto          359
+     624: aload_0
+     625: getfield      #77                 // Field mFonts:[Licyllis/modernui/graphics/text/Font;
+     628: astore        11
+     630: iconst_0
+     631: istore        12
+     633: iload         12
+     635: aload         11
+     637: arraylength
+     638: if_icmpge     683
+     641: aload_1
+     642: ldc_w         #530                // String  %02X: %s\n
+     645: iconst_2
+     646: anewarray     #4                  // class java/lang/Object
+     649: dup
+     650: iconst_0
+     651: iload         12
+     653: invokestatic  #489                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     656: aastore
+     657: dup
+     658: iconst_1
+     659: aload         11
+     661: iload         12
+     663: aaload
+     664: invokeinterface #535,  1          // InterfaceMethod icyllis/modernui/graphics/text/Font.getFamilyName:()Ljava/lang/String;
+     669: aastore
+     670: invokestatic  #495                // Method java/lang/String.format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+     673: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     676: pop
+     677: iinc          12, 1
+     680: goto          633
+     683: aload_1
+     684: ldc_w         #537                // String total advance:
+     687: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     690: pop
+     691: aload_1
+     692: aload_0
+     693: getfield      #85                 // Field mTotalAdvance:F
+     696: invokevirtual #540                // Method java/lang/StringBuilder.append:(F)Ljava/lang/StringBuilder;
+     699: pop
+     700: aload_1
+     701: ldc_w         #542                // String , created res level:
+     704: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     707: pop
+     708: aload_1
+     709: aload_0
+     710: getfield      #91                 // Field mCreatedResLevel:I
+     713: invokevirtual #478                // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+     716: pop
+     717: aload_1
+     718: invokevirtual #544                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+     721: areturn
+
+  public static java.lang.String toEscapeChars(char[]);
+    Code:
+       0: aload_0
+       1: arraylength
+       2: iconst_1
+       3: isub
+       4: istore_1
+       5: iload_1
+       6: iconst_m1
+       7: if_icmpne     14
+      10: ldc_w         #552                // String
+      13: areturn
+      14: new           #468                // class java/lang/StringBuilder
+      17: dup
+      18: invokespecial #469                // Method java/lang/StringBuilder."<init>":()V
+      21: astore_2
+      22: iconst_0
+      23: istore_3
+      24: aload_2
+      25: ldc_w         #554                // String \\u
+      28: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      31: pop
+      32: aload_0
+      33: iload_3
+      34: caload
+      35: invokestatic  #558                // Method java/lang/Integer.toHexString:(I)Ljava/lang/String;
+      38: astore        4
+      40: aload_2
+      41: ldc_w         #560                // String 0
+      44: iconst_4
+      45: aload         4
+      47: invokevirtual #563                // Method java/lang/String.length:()I
+      50: isub
+      51: invokevirtual #566                // Method java/lang/String.repeat:(I)Ljava/lang/String;
+      54: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      57: pop
+      58: aload_2
+      59: aload         4
+      61: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      64: pop
+      65: iload_3
+      66: iload_1
+      67: if_icmpne     75
+      70: aload_2
+      71: invokevirtual #544                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      74: areturn
+      75: iinc          3, 1
+      78: goto          24
+
+  private static java.lang.String toPositionString(float[]);
+    Code:
+       0: aload_0
+       1: arraylength
+       2: iconst_1
+       3: isub
+       4: istore_1
+       5: iload_1
+       6: iconst_m1
+       7: if_icmpne     14
+      10: ldc_w         #571                // String []
+      13: areturn
+      14: new           #468                // class java/lang/StringBuilder
+      17: dup
+      18: invokespecial #469                // Method java/lang/StringBuilder."<init>":()V
+      21: astore_2
+      22: aload_2
+      23: bipush        91
+      25: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      28: pop
+      29: iconst_0
+      30: istore_3
+      31: aload_2
+      32: bipush        40
+      34: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      37: pop
+      38: aload_2
+      39: aload_0
+      40: iload_3
+      41: iinc          3, 1
+      44: faload
+      45: invokevirtual #540                // Method java/lang/StringBuilder.append:(F)Ljava/lang/StringBuilder;
+      48: pop
+      49: aload_2
+      50: bipush        44
+      52: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      55: pop
+      56: aload_2
+      57: aload_0
+      58: iload_3
+      59: faload
+      60: invokevirtual #540                // Method java/lang/StringBuilder.append:(F)Ljava/lang/StringBuilder;
+      63: pop
+      64: aload_2
+      65: bipush        41
+      67: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      70: pop
+      71: iload_3
+      72: iload_1
+      73: if_icmpne     86
+      76: aload_2
+      77: bipush        93
+      79: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      82: invokevirtual #544                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      85: areturn
+      86: aload_2
+      87: ldc_w         #573                // String ,
+      90: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      93: pop
+      94: iinc          3, 1
+      97: goto          31
+
+  private static java.lang.String toFlagString(int[]);
+    Code:
+       0: aload_0
+       1: arraylength
+       2: iconst_1
+       3: isub
+       4: istore_1
+       5: iload_1
+       6: iconst_m1
+       7: if_icmpne     14
+      10: ldc_w         #571                // String []
+      13: areturn
+      14: new           #468                // class java/lang/StringBuilder
+      17: dup
+      18: invokespecial #469                // Method java/lang/StringBuilder."<init>":()V
+      21: astore_2
+      22: aload_2
+      23: bipush        91
+      25: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      28: pop
+      29: iconst_0
+      30: istore_3
+      31: aload_2
+      32: ldc_w         #575                // String 0x
+      35: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      38: pop
+      39: aload_2
+      40: aload_0
+      41: iload_3
+      42: iaload
+      43: invokestatic  #558                // Method java/lang/Integer.toHexString:(I)Ljava/lang/String;
+      46: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      49: pop
+      50: iload_3
+      51: iload_1
+      52: if_icmpne     65
+      55: aload_2
+      56: bipush        93
+      58: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      61: invokevirtual #544                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      64: areturn
+      65: aload_2
+      66: ldc_w         #577                // String
+      69: invokevirtual #475                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      72: pop
+      73: iinc          3, 1
+      76: goto          31
+
+  public static void toFlagString(java.lang.StringBuilder, int);
+    Code:
+       0: iload_1
+       1: ldc_w         #579                // int 16777216
+       4: iand
+       5: ifeq          18
+       8: aload_0
+       9: bipush        66
+      11: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      14: pop
+      15: goto          25
+      18: aload_0
+      19: bipush        32
+      21: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      24: pop
+      25: iload_1
+      26: ldc_w         #266                // int 33554432
+      29: iand
+      30: ifeq          43
+      33: aload_0
+      34: bipush        73
+      36: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      39: pop
+      40: goto          50
+      43: aload_0
+      44: bipush        32
+      46: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      49: pop
+      50: iload_1
+      51: ldc_w         #351                // int 67108864
+      54: iand
+      55: ifeq          68
+      58: aload_0
+      59: bipush        85
+      61: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      64: pop
+      65: goto          75
+      68: aload_0
+      69: bipush        32
+      71: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      74: pop
+      75: iload_1
+      76: ldc_w         #344                // int 134217728
+      79: iand
+      80: ifeq          93
+      83: aload_0
+      84: bipush        83
+      86: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      89: pop
+      90: goto          100
+      93: aload_0
+      94: bipush        32
+      96: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+      99: pop
+     100: iload_1
+     101: ldc           #140                // int 268435456
+     103: iand
+     104: ifeq          117
+     107: aload_0
+     108: bipush        79
+     110: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+     113: pop
+     114: goto          124
+     117: aload_0
+     118: bipush        32
+     120: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+     123: pop
+     124: iload_1
+     125: ldc           #248                // int 536870912
+     127: iand
+     128: ifeq          141
+     131: aload_0
+     132: bipush        77
+     134: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+     137: pop
+     138: goto          148
+     141: aload_0
+     142: bipush        32
+     144: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+     147: pop
+     148: iload_1
+     149: ldc           #230                // int 1073741824
+     151: iand
+     152: ifeq          165
+     155: aload_0
+     156: bipush        87
+     158: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+     161: pop
+     162: goto          172
+     165: aload_0
+     166: bipush        32
+     168: invokevirtual #481                // Method java/lang/StringBuilder.append:(C)Ljava/lang/StringBuilder;
+     171: pop
+     172: return
+
+  static {};
+    Code:
+       0: ldc           #2                  // class icyllis/modernui/mc/text/TextLayout
+       2: invokevirtual #585                // Method java/lang/Class.desiredAssertionStatus:()Z
+       5: ifne          12
+       8: iconst_1
+       9: goto          13
+      12: iconst_0
+      13: putstatic     #111                // Field $assertionsDisabled:Z
+      16: new           #243                // class java/util/Random
+      19: dup
+      20: invokespecial #586                // Method java/util/Random."<init>":()V
+      23: putstatic     #232                // Field RANDOM:Ljava/util/Random;
+      26: new           #7                  // class icyllis/modernui/mc/text/TextLayout$1
+      29: dup
+      30: iconst_0
+      31: newarray       char
+      33: iconst_0
+      34: newarray       int
+      36: iconst_0
+      37: newarray       float
+      39: aconst_null
+      40: iconst_0
+      41: anewarray     #532                // class icyllis/modernui/graphics/text/Font
+      44: iconst_0
+      45: newarray       float
+      47: iconst_0
+      48: newarray       int
+      50: iconst_1
+      51: newarray       int
+      53: dup
+      54: iconst_0
+      55: iconst_0
+      56: iastore
+      57: fconst_0
+      58: iconst_0
+      59: iconst_0
+      60: iconst_2
+      61: iconst_m1
+      62: invokespecial #588                // Method icyllis/modernui/mc/text/TextLayout$1."<init>":([C[I[F[B[Licyllis/modernui/graphics/text/Font;[F[I[IFZZII)V
+      65: putstatic     #123                // Field EMPTY:Licyllis/modernui/mc/text/TextLayout;
+      68: ldc_w         #589                // float 7.0f
+      71: putstatic     #223                // Field sBaselineOffset:F
+      74: return
+}

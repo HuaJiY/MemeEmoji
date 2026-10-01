@@ -1,0 +1,3087 @@
+Compiled from "TextLayoutEngine.java"
+public class icyllis.modernui.mc.text.TextLayoutEngine extends icyllis.modernui.mc.FontResourceManager implements icyllis.modernui.mc.MuiModApi$OnWindowResizeListener,icyllis.modernui.mc.MuiModApi$OnDebugDumpListener {
+  public static final org.apache.logging.log4j.Marker MARKER;
+
+  public static volatile boolean sFixedResolution;
+
+  public static volatile int sTextDirection;
+
+  public static volatile int sCacheLifespan;
+
+  public static boolean sCurrentInWorldRendering;
+
+  public static volatile boolean sUseTextShadersInWorld;
+
+  public static volatile boolean sRawUseTextShadersInWorld;
+
+  public static final net.minecraft.class_2960 SANS_SERIF;
+
+  public static final net.minecraft.class_2960 SERIF;
+
+  public static final net.minecraft.class_2960 MONOSPACED;
+
+  private static final net.minecraft.class_2960 INTERNAL_DEFAULT;
+
+  private final icyllis.modernui.mc.text.GlyphManager mGlyphManager;
+
+  public static final int COMPUTE_ADVANCES;
+
+  public static final int COMPUTE_LINE_BOUNDARIES;
+
+  public static final int DEFAULT_FONT_BEHAVIOR_IGNORE_ALL;
+
+  public static final int DEFAULT_FONT_BEHAVIOR_KEEP_ASCII;
+
+  public static final int DEFAULT_FONT_BEHAVIOR_KEEP_OTHER;
+
+  public static final int DEFAULT_FONT_BEHAVIOR_KEEP_ALL;
+
+  public static final int DEFAULT_FONT_BEHAVIOR_ONLY_INCLUDE;
+
+  public static final int DEFAULT_FONT_BEHAVIOR_ONLY_EXCLUDE;
+
+  public static volatile int sDefaultFontBehavior;
+
+  public static volatile java.util.List<? extends java.lang.String> sDefaultFontRuleSet;
+
+  public static volatile boolean sUseComponentCache;
+
+  public static volatile boolean sAllowAsyncLayout;
+
+  private final icyllis.modernui.mc.text.VanillaLayoutKey mVanillaLookupKey;
+
+  private java.util.Map<icyllis.modernui.mc.text.VanillaLayoutKey, icyllis.modernui.mc.text.TextLayout> mVanillaCache;
+
+  private java.util.Map<net.minecraft.class_5250, icyllis.modernui.mc.text.TextLayout> mComponentCache;
+
+  private final icyllis.modernui.mc.text.FormattedLayoutKey$Lookup mFormattedLayoutKey;
+
+  private java.util.Map<icyllis.modernui.mc.text.FormattedLayoutKey, icyllis.modernui.mc.text.TextLayout> mFormattedCache;
+
+  private final icyllis.modernui.mc.text.TextLayoutProcessor mProcessor;
+
+  private final icyllis.modernui.util.Pools$Pool<icyllis.modernui.mc.text.TextLayoutProcessor> mProcessorPool;
+
+  private final java.util.HashMap<net.minecraft.class_2960, icyllis.modernui.graphics.text.FontCollection> mFontCollections;
+
+  private icyllis.modernui.graphics.text.FontCollection mRawDefaultFontCollection;
+
+  private final java.util.concurrent.ConcurrentHashMap<net.minecraft.class_2960, icyllis.modernui.graphics.text.FontCollection> mRegisteredFonts;
+
+  public static final int DEFAULT_MIN_PIXEL_DENSITY_FOR_SDF;
+
+  public static volatile int sMinPixelDensityForSDF;
+
+  private volatile int mResLevel;
+
+  private icyllis.modernui.text.TextDirectionHeuristic mTextDirectionHeuristic;
+
+  private net.minecraft.class_378 mVanillaFontManager;
+
+  private final icyllis.modernui.mc.text.ModernTextRenderer mTextRenderer;
+
+  private final icyllis.modernui.mc.text.ModernStringSplitter mStringSplitter;
+
+  private java.lang.Boolean mForceUnicodeFont;
+
+  private int mTimer;
+
+  public icyllis.modernui.mc.text.TextLayoutEngine();
+    Code:
+       0: aload_0
+       1: invokespecial #182                // Method icyllis/modernui/mc/FontResourceManager."<init>":()V
+       4: aload_0
+       5: new           #184                // class icyllis/modernui/mc/text/VanillaLayoutKey
+       8: dup
+       9: invokespecial #185                // Method icyllis/modernui/mc/text/VanillaLayoutKey."<init>":()V
+      12: putfield      #187                // Field mVanillaLookupKey:Licyllis/modernui/mc/text/VanillaLayoutKey;
+      15: aload_0
+      16: new           #189                // class java/util/HashMap
+      19: dup
+      20: invokespecial #190                // Method java/util/HashMap."<init>":()V
+      23: putfield      #192                // Field mVanillaCache:Ljava/util/Map;
+      26: aload_0
+      27: new           #189                // class java/util/HashMap
+      30: dup
+      31: invokespecial #190                // Method java/util/HashMap."<init>":()V
+      34: putfield      #194                // Field mComponentCache:Ljava/util/Map;
+      37: aload_0
+      38: new           #25                 // class icyllis/modernui/mc/text/FormattedLayoutKey$Lookup
+      41: dup
+      42: invokespecial #195                // Method icyllis/modernui/mc/text/FormattedLayoutKey$Lookup."<init>":()V
+      45: putfield      #197                // Field mFormattedLayoutKey:Licyllis/modernui/mc/text/FormattedLayoutKey$Lookup;
+      48: aload_0
+      49: new           #189                // class java/util/HashMap
+      52: dup
+      53: invokespecial #190                // Method java/util/HashMap."<init>":()V
+      56: putfield      #199                // Field mFormattedCache:Ljava/util/Map;
+      59: aload_0
+      60: new           #201                // class icyllis/modernui/mc/text/TextLayoutProcessor
+      63: dup
+      64: aload_0
+      65: invokespecial #204                // Method icyllis/modernui/mc/text/TextLayoutProcessor."<init>":(Licyllis/modernui/mc/text/TextLayoutEngine;)V
+      68: putfield      #206                // Field mProcessor:Licyllis/modernui/mc/text/TextLayoutProcessor;
+      71: aload_0
+      72: iconst_3
+      73: invokestatic  #210                // Method icyllis/modernui/util/Pools.newSynchronizedPool:(I)Licyllis/modernui/util/Pools$Pool;
+      76: putfield      #212                // Field mProcessorPool:Licyllis/modernui/util/Pools$Pool;
+      79: aload_0
+      80: new           #189                // class java/util/HashMap
+      83: dup
+      84: invokespecial #190                // Method java/util/HashMap."<init>":()V
+      87: putfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+      90: aload_0
+      91: new           #216                // class java/util/concurrent/ConcurrentHashMap
+      94: dup
+      95: invokespecial #217                // Method java/util/concurrent/ConcurrentHashMap."<init>":()V
+      98: putfield      #219                // Field mRegisteredFonts:Ljava/util/concurrent/ConcurrentHashMap;
+     101: aload_0
+     102: iconst_2
+     103: putfield      #221                // Field mResLevel:I
+     106: aload_0
+     107: getstatic     #226                // Field icyllis/modernui/text/TextDirectionHeuristics.FIRSTSTRONG_LTR:Licyllis/modernui/text/TextDirectionHeuristic;
+     110: putfield      #228                // Field mTextDirectionHeuristic:Licyllis/modernui/text/TextDirectionHeuristic;
+     113: aload_0
+     114: invokestatic  #232                // Method icyllis/modernui/mc/text/GlyphManager.getInstance:()Licyllis/modernui/mc/text/GlyphManager;
+     117: putfield      #234                // Field mGlyphManager:Licyllis/modernui/mc/text/GlyphManager;
+     120: aload_0
+     121: getfield      #234                // Field mGlyphManager:Licyllis/modernui/mc/text/GlyphManager;
+     124: aload_0
+     125: invokedynamic #253,  0            // InvokeDynamic #0:accept:(Licyllis/modernui/mc/text/TextLayoutEngine;)Ljava/util/function/Consumer;
+     130: invokevirtual #257                // Method icyllis/modernui/mc/text/GlyphManager.addAtlasInvalidationCallback:(Ljava/util/function/Consumer;)V
+     133: aload_0
+     134: new           #259                // class icyllis/modernui/mc/text/ModernTextRenderer
+     137: dup
+     138: aload_0
+     139: invokespecial #260                // Method icyllis/modernui/mc/text/ModernTextRenderer."<init>":(Licyllis/modernui/mc/text/TextLayoutEngine;)V
+     142: putfield      #262                // Field mTextRenderer:Licyllis/modernui/mc/text/ModernTextRenderer;
+     145: aload_0
+     146: new           #264                // class icyllis/modernui/mc/text/ModernStringSplitter
+     149: dup
+     150: aload_0
+     151: invokedynamic #274,  0            // InvokeDynamic #1:getWidth:()Lnet/minecraft/class_5225$class_5231;
+     156: invokespecial #277                // Method icyllis/modernui/mc/text/ModernStringSplitter."<init>":(Licyllis/modernui/mc/text/TextLayoutEngine;Lnet/minecraft/class_5225$class_5231;)V
+     159: putfield      #279                // Field mStringSplitter:Licyllis/modernui/mc/text/ModernStringSplitter;
+     162: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     165: getstatic     #287                // Field icyllis/modernui/mc/ModernUIMod.MARKER:Lorg/apache/logging/log4j/Marker;
+     168: ldc_w         #289                // String Created TextLayoutEngine
+     171: invokeinterface #295,  3          // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;)V
+     176: return
+
+  public static icyllis.modernui.mc.text.TextLayoutEngine getInstance();
+    Code:
+       0: invokestatic  #302                // Method icyllis/modernui/mc/FontResourceManager.getInstance:()Licyllis/modernui/mc/FontResourceManager;
+       3: checkcast     #2                  // class icyllis/modernui/mc/text/TextLayoutEngine
+       6: areturn
+
+  public icyllis.modernui.mc.text.ModernTextRenderer getTextRenderer();
+    Code:
+       0: aload_0
+       1: getfield      #262                // Field mTextRenderer:Licyllis/modernui/mc/text/ModernTextRenderer;
+       4: areturn
+
+  public icyllis.modernui.mc.text.ModernStringSplitter getStringSplitter();
+    Code:
+       0: aload_0
+       1: getfield      #279                // Field mStringSplitter:Licyllis/modernui/mc/text/ModernStringSplitter;
+       4: areturn
+
+  public icyllis.modernui.graphics.text.FontCollection getRawDefaultFontCollection();
+    Code:
+       0: aload_0
+       1: getfield      #310                // Field mRawDefaultFontCollection:Licyllis/modernui/graphics/text/FontCollection;
+       4: areturn
+
+  public void invalidateStrikeCache();
+    Code:
+       0: iconst_0
+       1: invokestatic  #318                // Method icyllis/modernui/mc/text/TextRenderType.clear:(Z)V
+       4: aload_0
+       5: getfield      #320                // Field mVanillaFontManager:Lnet/minecraft/class_378;
+       8: ifnull        80
+      11: aload_0
+      12: getfield      #320                // Field mVanillaFontManager:Lnet/minecraft/class_378;
+      15: checkcast     #322                // class icyllis/modernui/mc/text/mixin/AccessFontManager
+      18: invokeinterface #326,  1          // InterfaceMethod icyllis/modernui/mc/text/mixin/AccessFontManager.getFontSets:()Ljava/util/Map;
+      23: astore_1
+      24: aload_1
+      25: invokeinterface #330,  1          // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+      30: invokeinterface #336,  1          // InterfaceMethod java/util/Collection.iterator:()Ljava/util/Iterator;
+      35: astore_2
+      36: aload_2
+      37: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      42: ifeq          80
+      45: aload_2
+      46: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      51: checkcast     #348                // class net/minecraft/class_377
+      54: astore_3
+      55: aload_3
+      56: instanceof    #350                // class icyllis/modernui/mc/text/StandardFontSet
+      59: ifeq          77
+      62: aload_3
+      63: checkcast     #350                // class icyllis/modernui/mc/text/StandardFontSet
+      66: astore        4
+      68: aload         4
+      70: aload_0
+      71: getfield      #221                // Field mResLevel:I
+      74: invokevirtual #354                // Method icyllis/modernui/mc/text/StandardFontSet.invalidateCache:(I)V
+      77: goto          36
+      80: return
+
+  public void clear();
+    Code:
+       0: aload_0
+       1: invokevirtual #364                // Method getCacheCount:()I
+       4: istore_1
+       5: aload_0
+       6: getfield      #192                // Field mVanillaCache:Ljava/util/Map;
+       9: invokeinterface #366,  1          // InterfaceMethod java/util/Map.clear:()V
+      14: aload_0
+      15: getfield      #194                // Field mComponentCache:Ljava/util/Map;
+      18: invokeinterface #366,  1          // InterfaceMethod java/util/Map.clear:()V
+      23: aload_0
+      24: getfield      #199                // Field mFormattedCache:Ljava/util/Map;
+      27: invokeinterface #366,  1          // InterfaceMethod java/util/Map.clear:()V
+      32: aload_0
+      33: new           #189                // class java/util/HashMap
+      36: dup
+      37: invokespecial #190                // Method java/util/HashMap."<init>":()V
+      40: putfield      #192                // Field mVanillaCache:Ljava/util/Map;
+      43: aload_0
+      44: new           #189                // class java/util/HashMap
+      47: dup
+      48: invokespecial #190                // Method java/util/HashMap."<init>":()V
+      51: putfield      #194                // Field mComponentCache:Ljava/util/Map;
+      54: aload_0
+      55: new           #189                // class java/util/HashMap
+      58: dup
+      59: invokespecial #190                // Method java/util/HashMap."<init>":()V
+      62: putfield      #199                // Field mFormattedCache:Ljava/util/Map;
+      65: iconst_0
+      66: invokestatic  #318                // Method icyllis/modernui/mc/text/TextRenderType.clear:(Z)V
+      69: iload_1
+      70: ifle          91
+      73: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+      76: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+      79: ldc_w         #369                // String Cleanup {} text layout entries
+      82: iload_1
+      83: invokestatic  #375                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+      86: invokeinterface #379,  4          // InterfaceMethod org/apache/logging/log4j/Logger.debug:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;)V
+      91: return
+
+  public void reload();
+    Code:
+       0: invokestatic  #387                // Method net/minecraft/class_310.method_1551:()Lnet/minecraft/class_310;
+       3: invokevirtual #391                // Method net/minecraft/class_310.method_22683:()Lnet/minecraft/class_1041;
+       6: astore_1
+       7: aload_1
+       8: ifnull        23
+      11: aload_1
+      12: invokevirtual #397                // Method net/minecraft/class_1041.method_4495:()D
+      15: d2f
+      16: invokestatic  #403                // Method java/lang/Math.round:(F)I
+      19: istore_2
+      20: goto          25
+      23: iconst_2
+      24: istore_2
+      25: aload_0
+      26: iload_2
+      27: invokevirtual #406                // Method internalReload:(I)V
+      30: return
+
+  private void internalReload(int);
+    Code:
+       0: aload_0
+       1: invokevirtual #410                // Method clear:()V
+       4: aload_0
+       5: getfield      #221                // Field mResLevel:I
+       8: istore_2
+       9: getstatic     #412                // Field sFixedResolution:Z
+      12: ifeq          23
+      15: aload_0
+      16: iconst_2
+      17: putfield      #221                // Field mResLevel:I
+      20: goto          33
+      23: aload_0
+      24: iload_1
+      25: bipush        8
+      27: invokestatic  #416                // Method java/lang/Math.min:(II)I
+      30: putfield      #221                // Field mResLevel:I
+      33: invokestatic  #387                // Method net/minecraft/class_310.method_1551:()Lnet/minecraft/class_310;
+      36: getfield      #420                // Field net/minecraft/class_310.field_1690:Lnet/minecraft/class_315;
+      39: astore_3
+      40: aload_3
+      41: ifnull        58
+      44: aload_0
+      45: aload_3
+      46: invokevirtual #426                // Method net/minecraft/class_315.method_42437:()Lnet/minecraft/class_7172;
+      49: invokevirtual #431                // Method net/minecraft/class_7172.method_41753:()Ljava/lang/Object;
+      52: checkcast     #433                // class java/lang/Boolean
+      55: putfield      #435                // Field mForceUnicodeFont:Ljava/lang/Boolean;
+      58: invokestatic  #441                // Method icyllis/modernui/ModernUI.getSelectedLocale:()Ljava/util/Locale;
+      61: astore        4
+      63: aload         4
+      65: invokestatic  #447                // Method icyllis/modernui/text/TextUtils.getLayoutDirectionFromLocale:(Ljava/util/Locale;)I
+      68: iconst_1
+      69: if_icmpne     76
+      72: iconst_1
+      73: goto          77
+      76: iconst_0
+      77: istore        5
+      79: aload_0
+      80: getstatic     #451                // Field sTextDirection:I
+      83: tableswitch   { // 2 to 7
+
+                     2: 120
+
+                     3: 126
+
+                     4: 132
+
+                     5: 138
+
+                     6: 144
+
+                     7: 150
+               default: 156
+          }
+     120: getstatic     #454                // Field icyllis/modernui/text/TextDirectionHeuristics.ANYRTL_LTR:Licyllis/modernui/text/TextDirectionHeuristic;
+     123: goto          170
+     126: getstatic     #457                // Field icyllis/modernui/text/TextDirectionHeuristics.LTR:Licyllis/modernui/text/TextDirectionHeuristic;
+     129: goto          170
+     132: getstatic     #460                // Field icyllis/modernui/text/TextDirectionHeuristics.RTL:Licyllis/modernui/text/TextDirectionHeuristic;
+     135: goto          170
+     138: getstatic     #463                // Field icyllis/modernui/text/TextDirectionHeuristics.LOCALE:Licyllis/modernui/text/TextDirectionHeuristic;
+     141: goto          170
+     144: getstatic     #226                // Field icyllis/modernui/text/TextDirectionHeuristics.FIRSTSTRONG_LTR:Licyllis/modernui/text/TextDirectionHeuristic;
+     147: goto          170
+     150: getstatic     #466                // Field icyllis/modernui/text/TextDirectionHeuristics.FIRSTSTRONG_RTL:Licyllis/modernui/text/TextDirectionHeuristic;
+     153: goto          170
+     156: iload         5
+     158: ifeq          167
+     161: getstatic     #466                // Field icyllis/modernui/text/TextDirectionHeuristics.FIRSTSTRONG_RTL:Licyllis/modernui/text/TextDirectionHeuristic;
+     164: goto          170
+     167: getstatic     #226                // Field icyllis/modernui/text/TextDirectionHeuristics.FIRSTSTRONG_LTR:Licyllis/modernui/text/TextDirectionHeuristic;
+     170: putfield      #228                // Field mTextDirectionHeuristic:Licyllis/modernui/text/TextDirectionHeuristic;
+     173: aload_0
+     174: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+     177: getstatic     #470                // Field SANS_SERIF:Lnet/minecraft/class_2960;
+     180: getstatic     #475                // Field icyllis/modernui/text/Typeface.SANS_SERIF:Licyllis/modernui/text/Typeface;
+     183: invokevirtual #479                // Method java/util/HashMap.putIfAbsent:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     186: pop
+     187: aload_0
+     188: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+     191: getstatic     #481                // Field SERIF:Lnet/minecraft/class_2960;
+     194: getstatic     #483                // Field icyllis/modernui/text/Typeface.SERIF:Licyllis/modernui/text/Typeface;
+     197: invokevirtual #479                // Method java/util/HashMap.putIfAbsent:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     200: pop
+     201: aload_0
+     202: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+     205: getstatic     #485                // Field MONOSPACED:Lnet/minecraft/class_2960;
+     208: getstatic     #487                // Field icyllis/modernui/text/Typeface.MONOSPACED:Licyllis/modernui/text/Typeface;
+     211: invokevirtual #479                // Method java/util/HashMap.putIfAbsent:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     214: pop
+     215: getstatic     #489                // Field sDefaultFontBehavior:I
+     218: ifeq          245
+     221: getstatic     #489                // Field sDefaultFontBehavior:I
+     224: iconst_4
+     225: if_icmpne     262
+     228: getstatic     #491                // Field sDefaultFontRuleSet:Ljava/util/List;
+     231: ifnull        245
+     234: getstatic     #491                // Field sDefaultFontRuleSet:Ljava/util/List;
+     237: invokeinterface #496,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+     242: ifeq          262
+     245: aload_0
+     246: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+     249: getstatic     #499                // Field net/minecraft/class_310.field_1740:Lnet/minecraft/class_2960;
+     252: invokestatic  #503                // Method icyllis/modernui/ModernUI.getSelectedTypeface:()Licyllis/modernui/text/Typeface;
+     255: invokevirtual #506                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     258: pop
+     259: goto          322
+     262: new           #508                // class java/util/LinkedHashSet
+     265: dup
+     266: invokespecial #509                // Method java/util/LinkedHashSet."<init>":()V
+     269: astore        6
+     271: aload_0
+     272: aload         6
+     274: getstatic     #489                // Field sDefaultFontBehavior:I
+     277: invokevirtual #513                // Method populateDefaultFonts:(Ljava/util/Set;I)V
+     280: aload         6
+     282: invokestatic  #503                // Method icyllis/modernui/ModernUI.getSelectedTypeface:()Licyllis/modernui/text/Typeface;
+     285: invokevirtual #517                // Method icyllis/modernui/text/Typeface.getFamilies:()Ljava/util/List;
+     288: invokevirtual #521                // Method java/util/LinkedHashSet.addAll:(Ljava/util/Collection;)Z
+     291: pop
+     292: aload_0
+     293: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+     296: getstatic     #499                // Field net/minecraft/class_310.field_1740:Lnet/minecraft/class_2960;
+     299: new           #523                // class icyllis/modernui/graphics/text/FontCollection
+     302: dup
+     303: aload         6
+     305: iconst_0
+     306: anewarray     #525                // class icyllis/modernui/graphics/text/FontFamily
+     309: invokevirtual #529                // Method java/util/LinkedHashSet.toArray:([Ljava/lang/Object;)[Ljava/lang/Object;
+     312: checkcast     #531                // class "[Licyllis/modernui/graphics/text/FontFamily;"
+     315: invokespecial #534                // Method icyllis/modernui/graphics/text/FontCollection."<init>":([Licyllis/modernui/graphics/text/FontFamily;)V
+     318: invokevirtual #506                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     321: pop
+     322: aload_0
+     323: getfield      #320                // Field mVanillaFontManager:Lnet/minecraft/class_378;
+     326: ifnull        600
+     329: aload_0
+     330: getfield      #320                // Field mVanillaFontManager:Lnet/minecraft/class_378;
+     333: checkcast     #322                // class icyllis/modernui/mc/text/mixin/AccessFontManager
+     336: invokeinterface #326,  1          // InterfaceMethod icyllis/modernui/mc/text/mixin/AccessFontManager.getFontSets:()Ljava/util/Map;
+     341: astore        6
+     343: aload         6
+     345: getstatic     #499                // Field net/minecraft/class_310.field_1740:Lnet/minecraft/class_2960;
+     348: invokeinterface #538,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     353: astore        8
+     355: aload         8
+     357: instanceof    #350                // class icyllis/modernui/mc/text/StandardFontSet
+     360: ifeq          392
+     363: aload         8
+     365: checkcast     #350                // class icyllis/modernui/mc/text/StandardFontSet
+     368: astore        7
+     370: aload         7
+     372: aload_0
+     373: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+     376: getstatic     #499                // Field net/minecraft/class_310.field_1740:Lnet/minecraft/class_2960;
+     379: invokevirtual #539                // Method java/util/HashMap.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     382: checkcast     #523                // class icyllis/modernui/graphics/text/FontCollection
+     385: aload_0
+     386: getfield      #221                // Field mResLevel:I
+     389: invokevirtual #542                // Method icyllis/modernui/mc/text/StandardFontSet.reload:(Licyllis/modernui/graphics/text/FontCollection;I)V
+     392: aload         6
+     394: getstatic     #545                // Field net/minecraft/class_310.field_24211:Lnet/minecraft/class_2960;
+     397: invokeinterface #538,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     402: astore        8
+     404: aload         8
+     406: instanceof    #350                // class icyllis/modernui/mc/text/StandardFontSet
+     409: ifeq          431
+     412: aload         8
+     414: checkcast     #350                // class icyllis/modernui/mc/text/StandardFontSet
+     417: astore        7
+     419: aload         7
+     421: invokestatic  #503                // Method icyllis/modernui/ModernUI.getSelectedTypeface:()Licyllis/modernui/text/Typeface;
+     424: aload_0
+     425: getfield      #221                // Field mResLevel:I
+     428: invokevirtual #542                // Method icyllis/modernui/mc/text/StandardFontSet.reload:(Licyllis/modernui/graphics/text/FontCollection;I)V
+     431: aload         6
+     433: invokeinterface #549,  1          // InterfaceMethod java/util/Map.entrySet:()Ljava/util/Set;
+     438: invokeinterface #552,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+     443: astore        7
+     445: aload         7
+     447: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     452: ifeq          544
+     455: aload         7
+     457: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     462: checkcast     #40                 // class java/util/Map$Entry
+     465: astore        8
+     467: aload         8
+     469: invokeinterface #555,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+     474: checkcast     #557                // class net/minecraft/class_2960
+     477: getstatic     #499                // Field net/minecraft/class_310.field_1740:Lnet/minecraft/class_2960;
+     480: invokevirtual #561                // Method net/minecraft/class_2960.equals:(Ljava/lang/Object;)Z
+     483: ifne          445
+     486: aload         8
+     488: invokeinterface #555,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+     493: checkcast     #557                // class net/minecraft/class_2960
+     496: getstatic     #545                // Field net/minecraft/class_310.field_24211:Lnet/minecraft/class_2960;
+     499: invokevirtual #561                // Method net/minecraft/class_2960.equals:(Ljava/lang/Object;)Z
+     502: ifeq          508
+     505: goto          445
+     508: aload         8
+     510: invokeinterface #564,  1          // InterfaceMethod java/util/Map$Entry.getValue:()Ljava/lang/Object;
+     515: astore        10
+     517: aload         10
+     519: instanceof    #350                // class icyllis/modernui/mc/text/StandardFontSet
+     522: ifeq          541
+     525: aload         10
+     527: checkcast     #350                // class icyllis/modernui/mc/text/StandardFontSet
+     530: astore        9
+     532: aload         9
+     534: aload_0
+     535: getfield      #221                // Field mResLevel:I
+     538: invokevirtual #354                // Method icyllis/modernui/mc/text/StandardFontSet.invalidateCache:(I)V
+     541: goto          445
+     544: aload         6
+     546: getstatic     #545                // Field net/minecraft/class_310.field_24211:Lnet/minecraft/class_2960;
+     549: invokeinterface #567,  2          // InterfaceMethod java/util/Map.containsKey:(Ljava/lang/Object;)Z
+     554: ifne          600
+     557: new           #350                // class icyllis/modernui/mc/text/StandardFontSet
+     560: dup
+     561: invokestatic  #387                // Method net/minecraft/class_310.method_1551:()Lnet/minecraft/class_310;
+     564: invokevirtual #571                // Method net/minecraft/class_310.method_1531:()Lnet/minecraft/class_1060;
+     567: getstatic     #545                // Field net/minecraft/class_310.field_24211:Lnet/minecraft/class_2960;
+     570: invokespecial #574                // Method icyllis/modernui/mc/text/StandardFontSet."<init>":(Lnet/minecraft/class_1060;Lnet/minecraft/class_2960;)V
+     573: astore        7
+     575: aload         7
+     577: invokestatic  #503                // Method icyllis/modernui/ModernUI.getSelectedTypeface:()Licyllis/modernui/text/Typeface;
+     580: aload_0
+     581: getfield      #221                // Field mResLevel:I
+     584: invokevirtual #542                // Method icyllis/modernui/mc/text/StandardFontSet.reload:(Licyllis/modernui/graphics/text/FontCollection;I)V
+     587: aload         6
+     589: getstatic     #545                // Field net/minecraft/class_310.field_24211:Lnet/minecraft/class_2960;
+     592: aload         7
+     594: invokeinterface #575,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     599: pop
+     600: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     603: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     606: ldc_w         #577                // String Reloaded text layout engine, res level: {} to {}, locale: {}, layout RTL: {}
+     609: iload_2
+     610: invokestatic  #375                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     613: aload_0
+     614: getfield      #221                // Field mResLevel:I
+     617: invokestatic  #375                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     620: aload         4
+     622: iload         5
+     624: invokestatic  #580                // Method java/lang/Boolean.valueOf:(Z)Ljava/lang/Boolean;
+     627: invokeinterface #583,  7          // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+     632: return
+
+  public void reloadAll();
+    Code:
+       0: aload_0
+       1: invokespecial #597                // Method icyllis/modernui/mc/FontResourceManager.reloadAll:()V
+       4: aload_0
+       5: getfield      #234                // Field mGlyphManager:Licyllis/modernui/mc/text/GlyphManager;
+       8: invokevirtual #599                // Method icyllis/modernui/mc/text/GlyphManager.reload:()V
+      11: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+      14: getstatic     #600                // Field icyllis/modernui/mc/text/GlyphManager.MARKER:Lorg/apache/logging/log4j/Marker;
+      17: ldc_w         #602                // String Reloaded glyph manager
+      20: invokeinterface #295,  3          // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;)V
+      25: aload_0
+      26: invokevirtual #603                // Method reload:()V
+      29: return
+
+  public void onWindowResize(int, int, int, int);
+    Code:
+       0: invokestatic  #615                // Method icyllis/modernui/core/Core.getRenderThread:()Ljava/lang/Thread;
+       3: ifnull        70
+       6: iload_3
+       7: iload         4
+       9: if_icmpeq     16
+      12: iconst_1
+      13: goto          17
+      16: iconst_0
+      17: istore        5
+      19: iload         5
+      21: ifne          60
+      24: invokestatic  #387                // Method net/minecraft/class_310.method_1551:()Lnet/minecraft/class_310;
+      27: getfield      #420                // Field net/minecraft/class_310.field_1690:Lnet/minecraft/class_315;
+      30: invokevirtual #426                // Method net/minecraft/class_315.method_42437:()Lnet/minecraft/class_7172;
+      33: invokevirtual #431                // Method net/minecraft/class_7172.method_41753:()Ljava/lang/Object;
+      36: checkcast     #433                // class java/lang/Boolean
+      39: astore        6
+      41: aload_0
+      42: getfield      #435                // Field mForceUnicodeFont:Ljava/lang/Boolean;
+      45: aload         6
+      47: invokestatic  #620                // Method java/util/Objects.equals:(Ljava/lang/Object;Ljava/lang/Object;)Z
+      50: ifne          57
+      53: iconst_1
+      54: goto          58
+      57: iconst_0
+      58: istore        5
+      60: iload         5
+      62: ifeq          70
+      65: aload_0
+      66: iload_3
+      67: invokevirtual #406                // Method internalReload:(I)V
+      70: return
+
+  public void onDebugDump(java.io.PrintWriter);
+    Code:
+       0: aload_1
+       1: ldc_w         #626                // String TextLayoutEngine:
+       4: invokevirtual #632                // Method java/io/PrintWriter.print:(Ljava/lang/String;)V
+       7: aload_1
+       8: aload_0
+       9: invokevirtual #364                // Method getCacheCount:()I
+      12: invokedynamic #644,  0            // InvokeDynamic #2:makeConcatWithConstants:(I)Ljava/lang/String;
+      17: invokevirtual #632                // Method java/io/PrintWriter.print:(Ljava/lang/String;)V
+      20: aload_0
+      21: invokevirtual #647                // Method getCacheMemorySize:()I
+      24: i2l
+      25: lstore_2
+      26: aload_1
+      27: lload_2
+      28: invokestatic  #651                // Method icyllis/modernui/text/TextUtils.binaryCompact:(J)Ljava/lang/String;
+      31: lload_2
+      32: invokedynamic #656,  0            // InvokeDynamic #3:makeConcatWithConstants:(Ljava/lang/String;J)Ljava/lang/String;
+      37: invokevirtual #659                // Method java/io/PrintWriter.println:(Ljava/lang/String;)V
+      40: return
+
+  public icyllis.modernui.mc.text.TextLayoutEngine injectFontManager(net.minecraft.class_378);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: putfield      #320                // Field mVanillaFontManager:Lnet/minecraft/class_378;
+       5: aload_0
+       6: areturn
+
+  private void populateDefaultFonts(java.util.Set<icyllis.modernui.graphics.text.FontFamily>, int);
+    Code:
+       0: aload_0
+       1: getfield      #310                // Field mRawDefaultFontCollection:Licyllis/modernui/graphics/text/FontCollection;
+       4: ifnonnull     8
+       7: return
+       8: iload_2
+       9: iconst_4
+      10: if_icmpeq     18
+      13: iload_2
+      14: iconst_5
+      15: if_icmpne     194
+      18: aconst_null
+      19: astore_3
+      20: getstatic     #491                // Field sDefaultFontRuleSet:Ljava/util/List;
+      23: astore        4
+      25: aload         4
+      27: ifnull        93
+      30: aload         4
+      32: invokeinterface #496,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+      37: ifne          93
+      40: aload         4
+      42: invokeinterface #674,  1          // InterfaceMethod java/util/List.stream:()Ljava/util/stream/Stream;
+      47: invokeinterface #679,  1          // InterfaceMethod java/util/stream/Stream.distinct:()Ljava/util/stream/Stream;
+      52: ldc_w         #681                // String |
+      55: invokestatic  #687                // Method java/util/stream/Collectors.joining:(Ljava/lang/CharSequence;)Ljava/util/stream/Collector;
+      58: invokeinterface #691,  2          // InterfaceMethod java/util/stream/Stream.collect:(Ljava/util/stream/Collector;)Ljava/lang/Object;
+      63: checkcast     #693                // class java/lang/String
+      66: invokestatic  #699                // Method java/util/regex/Pattern.compile:(Ljava/lang/String;)Ljava/util/regex/Pattern;
+      69: astore_3
+      70: goto          93
+      73: astore        5
+      75: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+      78: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+      81: ldc_w         #701                // String Illegal default font rules: {}
+      84: aload         4
+      86: aload         5
+      88: invokeinterface #705,  5          // InterfaceMethod org/apache/logging/log4j/Logger.warn:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V
+      93: iload_2
+      94: iconst_5
+      95: if_icmpne     102
+      98: iconst_1
+      99: goto          103
+     102: iconst_0
+     103: istore        5
+     105: aload_0
+     106: getfield      #310                // Field mRawDefaultFontCollection:Licyllis/modernui/graphics/text/FontCollection;
+     109: invokevirtual #706                // Method icyllis/modernui/graphics/text/FontCollection.getFamilies:()Ljava/util/List;
+     112: invokeinterface #707,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     117: astore        6
+     119: aload         6
+     121: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     126: ifeq          191
+     129: aload         6
+     131: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     136: checkcast     #525                // class icyllis/modernui/graphics/text/FontFamily
+     139: astore        7
+     141: aload         7
+     143: invokevirtual #711                // Method icyllis/modernui/graphics/text/FontFamily.getFamilyName:()Ljava/lang/String;
+     146: astore        8
+     148: aload_3
+     149: ifnull        168
+     152: aload_3
+     153: aload         8
+     155: invokevirtual #715                // Method java/util/regex/Pattern.matcher:(Ljava/lang/CharSequence;)Ljava/util/regex/Matcher;
+     158: invokevirtual #720                // Method java/util/regex/Matcher.matches:()Z
+     161: ifeq          168
+     164: iconst_1
+     165: goto          169
+     168: iconst_0
+     169: istore        9
+     171: iload         9
+     173: iload         5
+     175: ixor
+     176: ifeq          188
+     179: aload_1
+     180: aload         7
+     182: invokeinterface #723,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     187: pop
+     188: goto          119
+     191: goto          416
+     194: aload_0
+     195: getfield      #310                // Field mRawDefaultFontCollection:Licyllis/modernui/graphics/text/FontCollection;
+     198: invokevirtual #706                // Method icyllis/modernui/graphics/text/FontCollection.getFamilies:()Ljava/util/List;
+     201: invokeinterface #707,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     206: astore_3
+     207: aload_3
+     208: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     213: ifeq          416
+     216: aload_3
+     217: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     222: checkcast     #525                // class icyllis/modernui/graphics/text/FontFamily
+     225: astore        4
+     227: aload         4
+     229: invokevirtual #711                // Method icyllis/modernui/graphics/text/FontFamily.getFamilyName:()Ljava/lang/String;
+     232: astore        5
+     234: iconst_m1
+     235: istore        6
+     237: aload         5
+     239: invokevirtual #726                // Method java/lang/String.hashCode:()I
+     242: lookupswitch  { // 4
+
+           -2021645281: 284
+
+           -1280861126: 335
+
+            -372040263: 318
+
+             979539671: 301
+               default: 349
+          }
+     284: aload         5
+     286: ldc_w         #728                // String minecraft:font/nonlatin_european.png
+     289: invokevirtual #729                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+     292: ifeq          349
+     295: iconst_0
+     296: istore        6
+     298: goto          349
+     301: aload         5
+     303: ldc_w         #731                // String minecraft:font/accented.png
+     306: invokevirtual #729                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+     309: ifeq          349
+     312: iconst_1
+     313: istore        6
+     315: goto          349
+     318: aload         5
+     320: ldc_w         #733                // String minecraft:font/ascii.png
+     323: invokevirtual #729                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+     326: ifeq          349
+     329: iconst_2
+     330: istore        6
+     332: goto          349
+     335: aload         5
+     337: ldc_w         #735                // String minecraft:include/space / minecraft:space
+     340: invokevirtual #729                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+     343: ifeq          349
+     346: iconst_3
+     347: istore        6
+     349: iload         6
+     351: tableswitch   { // 0 to 3
+
+                     0: 380
+
+                     1: 380
+
+                     2: 380
+
+                     3: 380
+               default: 398
+          }
+     380: iload_2
+     381: iconst_1
+     382: iand
+     383: ifeq          413
+     386: aload_1
+     387: aload         4
+     389: invokeinterface #723,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     394: pop
+     395: goto          413
+     398: iload_2
+     399: iconst_2
+     400: iand
+     401: ifeq          413
+     404: aload_1
+     405: aload         4
+     407: invokeinterface #723,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     412: pop
+     413: goto          207
+     416: return
+    Exception table:
+       from    to  target type
+          40    70    73   Class java/util/regex/PatternSyntaxException
+
+  public java.util.concurrent.CompletableFuture<java.lang.Void> method_25931(net.minecraft.class_3302$class_4045, net.minecraft.class_3300, net.minecraft.class_3695, net.minecraft.class_3695, java.util.concurrent.Executor, java.util.concurrent.Executor);
+    Code:
+       0: aload_3
+       1: invokeinterface #760,  1          // InterfaceMethod net/minecraft/class_3695.method_16065:()V
+       6: aload_3
+       7: invokeinterface #763,  1          // InterfaceMethod net/minecraft/class_3695.method_16066:()V
+      12: aload_0
+      13: aload_2
+      14: aload         5
+      16: invokevirtual #767                // Method prepareResources:(Lnet/minecraft/class_3300;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;
+      19: aload_1
+      20: dup
+      21: invokestatic  #770                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+      24: pop
+      25: invokedynamic #782,  0            // InvokeDynamic #4:apply:(Lnet/minecraft/class_3302$class_4045;)Ljava/util/function/Function;
+      30: invokevirtual #788                // Method java/util/concurrent/CompletableFuture.thenCompose:(Ljava/util/function/Function;)Ljava/util/concurrent/CompletableFuture;
+      33: aload_0
+      34: aload         4
+      36: invokedynamic #798,  0            // InvokeDynamic #5:accept:(Licyllis/modernui/mc/text/TextLayoutEngine;Lnet/minecraft/class_3695;)Ljava/util/function/Consumer;
+      41: aload         6
+      43: invokevirtual #802                // Method java/util/concurrent/CompletableFuture.thenAcceptAsync:(Ljava/util/function/Consumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;
+      46: areturn
+
+  private java.util.concurrent.CompletableFuture<icyllis.modernui.mc.text.TextLayoutEngine$LoadResults> prepareResources(net.minecraft.class_3300, java.util.concurrent.Executor);
+    Code:
+       0: new           #23                 // class icyllis/modernui/mc/text/TextLayoutEngine$LoadResults
+       3: dup
+       4: invokespecial #808                // Method icyllis/modernui/mc/text/TextLayoutEngine$LoadResults."<init>":()V
+       7: astore_3
+       8: aload_1
+       9: aload_3
+      10: invokedynamic #818,  0            // InvokeDynamic #6:run:(Lnet/minecraft/class_3300;Licyllis/modernui/mc/text/TextLayoutEngine$LoadResults;)Ljava/lang/Runnable;
+      15: aload_2
+      16: invokestatic  #822                // Method java/util/concurrent/CompletableFuture.runAsync:(Ljava/lang/Runnable;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;
+      19: astore        4
+      21: aload_1
+      22: aload_3
+      23: invokedynamic #827,  0            // InvokeDynamic #7:run:(Lnet/minecraft/class_3300;Licyllis/modernui/mc/text/TextLayoutEngine$LoadResults;)Ljava/lang/Runnable;
+      28: aload_2
+      29: invokestatic  #822                // Method java/util/concurrent/CompletableFuture.runAsync:(Ljava/lang/Runnable;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;
+      32: astore        5
+      34: aload_1
+      35: aload_3
+      36: invokedynamic #832,  0            // InvokeDynamic #8:run:(Lnet/minecraft/class_3300;Licyllis/modernui/mc/text/TextLayoutEngine$LoadResults;)Ljava/lang/Runnable;
+      41: aload_2
+      42: invokestatic  #822                // Method java/util/concurrent/CompletableFuture.runAsync:(Ljava/lang/Runnable;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;
+      45: astore        6
+      47: iconst_3
+      48: anewarray     #784                // class java/util/concurrent/CompletableFuture
+      51: dup
+      52: iconst_0
+      53: aload         4
+      55: aastore
+      56: dup
+      57: iconst_1
+      58: aload         5
+      60: aastore
+      61: dup
+      62: iconst_2
+      63: aload         6
+      65: aastore
+      66: invokestatic  #836                // Method java/util/concurrent/CompletableFuture.allOf:([Ljava/util/concurrent/CompletableFuture;)Ljava/util/concurrent/CompletableFuture;
+      69: aload_3
+      70: invokedynamic #846,  0            // InvokeDynamic #9:apply:(Licyllis/modernui/mc/text/TextLayoutEngine$LoadResults;)Ljava/util/function/Function;
+      75: invokevirtual #849                // Method java/util/concurrent/CompletableFuture.thenApply:(Ljava/util/function/Function;)Ljava/util/concurrent/CompletableFuture;
+      78: areturn
+
+  private void applyResources(icyllis.modernui.mc.text.TextLayoutEngine$LoadResults);
+    Code:
+       0: aload_0
+       1: invokevirtual #860                // Method closeFonts:()V
+       4: aload_0
+       5: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+       8: invokevirtual #861                // Method java/util/HashMap.clear:()V
+      11: aload_0
+      12: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+      15: aload_0
+      16: getfield      #219                // Field mRegisteredFonts:Ljava/util/concurrent/ConcurrentHashMap;
+      19: invokevirtual #865                // Method java/util/HashMap.putAll:(Ljava/util/Map;)V
+      22: aload_0
+      23: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+      26: aload_1
+      27: getfield      #867                // Field icyllis/modernui/mc/text/TextLayoutEngine$LoadResults.mFontCollections:Ljava/util/Map;
+      30: invokevirtual #865                // Method java/util/HashMap.putAll:(Ljava/util/Map;)V
+      33: aload_0
+      34: aload_0
+      35: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+      38: getstatic     #499                // Field net/minecraft/class_310.field_1740:Lnet/minecraft/class_2960;
+      41: invokevirtual #539                // Method java/util/HashMap.get:(Ljava/lang/Object;)Ljava/lang/Object;
+      44: checkcast     #523                // class icyllis/modernui/graphics/text/FontCollection
+      47: putfield      #310                // Field mRawDefaultFontCollection:Licyllis/modernui/graphics/text/FontCollection;
+      50: aload_0
+      51: getfield      #320                // Field mVanillaFontManager:Lnet/minecraft/class_378;
+      54: ifnull        117
+      57: aload_0
+      58: getfield      #320                // Field mVanillaFontManager:Lnet/minecraft/class_378;
+      61: checkcast     #322                // class icyllis/modernui/mc/text/mixin/AccessFontManager
+      64: invokeinterface #326,  1          // InterfaceMethod icyllis/modernui/mc/text/mixin/AccessFontManager.getFontSets:()Ljava/util/Map;
+      69: astore_2
+      70: aload_2
+      71: invokeinterface #330,  1          // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+      76: invokedynamic #876,  0            // InvokeDynamic #10:accept:()Ljava/util/function/Consumer;
+      81: invokeinterface #879,  2          // InterfaceMethod java/util/Collection.forEach:(Ljava/util/function/Consumer;)V
+      86: aload_2
+      87: invokeinterface #366,  1          // InterfaceMethod java/util/Map.clear:()V
+      92: invokestatic  #387                // Method net/minecraft/class_310.method_1551:()Lnet/minecraft/class_310;
+      95: invokevirtual #571                // Method net/minecraft/class_310.method_1531:()Lnet/minecraft/class_1060;
+      98: astore_3
+      99: aload_0
+     100: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+     103: aload_0
+     104: aload_3
+     105: aload_2
+     106: invokedynamic #891,  0            // InvokeDynamic #11:accept:(Licyllis/modernui/mc/text/TextLayoutEngine;Lnet/minecraft/class_1060;Ljava/util/Map;)Ljava/util/function/BiConsumer;
+     111: invokevirtual #894                // Method java/util/HashMap.forEach:(Ljava/util/function/BiConsumer;)V
+     114: goto          131
+     117: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     120: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     123: ldc_w         #896                // String Where is font manager?
+     126: invokeinterface #898,  3          // InterfaceMethod org/apache/logging/log4j/Logger.warn:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;)V
+     131: aload_0
+     132: getfield      #310                // Field mRawDefaultFontCollection:Licyllis/modernui/graphics/text/FontCollection;
+     135: ifnonnull     149
+     138: new           #900                // class java/lang/IllegalStateException
+     141: dup
+     142: ldc_w         #902                // String Default font failed to load
+     145: invokespecial #904                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+     148: athrow
+     149: aload_0
+     150: aload_1
+     151: invokespecial #907                // Method icyllis/modernui/mc/FontResourceManager.applyResources:(Licyllis/modernui/mc/FontResourceManager$LoadResults;)V
+     154: return
+
+  public void close();
+    Code:
+       0: aload_0
+       1: getfield      #234                // Field mGlyphManager:Licyllis/modernui/mc/text/GlyphManager;
+       4: invokevirtual #912                // Method icyllis/modernui/mc/text/GlyphManager.closeAtlases:()V
+       7: aload_0
+       8: invokevirtual #860                // Method closeFonts:()V
+      11: iconst_1
+      12: invokestatic  #318                // Method icyllis/modernui/mc/text/TextRenderType.clear:(Z)V
+      15: invokestatic  #915                // Method icyllis/modernui/mc/text/EffectRenderType.clear:()V
+      18: return
+
+  private void closeFonts();
+    Code:
+       0: aload_0
+       1: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+       4: invokevirtual #916                // Method java/util/HashMap.values:()Ljava/util/Collection;
+       7: invokeinterface #336,  1          // InterfaceMethod java/util/Collection.iterator:()Ljava/util/Iterator;
+      12: astore_1
+      13: aload_1
+      14: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      19: ifeq          96
+      22: aload_1
+      23: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      28: checkcast     #523                // class icyllis/modernui/graphics/text/FontCollection
+      31: astore_2
+      32: aload_2
+      33: invokevirtual #706                // Method icyllis/modernui/graphics/text/FontCollection.getFamilies:()Ljava/util/List;
+      36: invokeinterface #707,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      41: astore_3
+      42: aload_3
+      43: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      48: ifeq          93
+      51: aload_3
+      52: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      57: checkcast     #525                // class icyllis/modernui/graphics/text/FontFamily
+      60: astore        4
+      62: aload         4
+      64: iconst_0
+      65: invokevirtual #920                // Method icyllis/modernui/graphics/text/FontFamily.getClosestMatch:(I)Licyllis/modernui/graphics/text/Font;
+      68: astore        6
+      70: aload         6
+      72: instanceof    #922                // class icyllis/modernui/mc/text/BitmapFont
+      75: ifeq          90
+      78: aload         6
+      80: checkcast     #922                // class icyllis/modernui/mc/text/BitmapFont
+      83: astore        5
+      85: aload         5
+      87: invokevirtual #923                // Method icyllis/modernui/mc/text/BitmapFont.close:()V
+      90: goto          42
+      93: goto          13
+      96: aload_0
+      97: getfield      #310                // Field mRawDefaultFontCollection:Licyllis/modernui/graphics/text/FontCollection;
+     100: ifnull        163
+     103: aload_0
+     104: getfield      #310                // Field mRawDefaultFontCollection:Licyllis/modernui/graphics/text/FontCollection;
+     107: invokevirtual #706                // Method icyllis/modernui/graphics/text/FontCollection.getFamilies:()Ljava/util/List;
+     110: invokeinterface #707,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     115: astore_1
+     116: aload_1
+     117: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     122: ifeq          163
+     125: aload_1
+     126: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     131: checkcast     #525                // class icyllis/modernui/graphics/text/FontFamily
+     134: astore_2
+     135: aload_2
+     136: iconst_0
+     137: invokevirtual #920                // Method icyllis/modernui/graphics/text/FontFamily.getClosestMatch:(I)Licyllis/modernui/graphics/text/Font;
+     140: astore        4
+     142: aload         4
+     144: instanceof    #922                // class icyllis/modernui/mc/text/BitmapFont
+     147: ifeq          160
+     150: aload         4
+     152: checkcast     #922                // class icyllis/modernui/mc/text/BitmapFont
+     155: astore_3
+     156: aload_3
+     157: invokevirtual #923                // Method icyllis/modernui/mc/text/BitmapFont.close:()V
+     160: goto          116
+     163: return
+
+  public void onFontRegistered(icyllis.modernui.graphics.text.FontFamily);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: invokespecial #933                // Method icyllis/modernui/mc/FontResourceManager.onFontRegistered:(Licyllis/modernui/graphics/text/FontFamily;)V
+       5: aload_1
+       6: invokevirtual #711                // Method icyllis/modernui/graphics/text/FontFamily.getFamilyName:()Ljava/lang/String;
+       9: astore_2
+      10: aload_2
+      11: getstatic     #936                // Field java/util/Locale.ROOT:Ljava/util/Locale;
+      14: invokevirtual #940                // Method java/lang/String.toLowerCase:(Ljava/util/Locale;)Ljava/lang/String;
+      17: ldc_w         #942                // String
+      20: ldc_w         #944                // String -
+      23: invokevirtual #948                // Method java/lang/String.replaceAll:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+      26: astore_3
+      27: new           #523                // class icyllis/modernui/graphics/text/FontCollection
+      30: dup
+      31: iconst_1
+      32: anewarray     #525                // class icyllis/modernui/graphics/text/FontFamily
+      35: dup
+      36: iconst_0
+      37: aload_1
+      38: aastore
+      39: invokespecial #534                // Method icyllis/modernui/graphics/text/FontCollection."<init>":([Licyllis/modernui/graphics/text/FontFamily;)V
+      42: astore        4
+      44: aload_3
+      45: invokestatic  #952                // Method icyllis/modernui/mc/ModernUIMod.location:(Ljava/lang/String;)Lnet/minecraft/class_2960;
+      48: astore        5
+      50: aload_0
+      51: getfield      #219                // Field mRegisteredFonts:Ljava/util/concurrent/ConcurrentHashMap;
+      54: aload         5
+      56: aload         4
+      58: invokevirtual #953                // Method java/util/concurrent/ConcurrentHashMap.putIfAbsent:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+      61: ifnonnull     81
+      64: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+      67: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+      70: ldc_w         #955                // String Redirect registered font \'{}\' to \'{}\'
+      73: aload_2
+      74: aload         5
+      76: invokeinterface #957,  5          // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V
+      81: goto          100
+      84: astore_3
+      85: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+      88: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+      91: ldc_w         #959                // String Failed to redirect registered font \'{}\'
+      94: aload_2
+      95: invokeinterface #961,  4          // InterfaceMethod org/apache/logging/log4j/Logger.warn:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;)V
+     100: return
+    Exception table:
+       from    to  target type
+          10    81    84   Class java/lang/Exception
+
+  private static boolean isUnicodeFont(net.minecraft.class_2960);
+    Code:
+       0: aload_0
+       1: getstatic     #545                // Field net/minecraft/class_310.field_24211:Lnet/minecraft/class_2960;
+       4: invokevirtual #561                // Method net/minecraft/class_2960.equals:(Ljava/lang/Object;)Z
+       7: ifeq          12
+      10: iconst_1
+      11: ireturn
+      12: aload_0
+      13: invokevirtual #969                // Method net/minecraft/class_2960.method_12836:()Ljava/lang/String;
+      16: ldc_w         #971                // String minecraft
+      19: invokevirtual #729                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      22: ifeq          36
+      25: aload_0
+      26: invokevirtual #974                // Method net/minecraft/class_2960.method_12832:()Ljava/lang/String;
+      29: ldc_w         #976                // String include/unifont
+      32: invokevirtual #729                // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+      35: ireturn
+      36: iconst_0
+      37: ireturn
+
+  private static void loadFonts(net.minecraft.class_3300, icyllis.modernui.mc.text.TextLayoutEngine$LoadResults);
+    Code:
+       0: new           #981                // class com/google/gson/GsonBuilder
+       3: dup
+       4: invokespecial #982                // Method com/google/gson/GsonBuilder."<init>":()V
+       7: invokevirtual #986                // Method com/google/gson/GsonBuilder.setPrettyPrinting:()Lcom/google/gson/GsonBuilder;
+      10: invokevirtual #989                // Method com/google/gson/GsonBuilder.disableHtmlEscaping:()Lcom/google/gson/GsonBuilder;
+      13: invokevirtual #993                // Method com/google/gson/GsonBuilder.create:()Lcom/google/gson/Gson;
+      16: astore_2
+      17: new           #995                // class java/util/ArrayList
+      20: dup
+      21: invokespecial #996                // Method java/util/ArrayList."<init>":()V
+      24: astore_3
+      25: aload_0
+      26: ldc_w         #998                // String font
+      29: invokedynamic #1008,  0           // InvokeDynamic #12:test:()Ljava/util/function/Predicate;
+      34: invokeinterface #1014,  3         // InterfaceMethod net/minecraft/class_3300.method_41265:(Ljava/lang/String;Ljava/util/function/Predicate;)Ljava/util/Map;
+      39: invokeinterface #549,  1          // InterfaceMethod java/util/Map.entrySet:()Ljava/util/Set;
+      44: invokeinterface #552,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+      49: astore        4
+      51: aload         4
+      53: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      58: ifeq          443
+      61: aload         4
+      63: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      68: checkcast     #40                 // class java/util/Map$Entry
+      71: astore        5
+      73: aload         5
+      75: invokeinterface #555,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+      80: checkcast     #557                // class net/minecraft/class_2960
+      83: astore        6
+      85: aload         6
+      87: invokevirtual #974                // Method net/minecraft/class_2960.method_12832:()Ljava/lang/String;
+      90: astore        7
+      92: aload         6
+      94: aload         7
+      96: iconst_5
+      97: aload         7
+      99: invokevirtual #1019               // Method java/lang/String.length:()I
+     102: iconst_5
+     103: isub
+     104: invokevirtual #1023               // Method java/lang/String.substring:(II)Ljava/lang/String;
+     107: invokevirtual #1026               // Method net/minecraft/class_2960.method_45136:(Ljava/lang/String;)Lnet/minecraft/class_2960;
+     110: astore        8
+     112: aload         8
+     114: invokestatic  #1028               // Method isUnicodeFont:(Lnet/minecraft/class_2960;)Z
+     117: ifeq          123
+     120: goto          51
+     123: new           #21                 // class icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle
+     126: dup
+     127: aload         8
+     129: invokespecial #1031               // Method icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle."<init>":(Lnet/minecraft/class_2960;)V
+     132: astore        9
+     134: aload_3
+     135: aload         9
+     137: invokevirtual #1032               // Method java/util/ArrayList.add:(Ljava/lang/Object;)Z
+     140: pop
+     141: aload         5
+     143: invokeinterface #564,  1          // InterfaceMethod java/util/Map$Entry.getValue:()Ljava/lang/Object;
+     148: checkcast     #493                // class java/util/List
+     151: invokeinterface #707,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     156: astore        10
+     158: aload         10
+     160: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     165: ifeq          393
+     168: aload         10
+     170: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     175: checkcast     #1034               // class net/minecraft/class_3298
+     178: astore        11
+     180: aload         11
+     182: invokevirtual #1038               // Method net/minecraft/class_3298.method_43039:()Ljava/io/BufferedReader;
+     185: astore        12
+     187: aload_2
+     188: aload         12
+     190: ldc_w         #1040               // class com/google/gson/JsonObject
+     193: invokevirtual #1044               // Method com/google/gson/Gson.fromJson:(Ljava/io/Reader;Ljava/lang/Class;)Ljava/lang/Object;
+     196: checkcast     #1040               // class com/google/gson/JsonObject
+     199: invokestatic  #770                // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+     202: checkcast     #1040               // class com/google/gson/JsonObject
+     205: ldc_w         #1046               // String providers
+     208: invokestatic  #1052               // Method net/minecraft/class_3518.method_15261:(Lcom/google/gson/JsonObject;Ljava/lang/String;)Lcom/google/gson/JsonArray;
+     211: astore        13
+     213: iconst_0
+     214: istore        14
+     216: iload         14
+     218: aload         13
+     220: invokevirtual #1059               // Method com/google/gson/JsonArray.size:()I
+     223: if_icmpge     301
+     226: aload         13
+     228: iload         14
+     230: invokevirtual #1062               // Method com/google/gson/JsonArray.get:(I)Lcom/google/gson/JsonElement;
+     233: iload         14
+     235: invokedynamic #1065,  0           // InvokeDynamic #13:makeConcatWithConstants:(I)Ljava/lang/String;
+     240: invokestatic  #1069               // Method net/minecraft/class_3518.method_15295:(Lcom/google/gson/JsonElement;Ljava/lang/String;)Lcom/google/gson/JsonObject;
+     243: astore        15
+     245: getstatic     #1073               // Field net/minecraft/class_389$class_9245.field_49122:Lcom/mojang/serialization/Codec;
+     248: getstatic     #1079               // Field com/mojang/serialization/JsonOps.INSTANCE:Lcom/mojang/serialization/JsonOps;
+     251: aload         15
+     253: invokeinterface #1085,  3         // InterfaceMethod com/mojang/serialization/Codec.parse:(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;
+     258: invokedynamic #1094,  0           // InvokeDynamic #14:apply:()Ljava/util/function/Function;
+     263: invokeinterface #1100,  2         // InterfaceMethod com/mojang/serialization/DataResult.getOrThrow:(Ljava/util/function/Function;)Ljava/lang/Object;
+     268: checkcast     #54                 // class net/minecraft/class_389$class_9245
+     271: invokevirtual #1104               // Method net/minecraft/class_389$class_9245.comp_2352:()Lnet/minecraft/class_389;
+     274: astore        16
+     276: aload_0
+     277: aload         8
+     279: aload         9
+     281: aload         11
+     283: invokevirtual #1107               // Method net/minecraft/class_3298.method_14480:()Ljava/lang/String;
+     286: iload         14
+     288: aload         15
+     290: aload         16
+     292: invokestatic  #1111               // Method loadSingleFont:(Lnet/minecraft/class_3300;Lnet/minecraft/class_2960;Licyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle;Ljava/lang/String;ILcom/google/gson/JsonObject;Lnet/minecraft/class_389;)V
+     295: iinc          14, 1
+     298: goto          216
+     301: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     304: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     307: ldc_w         #1113               // String Loaded raw font \'{}\' in pack: \'{}\'
+     310: aload         8
+     312: aload         11
+     314: invokevirtual #1107               // Method net/minecraft/class_3298.method_14480:()Ljava/lang/String;
+     317: invokeinterface #957,  5          // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V
+     322: aload         12
+     324: ifnull        362
+     327: aload         12
+     329: invokevirtual #1114               // Method java/io/BufferedReader.close:()V
+     332: goto          362
+     335: astore        13
+     337: aload         12
+     339: ifnull        359
+     342: aload         12
+     344: invokevirtual #1114               // Method java/io/BufferedReader.close:()V
+     347: goto          359
+     350: astore        14
+     352: aload         13
+     354: aload         14
+     356: invokevirtual #1118               // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+     359: aload         13
+     361: athrow
+     362: goto          390
+     365: astore        12
+     367: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     370: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     373: ldc_w         #1120               // String Failed to load font \'{}\' in pack: \'{}\'
+     376: aload         8
+     378: aload         11
+     380: invokevirtual #1107               // Method net/minecraft/class_3298.method_14480:()Ljava/lang/String;
+     383: aload         12
+     385: invokeinterface #1123,  6         // InterfaceMethod org/apache/logging/log4j/Logger.warn:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+     390: goto          158
+     393: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     396: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     399: ldc_w         #1125               // String Loaded raw font bundle: \'{}\', font set: [{}]
+     402: aload         6
+     404: aload         9
+     406: getfield      #1128               // Field icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle.families:Ljava/util/Set;
+     409: invokeinterface #1129,  1         // InterfaceMethod java/util/Set.stream:()Ljava/util/stream/Stream;
+     414: invokedynamic #1136,  0           // InvokeDynamic #15:apply:()Ljava/util/function/Function;
+     419: invokeinterface #1140,  2         // InterfaceMethod java/util/stream/Stream.map:(Ljava/util/function/Function;)Ljava/util/stream/Stream;
+     424: ldc_w         #1142               // String ,
+     427: invokestatic  #687                // Method java/util/stream/Collectors.joining:(Ljava/lang/CharSequence;)Ljava/util/stream/Collector;
+     430: invokeinterface #691,  2          // InterfaceMethod java/util/stream/Stream.collect:(Ljava/util/stream/Collector;)Ljava/lang/Object;
+     435: invokeinterface #957,  5          // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V
+     440: goto          51
+     443: new           #61                 // class net/minecraft/class_8523
+     446: dup
+     447: invokespecial #1143               // Method net/minecraft/class_8523."<init>":()V
+     450: astore        4
+     452: aload_3
+     453: invokevirtual #1144               // Method java/util/ArrayList.iterator:()Ljava/util/Iterator;
+     456: astore        5
+     458: aload         5
+     460: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     465: ifeq          496
+     468: aload         5
+     470: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     475: checkcast     #21                 // class icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle
+     478: astore        6
+     480: aload         4
+     482: aload         6
+     484: getfield      #1146               // Field icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle.name:Lnet/minecraft/class_2960;
+     487: aload         6
+     489: invokevirtual #1150               // Method net/minecraft/class_8523.method_51486:(Ljava/lang/Object;Lnet/minecraft/class_8523$class_8524;)Lnet/minecraft/class_8523;
+     492: pop
+     493: goto          458
+     496: new           #189                // class java/util/HashMap
+     499: dup
+     500: invokespecial #190                // Method java/util/HashMap."<init>":()V
+     503: astore        5
+     505: aload         5
+     507: getstatic     #1152               // Field INTERNAL_DEFAULT:Lnet/minecraft/class_2960;
+     510: invokestatic  #503                // Method icyllis/modernui/ModernUI.getSelectedTypeface:()Licyllis/modernui/text/Typeface;
+     513: invokevirtual #506                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     516: pop
+     517: aload         4
+     519: aload         5
+     521: invokedynamic #1162,  0           // InvokeDynamic #16:accept:(Ljava/util/HashMap;)Ljava/util/function/BiConsumer;
+     526: invokevirtual #1165               // Method net/minecraft/class_8523.method_51487:(Ljava/util/function/BiConsumer;)V
+     529: aload         5
+     531: getstatic     #1152               // Field INTERNAL_DEFAULT:Lnet/minecraft/class_2960;
+     534: invokevirtual #1168               // Method java/util/HashMap.remove:(Ljava/lang/Object;)Ljava/lang/Object;
+     537: pop
+     538: aload_1
+     539: aload         5
+     541: putfield      #867                // Field icyllis/modernui/mc/text/TextLayoutEngine$LoadResults.mFontCollections:Ljava/util/Map;
+     544: return
+    Exception table:
+       from    to  target type
+         187   322   335   Class java/lang/Throwable
+         342   347   350   Class java/lang/Throwable
+         180   362   365   Class java/lang/Exception
+
+  private static void loadSingleFont(net.minecraft.class_3300, net.minecraft.class_2960, icyllis.modernui.mc.text.TextLayoutEngine$RawFontBundle, java.lang.String, int, com.google.gson.JsonObject, net.minecraft.class_389);
+    Code:
+       0: getstatic     #1197               // Field icyllis/modernui/mc/text/TextLayoutEngine$1.$SwitchMap$net$minecraft$client$gui$font$providers$GlyphProviderType:[I
+       3: aload         6
+       5: invokeinterface #1201,  1         // InterfaceMethod net/minecraft/class_389.method_51731:()Lnet/minecraft/class_394;
+      10: invokevirtual #1206               // Method net/minecraft/class_394.ordinal:()I
+      13: iaload
+      14: tableswitch   { // 1 to 5
+
+                     1: 48
+
+                     2: 81
+
+                     3: 264
+
+                     4: 297
+
+                     5: 313
+               default: 384
+          }
+      48: aload         6
+      50: checkcast     #64                 // class net/minecraft/class_386$class_387
+      53: aload_0
+      54: invokestatic  #1209               // Method icyllis/modernui/mc/text/BitmapFont.create:(Lnet/minecraft/class_386$class_387;Lnet/minecraft/class_3300;)Licyllis/modernui/mc/text/BitmapFont;
+      57: astore        7
+      59: aload_2
+      60: getfield      #1128               // Field icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle.families:Ljava/util/Set;
+      63: new           #525                // class icyllis/modernui/graphics/text/FontFamily
+      66: dup
+      67: aload         7
+      69: invokespecial #1212               // Method icyllis/modernui/graphics/text/FontFamily."<init>":(Licyllis/modernui/graphics/text/Font;)V
+      72: invokeinterface #723,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+      77: pop
+      78: goto          407
+      81: aload         6
+      83: checkcast     #71                 // class net/minecraft/class_8557
+      86: astore        7
+      88: aload         5
+      90: ldc_w         #1213               // String size
+      93: invokevirtual #1217               // Method com/google/gson/JsonObject.has:(Ljava/lang/String;)Z
+      96: ifeq          128
+      99: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     102: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     105: ldc_w         #1219               // String Ignore \'size={}\' of providers[{}] in font \'{}\' in pack: \'{}\'
+     108: aload         7
+     110: invokevirtual #1223               // Method net/minecraft/class_8557.comp_1525:()F
+     113: invokestatic  #1228               // Method java/lang/Float.valueOf:(F)Ljava/lang/Float;
+     116: iload         4
+     118: invokestatic  #375                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     121: aload_1
+     122: aload_3
+     123: invokeinterface #583,  7          // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+     128: aload         5
+     130: ldc_w         #1230               // String oversample
+     133: invokevirtual #1217               // Method com/google/gson/JsonObject.has:(Ljava/lang/String;)Z
+     136: ifeq          168
+     139: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     142: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     145: ldc_w         #1232               // String Ignore \'oversample={}\' of providers[{}] in font \'{}\' in pack: \'{}\'
+     148: aload         7
+     150: invokevirtual #1235               // Method net/minecraft/class_8557.comp_1526:()F
+     153: invokestatic  #1228               // Method java/lang/Float.valueOf:(F)Ljava/lang/Float;
+     156: iload         4
+     158: invokestatic  #375                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     161: aload_1
+     162: aload_3
+     163: invokeinterface #583,  7          // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+     168: aload         5
+     170: ldc_w         #1237               // String shift
+     173: invokevirtual #1217               // Method com/google/gson/JsonObject.has:(Ljava/lang/String;)Z
+     176: ifeq          205
+     179: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     182: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     185: ldc_w         #1239               // String Ignore \'shift={}\' of providers[{}] in font \'{}\' in pack: \'{}\'
+     188: aload         7
+     190: invokevirtual #1243               // Method net/minecraft/class_8557.comp_1527:()Lnet/minecraft/class_8557$class_8558;
+     193: iload         4
+     195: invokestatic  #375                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     198: aload_1
+     199: aload_3
+     200: invokeinterface #583,  7          // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+     205: aload         5
+     207: ldc_w         #1245               // String skip
+     210: invokevirtual #1217               // Method com/google/gson/JsonObject.has:(Ljava/lang/String;)Z
+     213: ifeq          242
+     216: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     219: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     222: ldc_w         #1247               // String Ignore \'skip={}\' of providers[{}] in font \'{}\' in pack: \'{}\'
+     225: aload         7
+     227: invokevirtual #1250               // Method net/minecraft/class_8557.comp_1528:()Ljava/lang/String;
+     230: iload         4
+     232: invokestatic  #375                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     235: aload_1
+     236: aload_3
+     237: invokeinterface #583,  7          // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+     242: aload_2
+     243: getfield      #1128               // Field icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle.families:Ljava/util/Set;
+     246: aload         7
+     248: invokevirtual #1254               // Method net/minecraft/class_8557.comp_1524:()Lnet/minecraft/class_2960;
+     251: aload_0
+     252: invokestatic  #1258               // Method createTTF:(Lnet/minecraft/class_2960;Lnet/minecraft/class_3300;)Licyllis/modernui/graphics/text/FontFamily;
+     255: invokeinterface #723,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     260: pop
+     261: goto          407
+     264: aload_1
+     265: aload         6
+     267: checkcast     #74                 // class net/minecraft/class_7166$class_8554
+     270: invokestatic  #1263               // Method icyllis/modernui/mc/text/SpaceFont.create:(Lnet/minecraft/class_2960;Lnet/minecraft/class_7166$class_8554;)Licyllis/modernui/mc/text/SpaceFont;
+     273: astore        7
+     275: aload_2
+     276: getfield      #1128               // Field icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle.families:Ljava/util/Set;
+     279: new           #525                // class icyllis/modernui/graphics/text/FontFamily
+     282: dup
+     283: aload         7
+     285: invokespecial #1212               // Method icyllis/modernui/graphics/text/FontFamily."<init>":(Licyllis/modernui/graphics/text/Font;)V
+     288: invokeinterface #723,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     293: pop
+     294: goto          407
+     297: aload_2
+     298: getfield      #1128               // Field icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle.families:Ljava/util/Set;
+     301: getstatic     #1152               // Field INTERNAL_DEFAULT:Lnet/minecraft/class_2960;
+     304: invokeinterface #723,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     309: pop
+     310: goto          407
+     313: aload         6
+     315: checkcast     #1265               // class net/minecraft/class_8541
+     318: invokevirtual #1268               // Method net/minecraft/class_8541.comp_1523:()Lnet/minecraft/class_2960;
+     321: astore        7
+     323: aload         7
+     325: invokestatic  #1028               // Method isUnicodeFont:(Lnet/minecraft/class_2960;)Z
+     328: ifne          358
+     331: aload_2
+     332: getfield      #1128               // Field icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle.families:Ljava/util/Set;
+     335: aload         7
+     337: invokeinterface #723,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     342: pop
+     343: aload_2
+     344: getfield      #1271               // Field icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle.dependencies:Ljava/util/Set;
+     347: aload         7
+     349: invokeinterface #723,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     354: pop
+     355: goto          381
+     358: aload_1
+     359: getstatic     #499                // Field net/minecraft/class_310.field_1740:Lnet/minecraft/class_2960;
+     362: invokevirtual #561                // Method net/minecraft/class_2960.equals:(Ljava/lang/Object;)Z
+     365: ifne          381
+     368: aload_2
+     369: getfield      #1128               // Field icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle.families:Ljava/util/Set;
+     372: getstatic     #1152               // Field INTERNAL_DEFAULT:Lnet/minecraft/class_2960;
+     375: invokeinterface #723,  2          // InterfaceMethod java/util/Set.add:(Ljava/lang/Object;)Z
+     380: pop
+     381: goto          407
+     384: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     387: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     390: ldc_w         #1273               // String Unknown provider type \'{}\' in font \'{}\' in pack: \'{}\'
+     393: aload         6
+     395: invokeinterface #1201,  1         // InterfaceMethod net/minecraft/class_389.method_51731:()Lnet/minecraft/class_394;
+     400: aload_1
+     401: aload_3
+     402: invokeinterface #1275,  6         // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+     407: return
+
+  private static icyllis.modernui.graphics.text.FontFamily createTTF(net.minecraft.class_2960, net.minecraft.class_3300);
+    Code:
+       0: aload_0
+       1: ldc_w         #1283               // String font/
+       4: invokevirtual #1286               // Method net/minecraft/class_2960.method_45138:(Ljava/lang/String;)Lnet/minecraft/class_2960;
+       7: astore_2
+       8: aload_1
+       9: aload_2
+      10: invokeinterface #1290,  2         // InterfaceMethod net/minecraft/class_3300.open:(Lnet/minecraft/class_2960;)Ljava/io/InputStream;
+      15: astore_3
+      16: aload_3
+      17: iconst_0
+      18: invokestatic  #1294               // Method icyllis/modernui/graphics/text/FontFamily.createFamily:(Ljava/io/InputStream;Z)Licyllis/modernui/graphics/text/FontFamily;
+      21: astore        4
+      23: aload_3
+      24: ifnull        31
+      27: aload_3
+      28: invokevirtual #1297               // Method java/io/InputStream.close:()V
+      31: aload         4
+      33: areturn
+      34: astore        4
+      36: aload_3
+      37: ifnull        56
+      40: aload_3
+      41: invokevirtual #1297               // Method java/io/InputStream.close:()V
+      44: goto          56
+      47: astore        5
+      49: aload         4
+      51: aload         5
+      53: invokevirtual #1118               // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+      56: aload         4
+      58: athrow
+      59: astore_3
+      60: new           #1299               // class java/lang/RuntimeException
+      63: dup
+      64: aload_3
+      65: invokespecial #1301               // Method java/lang/RuntimeException."<init>":(Ljava/lang/Throwable;)V
+      68: athrow
+    Exception table:
+       from    to  target type
+          16    23    34   Class java/lang/Throwable
+          40    44    47   Class java/lang/Throwable
+           8    31    59   Class java/lang/Exception
+          34    59    59   Class java/lang/Exception
+
+  public static int adjustPixelDensityForSDF(int);
+    Code:
+       0: iload_0
+       1: getstatic     #1307               // Field sMinPixelDensityForSDF:I
+       4: invokestatic  #1310               // Method java/lang/Math.max:(II)I
+       7: ireturn
+
+  public icyllis.modernui.mc.text.TextLayout lookupVanillaLayout(java.lang.String);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: getstatic     #1319               // Field net/minecraft/class_2583.field_24360:Lnet/minecraft/class_2583;
+       5: iconst_0
+       6: invokevirtual #1322               // Method lookupVanillaLayout:(Ljava/lang/String;Lnet/minecraft/class_2583;I)Licyllis/modernui/mc/text/TextLayout;
+       9: areturn
+
+  public icyllis.modernui.mc.text.TextLayout lookupVanillaLayout(java.lang.String, net.minecraft.class_2583);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: aload_2
+       3: iconst_0
+       4: invokevirtual #1322               // Method lookupVanillaLayout:(Ljava/lang/String;Lnet/minecraft/class_2583;I)Licyllis/modernui/mc/text/TextLayout;
+       7: areturn
+
+  public icyllis.modernui.mc.text.TextLayout lookupVanillaLayout(java.lang.String, net.minecraft.class_2583, int);
+    Code:
+       0: aload_1
+       1: invokevirtual #1326               // Method java/lang/String.isEmpty:()Z
+       4: ifeq          11
+       7: getstatic     #1332               // Field icyllis/modernui/mc/text/TextLayout.EMPTY:Licyllis/modernui/mc/text/TextLayout;
+      10: areturn
+      11: invokestatic  #1337               // Method com/mojang/blaze3d/systems/RenderSystem.isOnRenderThread:()Z
+      14: ifne          103
+      17: getstatic     #1339               // Field sAllowAsyncLayout:Z
+      20: ifeq          81
+      23: aload_0
+      24: getfield      #212                // Field mProcessorPool:Licyllis/modernui/util/Pools$Pool;
+      27: invokeinterface #1342,  1         // InterfaceMethod icyllis/modernui/util/Pools$Pool.acquire:()Ljava/lang/Object;
+      32: checkcast     #201                // class icyllis/modernui/mc/text/TextLayoutProcessor
+      35: astore        4
+      37: aload         4
+      39: ifnonnull     52
+      42: new           #201                // class icyllis/modernui/mc/text/TextLayoutProcessor
+      45: dup
+      46: aload_0
+      47: invokespecial #204                // Method icyllis/modernui/mc/text/TextLayoutProcessor."<init>":(Licyllis/modernui/mc/text/TextLayoutEngine;)V
+      50: astore        4
+      52: aload         4
+      54: aload_1
+      55: aload_2
+      56: aload_0
+      57: getfield      #221                // Field mResLevel:I
+      60: iload_3
+      61: invokevirtual #1346               // Method icyllis/modernui/mc/text/TextLayoutProcessor.createVanillaLayout:(Ljava/lang/String;Lnet/minecraft/class_2583;II)Licyllis/modernui/mc/text/TextLayout;
+      64: astore        5
+      66: aload_0
+      67: getfield      #212                // Field mProcessorPool:Licyllis/modernui/util/Pools$Pool;
+      70: aload         4
+      72: invokeinterface #1349,  2         // InterfaceMethod icyllis/modernui/util/Pools$Pool.release:(Ljava/lang/Object;)Z
+      77: pop
+      78: aload         5
+      80: areturn
+      81: invokestatic  #387                // Method net/minecraft/class_310.method_1551:()Lnet/minecraft/class_310;
+      84: aload_0
+      85: aload_1
+      86: aload_2
+      87: iload_3
+      88: invokedynamic #1359,  0           // InvokeDynamic #17:get:(Licyllis/modernui/mc/text/TextLayoutEngine;Ljava/lang/String;Lnet/minecraft/class_2583;I)Ljava/util/function/Supplier;
+      93: invokevirtual #1363               // Method net/minecraft/class_310.method_5385:(Ljava/util/function/Supplier;)Ljava/util/concurrent/CompletableFuture;
+      96: invokevirtual #1366               // Method java/util/concurrent/CompletableFuture.join:()Ljava/lang/Object;
+      99: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     102: areturn
+     103: aload_0
+     104: getfield      #192                // Field mVanillaCache:Ljava/util/Map;
+     107: aload_0
+     108: getfield      #187                // Field mVanillaLookupKey:Licyllis/modernui/mc/text/VanillaLayoutKey;
+     111: aload_1
+     112: aload_2
+     113: invokevirtual #1370               // Method icyllis/modernui/mc/text/VanillaLayoutKey.update:(Ljava/lang/String;Lnet/minecraft/class_2583;)Licyllis/modernui/mc/text/VanillaLayoutKey;
+     116: invokeinterface #538,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     121: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     124: astore        4
+     126: iconst_0
+     127: istore        5
+     129: aload         4
+     131: ifnull        148
+     134: aload         4
+     136: getfield      #1373               // Field icyllis/modernui/mc/text/TextLayout.mComputedFlags:I
+     139: dup
+     140: istore        5
+     142: iload_3
+     143: iand
+     144: iload_3
+     145: if_icmpeq     189
+     148: aload_0
+     149: getfield      #206                // Field mProcessor:Licyllis/modernui/mc/text/TextLayoutProcessor;
+     152: aload_1
+     153: aload_2
+     154: aload_0
+     155: getfield      #221                // Field mResLevel:I
+     158: iload         5
+     160: iload_3
+     161: ior
+     162: invokevirtual #1346               // Method icyllis/modernui/mc/text/TextLayoutProcessor.createVanillaLayout:(Ljava/lang/String;Lnet/minecraft/class_2583;II)Licyllis/modernui/mc/text/TextLayout;
+     165: astore        4
+     167: aload_0
+     168: getfield      #192                // Field mVanillaCache:Ljava/util/Map;
+     171: aload_0
+     172: getfield      #187                // Field mVanillaLookupKey:Licyllis/modernui/mc/text/VanillaLayoutKey;
+     175: invokevirtual #1377               // Method icyllis/modernui/mc/text/VanillaLayoutKey.copy:()Licyllis/modernui/mc/text/VanillaLayoutKey;
+     178: aload         4
+     180: invokeinterface #575,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     185: pop
+     186: aload         4
+     188: areturn
+     189: aload         4
+     191: invokevirtual #1379               // Method icyllis/modernui/mc/text/TextLayout.get:()Licyllis/modernui/mc/text/TextLayout;
+     194: areturn
+
+  public icyllis.modernui.mc.text.TextLayout lookupFormattedLayout(net.minecraft.class_5348);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: getstatic     #1319               // Field net/minecraft/class_2583.field_24360:Lnet/minecraft/class_2583;
+       5: iconst_0
+       6: invokevirtual #1387               // Method lookupFormattedLayout:(Lnet/minecraft/class_5348;Lnet/minecraft/class_2583;I)Licyllis/modernui/mc/text/TextLayout;
+       9: areturn
+
+  public icyllis.modernui.mc.text.TextLayout lookupFormattedLayout(net.minecraft.class_5348, net.minecraft.class_2583);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: aload_2
+       3: iconst_0
+       4: invokevirtual #1387               // Method lookupFormattedLayout:(Lnet/minecraft/class_5348;Lnet/minecraft/class_2583;I)Licyllis/modernui/mc/text/TextLayout;
+       7: areturn
+
+  public icyllis.modernui.mc.text.TextLayout lookupFormattedLayout(net.minecraft.class_5348, net.minecraft.class_2583, int);
+    Code:
+       0: aload_1
+       1: getstatic     #1395               // Field net/minecraft/class_5244.field_39003:Lnet/minecraft/class_2561;
+       4: if_acmpeq     14
+       7: aload_1
+       8: getstatic     #1400               // Field net/minecraft/class_5348.field_25310:Lnet/minecraft/class_5348;
+      11: if_acmpne     18
+      14: getstatic     #1332               // Field icyllis/modernui/mc/text/TextLayout.EMPTY:Licyllis/modernui/mc/text/TextLayout;
+      17: areturn
+      18: invokestatic  #1337               // Method com/mojang/blaze3d/systems/RenderSystem.isOnRenderThread:()Z
+      21: ifne          110
+      24: getstatic     #1339               // Field sAllowAsyncLayout:Z
+      27: ifeq          88
+      30: aload_0
+      31: getfield      #212                // Field mProcessorPool:Licyllis/modernui/util/Pools$Pool;
+      34: invokeinterface #1342,  1         // InterfaceMethod icyllis/modernui/util/Pools$Pool.acquire:()Ljava/lang/Object;
+      39: checkcast     #201                // class icyllis/modernui/mc/text/TextLayoutProcessor
+      42: astore        4
+      44: aload         4
+      46: ifnonnull     59
+      49: new           #201                // class icyllis/modernui/mc/text/TextLayoutProcessor
+      52: dup
+      53: aload_0
+      54: invokespecial #204                // Method icyllis/modernui/mc/text/TextLayoutProcessor."<init>":(Licyllis/modernui/mc/text/TextLayoutEngine;)V
+      57: astore        4
+      59: aload         4
+      61: aload_1
+      62: aload_2
+      63: aload_0
+      64: getfield      #221                // Field mResLevel:I
+      67: iload_3
+      68: invokevirtual #1404               // Method icyllis/modernui/mc/text/TextLayoutProcessor.createTextLayout:(Lnet/minecraft/class_5348;Lnet/minecraft/class_2583;II)Licyllis/modernui/mc/text/TextLayout;
+      71: astore        5
+      73: aload_0
+      74: getfield      #212                // Field mProcessorPool:Licyllis/modernui/util/Pools$Pool;
+      77: aload         4
+      79: invokeinterface #1349,  2         // InterfaceMethod icyllis/modernui/util/Pools$Pool.release:(Ljava/lang/Object;)Z
+      84: pop
+      85: aload         5
+      87: areturn
+      88: invokestatic  #387                // Method net/minecraft/class_310.method_1551:()Lnet/minecraft/class_310;
+      91: aload_0
+      92: aload_1
+      93: aload_2
+      94: iload_3
+      95: invokedynamic #1411,  0           // InvokeDynamic #18:get:(Licyllis/modernui/mc/text/TextLayoutEngine;Lnet/minecraft/class_5348;Lnet/minecraft/class_2583;I)Ljava/util/function/Supplier;
+     100: invokevirtual #1363               // Method net/minecraft/class_310.method_5385:(Ljava/util/function/Supplier;)Ljava/util/concurrent/CompletableFuture;
+     103: invokevirtual #1366               // Method java/util/concurrent/CompletableFuture.join:()Ljava/lang/Object;
+     106: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     109: areturn
+     110: iconst_0
+     111: istore        5
+     113: aload_2
+     114: invokevirtual #1414               // Method net/minecraft/class_2583.method_10967:()Z
+     117: ifeq          212
+     120: getstatic     #1416               // Field sUseComponentCache:Z
+     123: ifeq          212
+     126: aload_1
+     127: instanceof    #1418               // class net/minecraft/class_5250
+     130: ifeq          212
+     133: aload_1
+     134: checkcast     #1418               // class net/minecraft/class_5250
+     137: astore        6
+     139: aload_0
+     140: getfield      #194                // Field mComponentCache:Ljava/util/Map;
+     143: aload         6
+     145: invokeinterface #538,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     150: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     153: astore        4
+     155: aload         4
+     157: ifnull        174
+     160: aload         4
+     162: getfield      #1373               // Field icyllis/modernui/mc/text/TextLayout.mComputedFlags:I
+     165: dup
+     166: istore        5
+     168: iload_3
+     169: iand
+     170: iload_3
+     171: if_icmpeq     295
+     174: aload_0
+     175: getfield      #206                // Field mProcessor:Licyllis/modernui/mc/text/TextLayoutProcessor;
+     178: aload_1
+     179: getstatic     #1319               // Field net/minecraft/class_2583.field_24360:Lnet/minecraft/class_2583;
+     182: aload_0
+     183: getfield      #221                // Field mResLevel:I
+     186: iload         5
+     188: iload_3
+     189: ior
+     190: invokevirtual #1404               // Method icyllis/modernui/mc/text/TextLayoutProcessor.createTextLayout:(Lnet/minecraft/class_5348;Lnet/minecraft/class_2583;II)Licyllis/modernui/mc/text/TextLayout;
+     193: astore        4
+     195: aload_0
+     196: getfield      #194                // Field mComponentCache:Ljava/util/Map;
+     199: aload         6
+     201: aload         4
+     203: invokeinterface #575,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     208: pop
+     209: aload         4
+     211: areturn
+     212: aload_0
+     213: getfield      #199                // Field mFormattedCache:Ljava/util/Map;
+     216: aload_0
+     217: getfield      #197                // Field mFormattedLayoutKey:Licyllis/modernui/mc/text/FormattedLayoutKey$Lookup;
+     220: aload_1
+     221: aload_2
+     222: invokevirtual #1421               // Method icyllis/modernui/mc/text/FormattedLayoutKey$Lookup.update:(Lnet/minecraft/class_5348;Lnet/minecraft/class_2583;)Licyllis/modernui/mc/text/FormattedLayoutKey;
+     225: invokeinterface #538,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     230: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     233: astore        4
+     235: aload         4
+     237: ifnull        254
+     240: aload         4
+     242: getfield      #1373               // Field icyllis/modernui/mc/text/TextLayout.mComputedFlags:I
+     245: dup
+     246: istore        5
+     248: iload_3
+     249: iand
+     250: iload_3
+     251: if_icmpeq     295
+     254: aload_0
+     255: getfield      #206                // Field mProcessor:Licyllis/modernui/mc/text/TextLayoutProcessor;
+     258: aload_1
+     259: aload_2
+     260: aload_0
+     261: getfield      #221                // Field mResLevel:I
+     264: iload         5
+     266: iload_3
+     267: ior
+     268: invokevirtual #1404               // Method icyllis/modernui/mc/text/TextLayoutProcessor.createTextLayout:(Lnet/minecraft/class_5348;Lnet/minecraft/class_2583;II)Licyllis/modernui/mc/text/TextLayout;
+     271: astore        4
+     273: aload_0
+     274: getfield      #199                // Field mFormattedCache:Ljava/util/Map;
+     277: aload_0
+     278: getfield      #197                // Field mFormattedLayoutKey:Licyllis/modernui/mc/text/FormattedLayoutKey$Lookup;
+     281: invokevirtual #1424               // Method icyllis/modernui/mc/text/FormattedLayoutKey$Lookup.copy:()Licyllis/modernui/mc/text/FormattedLayoutKey;
+     284: aload         4
+     286: invokeinterface #575,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     291: pop
+     292: aload         4
+     294: areturn
+     295: aload         4
+     297: invokevirtual #1379               // Method icyllis/modernui/mc/text/TextLayout.get:()Licyllis/modernui/mc/text/TextLayout;
+     300: areturn
+
+  public icyllis.modernui.mc.text.TextLayout lookupFormattedLayout(net.minecraft.class_5481);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: iconst_0
+       3: invokevirtual #1431               // Method lookupFormattedLayout:(Lnet/minecraft/class_5481;I)Licyllis/modernui/mc/text/TextLayout;
+       6: areturn
+
+  public icyllis.modernui.mc.text.TextLayout lookupFormattedLayout(net.minecraft.class_5481, int);
+    Code:
+       0: aload_1
+       1: getstatic     #1437               // Field net/minecraft/class_5481.field_26385:Lnet/minecraft/class_5481;
+       4: if_acmpne     11
+       7: getstatic     #1332               // Field icyllis/modernui/mc/text/TextLayout.EMPTY:Licyllis/modernui/mc/text/TextLayout;
+      10: areturn
+      11: invokestatic  #1337               // Method com/mojang/blaze3d/systems/RenderSystem.isOnRenderThread:()Z
+      14: ifne          96
+      17: getstatic     #1339               // Field sAllowAsyncLayout:Z
+      20: ifeq          75
+      23: aload_0
+      24: getfield      #212                // Field mProcessorPool:Licyllis/modernui/util/Pools$Pool;
+      27: invokeinterface #1342,  1         // InterfaceMethod icyllis/modernui/util/Pools$Pool.acquire:()Ljava/lang/Object;
+      32: checkcast     #201                // class icyllis/modernui/mc/text/TextLayoutProcessor
+      35: astore_3
+      36: aload_3
+      37: ifnonnull     49
+      40: new           #201                // class icyllis/modernui/mc/text/TextLayoutProcessor
+      43: dup
+      44: aload_0
+      45: invokespecial #204                // Method icyllis/modernui/mc/text/TextLayoutProcessor."<init>":(Licyllis/modernui/mc/text/TextLayoutEngine;)V
+      48: astore_3
+      49: aload_3
+      50: aload_1
+      51: aload_0
+      52: getfield      #221                // Field mResLevel:I
+      55: iload_2
+      56: invokevirtual #1441               // Method icyllis/modernui/mc/text/TextLayoutProcessor.createSequenceLayout:(Lnet/minecraft/class_5481;II)Licyllis/modernui/mc/text/TextLayout;
+      59: astore        4
+      61: aload_0
+      62: getfield      #212                // Field mProcessorPool:Licyllis/modernui/util/Pools$Pool;
+      65: aload_3
+      66: invokeinterface #1349,  2         // InterfaceMethod icyllis/modernui/util/Pools$Pool.release:(Ljava/lang/Object;)Z
+      71: pop
+      72: aload         4
+      74: areturn
+      75: invokestatic  #387                // Method net/minecraft/class_310.method_1551:()Lnet/minecraft/class_310;
+      78: aload_0
+      79: aload_1
+      80: iload_2
+      81: invokedynamic #1448,  0           // InvokeDynamic #19:get:(Licyllis/modernui/mc/text/TextLayoutEngine;Lnet/minecraft/class_5481;I)Ljava/util/function/Supplier;
+      86: invokevirtual #1363               // Method net/minecraft/class_310.method_5385:(Ljava/util/function/Supplier;)Ljava/util/concurrent/CompletableFuture;
+      89: invokevirtual #1366               // Method java/util/concurrent/CompletableFuture.join:()Ljava/lang/Object;
+      92: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+      95: areturn
+      96: iconst_0
+      97: istore_3
+      98: aload_1
+      99: instanceof    #1450               // class icyllis/modernui/mc/text/FormattedTextWrapper
+     102: ifeq          320
+     105: aload_1
+     106: checkcast     #1450               // class icyllis/modernui/mc/text/FormattedTextWrapper
+     109: getfield      #1453               // Field icyllis/modernui/mc/text/FormattedTextWrapper.mText:Lnet/minecraft/class_5348;
+     112: astore        5
+     114: aload         5
+     116: getstatic     #1395               // Field net/minecraft/class_5244.field_39003:Lnet/minecraft/class_2561;
+     119: if_acmpeq     130
+     122: aload         5
+     124: getstatic     #1400               // Field net/minecraft/class_5348.field_25310:Lnet/minecraft/class_5348;
+     127: if_acmpne     134
+     130: getstatic     #1332               // Field icyllis/modernui/mc/text/TextLayout.EMPTY:Licyllis/modernui/mc/text/TextLayout;
+     133: areturn
+     134: getstatic     #1416               // Field sUseComponentCache:Z
+     137: ifeq          227
+     140: aload         5
+     142: instanceof    #1418               // class net/minecraft/class_5250
+     145: ifeq          227
+     148: aload         5
+     150: checkcast     #1418               // class net/minecraft/class_5250
+     153: astore        7
+     155: aload_0
+     156: getfield      #194                // Field mComponentCache:Ljava/util/Map;
+     159: aload         7
+     161: invokeinterface #538,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     166: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     169: astore        6
+     171: aload         6
+     173: ifnull        189
+     176: aload         6
+     178: getfield      #1373               // Field icyllis/modernui/mc/text/TextLayout.mComputedFlags:I
+     181: dup
+     182: istore_3
+     183: iload_2
+     184: iand
+     185: iload_2
+     186: if_icmpeq     314
+     189: aload_0
+     190: getfield      #206                // Field mProcessor:Licyllis/modernui/mc/text/TextLayoutProcessor;
+     193: aload         5
+     195: getstatic     #1319               // Field net/minecraft/class_2583.field_24360:Lnet/minecraft/class_2583;
+     198: aload_0
+     199: getfield      #221                // Field mResLevel:I
+     202: iload_3
+     203: iload_2
+     204: ior
+     205: invokevirtual #1404               // Method icyllis/modernui/mc/text/TextLayoutProcessor.createTextLayout:(Lnet/minecraft/class_5348;Lnet/minecraft/class_2583;II)Licyllis/modernui/mc/text/TextLayout;
+     208: astore        6
+     210: aload_0
+     211: getfield      #194                // Field mComponentCache:Ljava/util/Map;
+     214: aload         7
+     216: aload         6
+     218: invokeinterface #575,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     223: pop
+     224: aload         6
+     226: areturn
+     227: aload_0
+     228: getfield      #199                // Field mFormattedCache:Ljava/util/Map;
+     231: aload_0
+     232: getfield      #197                // Field mFormattedLayoutKey:Licyllis/modernui/mc/text/FormattedLayoutKey$Lookup;
+     235: aload         5
+     237: getstatic     #1319               // Field net/minecraft/class_2583.field_24360:Lnet/minecraft/class_2583;
+     240: invokevirtual #1421               // Method icyllis/modernui/mc/text/FormattedLayoutKey$Lookup.update:(Lnet/minecraft/class_5348;Lnet/minecraft/class_2583;)Licyllis/modernui/mc/text/FormattedLayoutKey;
+     243: invokeinterface #538,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     248: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     251: astore        6
+     253: aload         6
+     255: ifnull        271
+     258: aload         6
+     260: getfield      #1373               // Field icyllis/modernui/mc/text/TextLayout.mComputedFlags:I
+     263: dup
+     264: istore_3
+     265: iload_2
+     266: iand
+     267: iload_2
+     268: if_icmpeq     314
+     271: aload_0
+     272: getfield      #206                // Field mProcessor:Licyllis/modernui/mc/text/TextLayoutProcessor;
+     275: aload         5
+     277: getstatic     #1319               // Field net/minecraft/class_2583.field_24360:Lnet/minecraft/class_2583;
+     280: aload_0
+     281: getfield      #221                // Field mResLevel:I
+     284: iload_3
+     285: iload_2
+     286: ior
+     287: invokevirtual #1404               // Method icyllis/modernui/mc/text/TextLayoutProcessor.createTextLayout:(Lnet/minecraft/class_5348;Lnet/minecraft/class_2583;II)Licyllis/modernui/mc/text/TextLayout;
+     290: astore        6
+     292: aload_0
+     293: getfield      #199                // Field mFormattedCache:Ljava/util/Map;
+     296: aload_0
+     297: getfield      #197                // Field mFormattedLayoutKey:Licyllis/modernui/mc/text/FormattedLayoutKey$Lookup;
+     300: invokevirtual #1424               // Method icyllis/modernui/mc/text/FormattedLayoutKey$Lookup.copy:()Licyllis/modernui/mc/text/FormattedLayoutKey;
+     303: aload         6
+     305: invokeinterface #575,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     310: pop
+     311: aload         6
+     313: areturn
+     314: aload         6
+     316: invokevirtual #1379               // Method icyllis/modernui/mc/text/TextLayout.get:()Licyllis/modernui/mc/text/TextLayout;
+     319: areturn
+     320: aload_1
+     321: instanceof    #1455               // class icyllis/modernui/mc/text/VanillaTextWrapper
+     324: ifeq          438
+     327: aload_1
+     328: checkcast     #1455               // class icyllis/modernui/mc/text/VanillaTextWrapper
+     331: astore        4
+     333: aload         4
+     335: getfield      #1457               // Field icyllis/modernui/mc/text/VanillaTextWrapper.mText:Ljava/lang/String;
+     338: astore        5
+     340: aload         4
+     342: getfield      #1460               // Field icyllis/modernui/mc/text/VanillaTextWrapper.mStyle:Lnet/minecraft/class_2583;
+     345: astore        6
+     347: aload_0
+     348: getfield      #192                // Field mVanillaCache:Ljava/util/Map;
+     351: aload_0
+     352: getfield      #187                // Field mVanillaLookupKey:Licyllis/modernui/mc/text/VanillaLayoutKey;
+     355: aload         5
+     357: aload         6
+     359: invokevirtual #1370               // Method icyllis/modernui/mc/text/VanillaLayoutKey.update:(Ljava/lang/String;Lnet/minecraft/class_2583;)Licyllis/modernui/mc/text/VanillaLayoutKey;
+     362: invokeinterface #538,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     367: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     370: astore        7
+     372: aload         7
+     374: ifnull        390
+     377: aload         7
+     379: getfield      #1373               // Field icyllis/modernui/mc/text/TextLayout.mComputedFlags:I
+     382: dup
+     383: istore_3
+     384: iload_2
+     385: iand
+     386: iload_2
+     387: if_icmpeq     432
+     390: aload_0
+     391: getfield      #206                // Field mProcessor:Licyllis/modernui/mc/text/TextLayoutProcessor;
+     394: aload         5
+     396: aload         6
+     398: aload_0
+     399: getfield      #221                // Field mResLevel:I
+     402: iload_3
+     403: iload_2
+     404: ior
+     405: invokevirtual #1346               // Method icyllis/modernui/mc/text/TextLayoutProcessor.createVanillaLayout:(Ljava/lang/String;Lnet/minecraft/class_2583;II)Licyllis/modernui/mc/text/TextLayout;
+     408: astore        7
+     410: aload_0
+     411: getfield      #192                // Field mVanillaCache:Ljava/util/Map;
+     414: aload_0
+     415: getfield      #187                // Field mVanillaLookupKey:Licyllis/modernui/mc/text/VanillaLayoutKey;
+     418: invokevirtual #1377               // Method icyllis/modernui/mc/text/VanillaLayoutKey.copy:()Licyllis/modernui/mc/text/VanillaLayoutKey;
+     421: aload         7
+     423: invokeinterface #575,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     428: pop
+     429: aload         7
+     431: areturn
+     432: aload         7
+     434: invokevirtual #1379               // Method icyllis/modernui/mc/text/TextLayout.get:()Licyllis/modernui/mc/text/TextLayout;
+     437: areturn
+     438: aload_0
+     439: getfield      #199                // Field mFormattedCache:Ljava/util/Map;
+     442: aload_0
+     443: getfield      #197                // Field mFormattedLayoutKey:Licyllis/modernui/mc/text/FormattedLayoutKey$Lookup;
+     446: aload_1
+     447: invokevirtual #1463               // Method icyllis/modernui/mc/text/FormattedLayoutKey$Lookup.update:(Lnet/minecraft/class_5481;)Licyllis/modernui/mc/text/FormattedLayoutKey;
+     450: invokeinterface #538,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     455: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     458: astore        5
+     460: aload         5
+     462: ifnull        478
+     465: aload         5
+     467: getfield      #1373               // Field icyllis/modernui/mc/text/TextLayout.mComputedFlags:I
+     470: dup
+     471: istore_3
+     472: iload_2
+     473: iand
+     474: iload_2
+     475: if_icmpeq     517
+     478: aload_0
+     479: getfield      #206                // Field mProcessor:Licyllis/modernui/mc/text/TextLayoutProcessor;
+     482: aload_1
+     483: aload_0
+     484: getfield      #221                // Field mResLevel:I
+     487: iload_3
+     488: iload_2
+     489: ior
+     490: invokevirtual #1441               // Method icyllis/modernui/mc/text/TextLayoutProcessor.createSequenceLayout:(Lnet/minecraft/class_5481;II)Licyllis/modernui/mc/text/TextLayout;
+     493: astore        5
+     495: aload_0
+     496: getfield      #199                // Field mFormattedCache:Ljava/util/Map;
+     499: aload_0
+     500: getfield      #197                // Field mFormattedLayoutKey:Licyllis/modernui/mc/text/FormattedLayoutKey$Lookup;
+     503: invokevirtual #1424               // Method icyllis/modernui/mc/text/FormattedLayoutKey$Lookup.copy:()Licyllis/modernui/mc/text/FormattedLayoutKey;
+     506: aload         5
+     508: invokeinterface #575,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     513: pop
+     514: aload         5
+     516: areturn
+     517: aload         5
+     519: invokevirtual #1379               // Method icyllis/modernui/mc/text/TextLayout.get:()Licyllis/modernui/mc/text/TextLayout;
+     522: areturn
+
+  public boolean handleSequence(net.minecraft.class_5481, icyllis.modernui.mc.text.ReorderTextHandler$IConsumer);
+    Code:
+       0: new           #1471               // class java/lang/UnsupportedOperationException
+       3: dup
+       4: invokespecial #1472               // Method java/lang/UnsupportedOperationException."<init>":()V
+       7: athrow
+
+  public icyllis.modernui.graphics.text.FontCollection getFontCollection(net.minecraft.class_2960);
+    Code:
+       0: aload_0
+       1: getfield      #435                // Field mForceUnicodeFont:Ljava/lang/Boolean;
+       4: getstatic     #1479               // Field java/lang/Boolean.TRUE:Ljava/lang/Boolean;
+       7: if_acmpne     24
+      10: aload_1
+      11: getstatic     #499                // Field net/minecraft/class_310.field_1740:Lnet/minecraft/class_2960;
+      14: invokevirtual #561                // Method net/minecraft/class_2960.equals:(Ljava/lang/Object;)Z
+      17: ifeq          24
+      20: getstatic     #545                // Field net/minecraft/class_310.field_24211:Lnet/minecraft/class_2960;
+      23: astore_1
+      24: aload_0
+      25: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+      28: aload_1
+      29: invokevirtual #539                // Method java/util/HashMap.get:(Ljava/lang/Object;)Ljava/lang/Object;
+      32: checkcast     #523                // class icyllis/modernui/graphics/text/FontCollection
+      35: dup
+      36: astore_2
+      37: ifnull        44
+      40: aload_2
+      41: goto          47
+      44: invokestatic  #503                // Method icyllis/modernui/ModernUI.getSelectedTypeface:()Licyllis/modernui/text/Typeface;
+      47: areturn
+
+  public void dumpBitmapFonts();
+    Code:
+       0: getstatic     #1484               // Field icyllis/modernui/graphics/Bitmap$SaveFormat.PNG:Licyllis/modernui/graphics/Bitmap$SaveFormat;
+       3: aconst_null
+       4: ldc_w         #1486               // String BitmapFont
+       7: invokestatic  #1490               // Method icyllis/modernui/graphics/Bitmap.saveDialogGet:(Licyllis/modernui/graphics/Bitmap$SaveFormat;Ljava/lang/CharSequence;Ljava/lang/String;)Ljava/lang/String;
+      10: astore_1
+      11: aload_1
+      12: ifnull        27
+      15: aload_1
+      16: iconst_0
+      17: aload_1
+      18: invokevirtual #1019               // Method java/lang/String.length:()I
+      21: iconst_4
+      22: isub
+      23: invokevirtual #1023               // Method java/lang/String.substring:(II)Ljava/lang/String;
+      26: astore_1
+      27: iconst_0
+      28: istore_2
+      29: new           #1492               // class java/util/IdentityHashMap
+      32: dup
+      33: invokespecial #1493               // Method java/util/IdentityHashMap."<init>":()V
+      36: astore_3
+      37: aload_0
+      38: getfield      #214                // Field mFontCollections:Ljava/util/HashMap;
+      41: invokevirtual #916                // Method java/util/HashMap.values:()Ljava/util/Collection;
+      44: invokeinterface #336,  1          // InterfaceMethod java/util/Collection.iterator:()Ljava/util/Iterator;
+      49: astore        4
+      51: aload         4
+      53: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      58: ifeq          178
+      61: aload         4
+      63: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      68: checkcast     #523                // class icyllis/modernui/graphics/text/FontCollection
+      71: astore        5
+      73: aload         5
+      75: invokevirtual #706                // Method icyllis/modernui/graphics/text/FontCollection.getFamilies:()Ljava/util/List;
+      78: invokeinterface #707,  1          // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      83: astore        6
+      85: aload         6
+      87: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      92: ifeq          175
+      95: aload         6
+      97: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     102: checkcast     #525                // class icyllis/modernui/graphics/text/FontFamily
+     105: astore        7
+     107: aload         7
+     109: iconst_0
+     110: invokevirtual #920                // Method icyllis/modernui/graphics/text/FontFamily.getClosestMatch:(I)Licyllis/modernui/graphics/text/Font;
+     113: astore        8
+     115: aload         8
+     117: instanceof    #922                // class icyllis/modernui/mc/text/BitmapFont
+     120: ifeq          172
+     123: aload         8
+     125: checkcast     #922                // class icyllis/modernui/mc/text/BitmapFont
+     128: astore        9
+     130: aload_3
+     131: aload         9
+     133: getstatic     #1479               // Field java/lang/Boolean.TRUE:Ljava/lang/Boolean;
+     136: invokevirtual #1494               // Method java/util/IdentityHashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     139: ifnonnull     172
+     142: aload_1
+     143: ifnull        162
+     146: aload         9
+     148: iload_2
+     149: aload_1
+     150: iload_2
+     151: invokedynamic #1499,  0           // InvokeDynamic #20:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+     156: invokevirtual #1503               // Method icyllis/modernui/mc/text/BitmapFont.dumpAtlas:(ILjava/lang/String;)V
+     159: goto          169
+     162: aload         9
+     164: iload_2
+     165: aconst_null
+     166: invokevirtual #1503               // Method icyllis/modernui/mc/text/BitmapFont.dumpAtlas:(ILjava/lang/String;)V
+     169: iinc          2, 1
+     172: goto          85
+     175: goto          51
+     178: return
+
+  private icyllis.modernui.mc.text.GLBakedGlyph lookupEmoji(char[], int, int);
+    Code:
+       0: aconst_null
+       1: areturn
+
+  public void onEndClientTick();
+    Code:
+       0: aload_0
+       1: getfield      #1521               // Field mTimer:I
+       4: ifne          99
+       7: getstatic     #1523               // Field sCacheLifespan:I
+      10: istore_1
+      11: iload_1
+      12: invokedynamic #1533,  0           // InvokeDynamic #21:test:(I)Ljava/util/function/Predicate;
+      17: astore_2
+      18: aload_0
+      19: getfield      #192                // Field mVanillaCache:Ljava/util/Map;
+      22: invokeinterface #330,  1          // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+      27: aload_2
+      28: invokeinterface #1537,  2         // InterfaceMethod java/util/Collection.removeIf:(Ljava/util/function/Predicate;)Z
+      33: pop
+      34: aload_0
+      35: getfield      #194                // Field mComponentCache:Ljava/util/Map;
+      38: invokeinterface #330,  1          // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+      43: aload_2
+      44: invokeinterface #1537,  2         // InterfaceMethod java/util/Collection.removeIf:(Ljava/util/function/Predicate;)Z
+      49: pop
+      50: aload_0
+      51: getfield      #199                // Field mFormattedCache:Ljava/util/Map;
+      54: invokeinterface #330,  1          // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+      59: aload_2
+      60: invokeinterface #1537,  2         // InterfaceMethod java/util/Collection.removeIf:(Ljava/util/function/Predicate;)Z
+      65: pop
+      66: getstatic     #1539               // Field sRawUseTextShadersInWorld:Z
+      69: ifeq          82
+      72: invokestatic  #1544               // Method icyllis/modernui/mc/ModernUIClient.areShadersEnabled:()Z
+      75: ifne          82
+      78: iconst_1
+      79: goto          83
+      82: iconst_0
+      83: istore_3
+      84: getstatic     #1548               // Field sUseTextShadersInWorld:Z
+      87: iload_3
+      88: if_icmpeq     99
+      91: aload_0
+      92: invokevirtual #603                // Method reload:()V
+      95: iload_3
+      96: putstatic     #1548               // Field sUseTextShadersInWorld:Z
+      99: aload_0
+     100: aload_0
+     101: getfield      #1521               // Field mTimer:I
+     104: iconst_1
+     105: iadd
+     106: bipush        20
+     108: irem
+     109: putfield      #1521               // Field mTimer:I
+     112: return
+
+  public int getCacheCount();
+    Code:
+       0: aload_0
+       1: getfield      #192                // Field mVanillaCache:Ljava/util/Map;
+       4: invokeinterface #1554,  1         // InterfaceMethod java/util/Map.size:()I
+       9: aload_0
+      10: getfield      #194                // Field mComponentCache:Ljava/util/Map;
+      13: invokeinterface #1554,  1         // InterfaceMethod java/util/Map.size:()I
+      18: iadd
+      19: aload_0
+      20: getfield      #199                // Field mFormattedCache:Ljava/util/Map;
+      23: invokeinterface #1554,  1         // InterfaceMethod java/util/Map.size:()I
+      28: iadd
+      29: ireturn
+
+  public int getCacheMemorySize();
+    Code:
+       0: iconst_0
+       1: istore_1
+       2: aload_0
+       3: getfield      #192                // Field mVanillaCache:Ljava/util/Map;
+       6: invokeinterface #330,  1          // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+      11: invokeinterface #336,  1          // InterfaceMethod java/util/Collection.iterator:()Ljava/util/Iterator;
+      16: astore_2
+      17: aload_2
+      18: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      23: ifeq          46
+      26: aload_2
+      27: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      32: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+      35: astore_3
+      36: iload_1
+      37: aload_3
+      38: invokevirtual #1557               // Method icyllis/modernui/mc/text/TextLayout.getMemorySize:()I
+      41: iadd
+      42: istore_1
+      43: goto          17
+      46: aload_0
+      47: getfield      #194                // Field mComponentCache:Ljava/util/Map;
+      50: invokeinterface #330,  1          // InterfaceMethod java/util/Map.values:()Ljava/util/Collection;
+      55: invokeinterface #336,  1          // InterfaceMethod java/util/Collection.iterator:()Ljava/util/Iterator;
+      60: astore_2
+      61: aload_2
+      62: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      67: ifeq          90
+      70: aload_2
+      71: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      76: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+      79: astore_3
+      80: iload_1
+      81: aload_3
+      82: invokevirtual #1557               // Method icyllis/modernui/mc/text/TextLayout.getMemorySize:()I
+      85: iadd
+      86: istore_1
+      87: goto          61
+      90: aload_0
+      91: getfield      #199                // Field mFormattedCache:Ljava/util/Map;
+      94: invokeinterface #549,  1          // InterfaceMethod java/util/Map.entrySet:()Ljava/util/Set;
+      99: invokeinterface #552,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+     104: astore_2
+     105: aload_2
+     106: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     111: ifeq          157
+     114: aload_2
+     115: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     120: checkcast     #40                 // class java/util/Map$Entry
+     123: astore_3
+     124: iload_1
+     125: aload_3
+     126: invokeinterface #555,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+     131: checkcast     #27                 // class icyllis/modernui/mc/text/FormattedLayoutKey
+     134: invokevirtual #1558               // Method icyllis/modernui/mc/text/FormattedLayoutKey.getMemorySize:()I
+     137: iadd
+     138: istore_1
+     139: iload_1
+     140: aload_3
+     141: invokeinterface #564,  1          // InterfaceMethod java/util/Map$Entry.getValue:()Ljava/lang/Object;
+     146: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     149: invokevirtual #1557               // Method icyllis/modernui/mc/text/TextLayout.getMemorySize:()I
+     152: iadd
+     153: istore_1
+     154: goto          105
+     157: iload_1
+     158: ireturn
+
+  public void dumpLayoutCache();
+    Code:
+       0: iconst_0
+       1: istore_1
+       2: aload_0
+       3: getfield      #192                // Field mVanillaCache:Ljava/util/Map;
+       6: invokeinterface #549,  1          // InterfaceMethod java/util/Map.entrySet:()Ljava/util/Set;
+      11: invokeinterface #552,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+      16: astore_2
+      17: aload_2
+      18: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      23: ifeq          78
+      26: aload_2
+      27: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      32: checkcast     #40                 // class java/util/Map$Entry
+      35: astore_3
+      36: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+      39: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+      42: ldc_w         #1563               // String VanillaCache {}\n{}\n{}
+      45: iload_1
+      46: invokestatic  #375                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+      49: aload_3
+      50: invokeinterface #555,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+      55: aload_3
+      56: invokeinterface #564,  1          // InterfaceMethod java/util/Map$Entry.getValue:()Ljava/lang/Object;
+      61: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+      64: invokevirtual #1566               // Method icyllis/modernui/mc/text/TextLayout.toDetailedString:()Ljava/lang/String;
+      67: invokeinterface #1275,  6         // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+      72: iinc          1, 1
+      75: goto          17
+      78: aload_0
+      79: getfield      #194                // Field mComponentCache:Ljava/util/Map;
+      82: invokeinterface #549,  1          // InterfaceMethod java/util/Map.entrySet:()Ljava/util/Set;
+      87: invokeinterface #552,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+      92: astore_2
+      93: aload_2
+      94: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      99: ifeq          154
+     102: aload_2
+     103: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     108: checkcast     #40                 // class java/util/Map$Entry
+     111: astore_3
+     112: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     115: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     118: ldc_w         #1568               // String ComponentCache {}\n{}\n{}
+     121: iload_1
+     122: invokestatic  #375                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     125: aload_3
+     126: invokeinterface #555,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+     131: aload_3
+     132: invokeinterface #564,  1          // InterfaceMethod java/util/Map$Entry.getValue:()Ljava/lang/Object;
+     137: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     140: invokevirtual #1566               // Method icyllis/modernui/mc/text/TextLayout.toDetailedString:()Ljava/lang/String;
+     143: invokeinterface #1275,  6         // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+     148: iinc          1, 1
+     151: goto          93
+     154: aload_0
+     155: getfield      #199                // Field mFormattedCache:Ljava/util/Map;
+     158: invokeinterface #549,  1          // InterfaceMethod java/util/Map.entrySet:()Ljava/util/Set;
+     163: invokeinterface #552,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+     168: astore_2
+     169: aload_2
+     170: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     175: ifeq          230
+     178: aload_2
+     179: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     184: checkcast     #40                 // class java/util/Map$Entry
+     187: astore_3
+     188: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     191: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     194: ldc_w         #1570               // String FormattedCache {}\n{}\n{}
+     197: iload_1
+     198: invokestatic  #375                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     201: aload_3
+     202: invokeinterface #555,  1          // InterfaceMethod java/util/Map$Entry.getKey:()Ljava/lang/Object;
+     207: aload_3
+     208: invokeinterface #564,  1          // InterfaceMethod java/util/Map$Entry.getValue:()Ljava/lang/Object;
+     213: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+     216: invokevirtual #1566               // Method icyllis/modernui/mc/text/TextLayout.toDetailedString:()Ljava/lang/String;
+     219: invokeinterface #1275,  6         // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+     224: iinc          1, 1
+     227: goto          169
+     230: return
+
+  public int getResLevel();
+    Code:
+       0: aload_0
+       1: getfield      #221                // Field mResLevel:I
+       4: ireturn
+
+  public icyllis.modernui.text.TextDirectionHeuristic getTextDirectionHeuristic();
+    Code:
+       0: aload_0
+       1: getfield      #228                // Field mTextDirectionHeuristic:Licyllis/modernui/text/TextDirectionHeuristic;
+       4: areturn
+
+  private void cacheDigitGlyphs();
+    Code:
+       0: return
+
+  private icyllis.modernui.mc.text.TextLayout generateAndCache(icyllis.modernui.mc.text.VanillaLayoutKey, java.lang.CharSequence, net.minecraft.class_2583);
+    Code:
+       0: invokestatic  #1337               // Method com/mojang/blaze3d/systems/RenderSystem.isOnRenderThread:()Z
+       3: ifne          28
+       6: invokestatic  #387                // Method net/minecraft/class_310.method_1551:()Lnet/minecraft/class_310;
+       9: aload_0
+      10: aload_1
+      11: aload_2
+      12: aload_3
+      13: invokedynamic #1587,  0           // InvokeDynamic #22:get:(Licyllis/modernui/mc/text/TextLayoutEngine;Licyllis/modernui/mc/text/VanillaLayoutKey;Ljava/lang/CharSequence;Lnet/minecraft/class_2583;)Ljava/util/function/Supplier;
+      18: invokevirtual #1363               // Method net/minecraft/class_310.method_5385:(Ljava/util/function/Supplier;)Ljava/util/concurrent/CompletableFuture;
+      21: invokevirtual #1366               // Method java/util/concurrent/CompletableFuture.join:()Ljava/lang/Object;
+      24: checkcast     #1328               // class icyllis/modernui/mc/text/TextLayout
+      27: areturn
+      28: aconst_null
+      29: areturn
+
+  private icyllis.modernui.mc.text.TextLayoutEngine$Entry getOrCacheString(java.lang.String);
+    Code:
+       0: invokestatic  #1594               // Method com/mojang/blaze3d/systems/RenderSystem.assertOnRenderThread:()V
+       3: aload_1
+       4: invokevirtual #1598               // Method java/lang/String.toCharArray:()[C
+       7: astore        4
+       9: new           #19                 // class icyllis/modernui/mc/text/TextLayoutEngine$Entry
+      12: dup
+      13: invokespecial #1599               // Method icyllis/modernui/mc/text/TextLayoutEngine$Entry."<init>":()V
+      16: astore_3
+      17: aload_0
+      18: aload_3
+      19: aload_1
+      20: aload         4
+      22: invokevirtual #1603               // Method extractFormattingCodes:(Licyllis/modernui/mc/text/TextLayoutEngine$Entry;Ljava/lang/String;[C)I
+      25: istore        5
+      27: new           #995                // class java/util/ArrayList
+      30: dup
+      31: invokespecial #996                // Method java/util/ArrayList."<init>":()V
+      34: astore        6
+      36: aload_3
+      37: aload_0
+      38: aload         6
+      40: aload         4
+      42: iconst_0
+      43: iload         5
+      45: aload_3
+      46: getfield      #1607               // Field icyllis/modernui/mc/text/TextLayoutEngine$Entry.codes:[Licyllis/modernui/mc/text/TextLayoutEngine$FormattingCode;
+      49: invokevirtual #1611               // Method layoutBidiString:(Ljava/util/List;[CII[Licyllis/modernui/mc/text/TextLayoutEngine$FormattingCode;)F
+      52: putfield      #1615               // Field icyllis/modernui/mc/text/TextLayoutEngine$Entry.advance:F
+      55: aload_3
+      56: aload         6
+      58: invokeinterface #1616,  1         // InterfaceMethod java/util/List.size:()I
+      63: anewarray     #15                 // class icyllis/modernui/mc/text/TextLayoutEngine$Glyph
+      66: putfield      #1620               // Field icyllis/modernui/mc/text/TextLayoutEngine$Entry.glyphs:[Licyllis/modernui/mc/text/TextLayoutEngine$Glyph;
+      69: aload_3
+      70: aload         6
+      72: aload_3
+      73: getfield      #1620               // Field icyllis/modernui/mc/text/TextLayoutEngine$Entry.glyphs:[Licyllis/modernui/mc/text/TextLayoutEngine$Glyph;
+      76: invokeinterface #1621,  2         // InterfaceMethod java/util/List.toArray:([Ljava/lang/Object;)[Ljava/lang/Object;
+      81: checkcast     #1622               // class "[Licyllis/modernui/mc/text/TextLayoutEngine$Glyph;"
+      84: putfield      #1620               // Field icyllis/modernui/mc/text/TextLayoutEngine$Entry.glyphs:[Licyllis/modernui/mc/text/TextLayoutEngine$Glyph;
+      87: aload_3
+      88: getfield      #1620               // Field icyllis/modernui/mc/text/TextLayoutEngine$Entry.glyphs:[Licyllis/modernui/mc/text/TextLayoutEngine$Glyph;
+      91: invokestatic  #1628               // Method java/util/Arrays.sort:([Ljava/lang/Object;)V
+      94: iconst_0
+      95: istore        7
+      97: iconst_0
+      98: istore        8
+     100: iconst_0
+     101: istore        9
+     103: iload         9
+     105: aload_3
+     106: getfield      #1620               // Field icyllis/modernui/mc/text/TextLayoutEngine$Entry.glyphs:[Licyllis/modernui/mc/text/TextLayoutEngine$Glyph;
+     109: arraylength
+     110: if_icmpge     128
+     113: aload_3
+     114: getfield      #1620               // Field icyllis/modernui/mc/text/TextLayoutEngine$Entry.glyphs:[Licyllis/modernui/mc/text/TextLayoutEngine$Glyph;
+     117: iload         9
+     119: aaload
+     120: astore        10
+     122: iinc          9, 1
+     125: goto          103
+     128: new           #13                 // class icyllis/modernui/mc/text/TextLayoutEngine$Key
+     131: dup
+     132: invokespecial #1630               // Method icyllis/modernui/mc/text/TextLayoutEngine$Key."<init>":()V
+     135: astore_2
+     136: aload_2
+     137: aload_1
+     138: putfield      #1632               // Field icyllis/modernui/mc/text/TextLayoutEngine$Key.str:Ljava/lang/String;
+     141: aload_3
+     142: areturn
+
+  private void layoutFont(icyllis.modernui.mc.text.TextLayoutProcessor, char[], int, int, int, icyllis.modernui.graphics.text.Font, boolean, byte);
+    Code:
+       0: return
+
+  private void layoutRandom(icyllis.modernui.mc.text.TextLayoutProcessor, char[], int, int, int, icyllis.modernui.graphics.text.Font, byte);
+    Code:
+       0: return
+
+  private void insertColorState(icyllis.modernui.mc.text.TextLayoutProcessor);
+    Code:
+       0: return
+
+  private int extractFormattingCodes(icyllis.modernui.mc.text.TextLayoutEngine$Entry, java.lang.String, char[]);
+    Code:
+       0: new           #995                // class java/util/ArrayList
+       3: dup
+       4: invokespecial #996                // Method java/util/ArrayList."<init>":()V
+       7: astore        4
+       9: iconst_0
+      10: istore        5
+      12: iconst_0
+      13: istore        6
+      15: iconst_0
+      16: istore        8
+      18: iconst_0
+      19: istore        9
+      21: iconst_m1
+      22: istore        10
+      24: aload_2
+      25: sipush        167
+      28: iload         5
+      30: invokevirtual #1654               // Method java/lang/String.indexOf:(II)I
+      33: dup
+      34: istore        7
+      36: iconst_m1
+      37: if_icmpeq     283
+      40: iload         7
+      42: iconst_1
+      43: iadd
+      44: aload_2
+      45: invokevirtual #1019               // Method java/lang/String.length:()I
+      48: if_icmpge     283
+      51: aload_3
+      52: iload         7
+      54: iload         6
+      56: isub
+      57: iconst_2
+      58: iadd
+      59: aload_3
+      60: iload         7
+      62: iload         6
+      64: isub
+      65: aload_3
+      66: arraylength
+      67: iload         7
+      69: isub
+      70: iconst_2
+      71: isub
+      72: invokestatic  #1660               // Method java/lang/System.arraycopy:(Ljava/lang/Object;ILjava/lang/Object;II)V
+      75: ldc_w         #1662               // String 0123456789abcdefklmnor
+      78: aload_2
+      79: iload         7
+      81: iconst_1
+      82: iadd
+      83: invokevirtual #1666               // Method java/lang/String.charAt:(I)C
+      86: invokestatic  #1671               // Method java/lang/Character.toLowerCase:(C)C
+      89: invokevirtual #1673               // Method java/lang/String.indexOf:(I)I
+      92: istore        11
+      94: iload         11
+      96: tableswitch   { // 16 to 21
+
+                    16: 136
+
+                    17: 139
+
+                    18: 149
+
+                    19: 164
+
+                    20: 179
+
+                    21: 189
+               default: 201
+          }
+     136: goto          211
+     139: iload         8
+     141: iconst_1
+     142: ior
+     143: i2b
+     144: istore        8
+     146: goto          211
+     149: iload         9
+     151: iconst_2
+     152: ior
+     153: i2b
+     154: istore        9
+     156: aload_1
+     157: iconst_1
+     158: putfield      #1676               // Field icyllis/modernui/mc/text/TextLayoutEngine$Entry.needExtraRender:Z
+     161: goto          211
+     164: iload         9
+     166: iconst_1
+     167: ior
+     168: i2b
+     169: istore        9
+     171: aload_1
+     172: iconst_1
+     173: putfield      #1676               // Field icyllis/modernui/mc/text/TextLayoutEngine$Entry.needExtraRender:Z
+     176: goto          211
+     179: iload         8
+     181: iconst_2
+     182: ior
+     183: i2b
+     184: istore        8
+     186: goto          211
+     189: iconst_0
+     190: istore        8
+     192: iconst_0
+     193: istore        9
+     195: iconst_m1
+     196: istore        10
+     198: goto          211
+     201: iload         11
+     203: iflt          211
+     206: iload         11
+     208: i2b
+     209: istore        10
+     211: new           #17                 // class icyllis/modernui/mc/text/TextLayoutEngine$FormattingCode
+     214: dup
+     215: invokespecial #1677               // Method icyllis/modernui/mc/text/TextLayoutEngine$FormattingCode."<init>":()V
+     218: astore        12
+     220: aload         12
+     222: iload         7
+     224: putfield      #1680               // Field icyllis/modernui/mc/text/TextLayoutEngine$FormattingCode.stringIndex:I
+     227: aload         12
+     229: iload         7
+     231: iload         6
+     233: isub
+     234: putfield      #1683               // Field icyllis/modernui/mc/text/TextLayoutEngine$FormattingCode.stripIndex:I
+     237: aload         12
+     239: iload         10
+     241: invokestatic  #1689               // Method icyllis/modernui/mc/text/Color3i.fromFormattingCode:(I)Licyllis/modernui/mc/text/Color3i;
+     244: putfield      #1693               // Field icyllis/modernui/mc/text/TextLayoutEngine$FormattingCode.color:Licyllis/modernui/mc/text/Color3i;
+     247: aload         12
+     249: iload         8
+     251: putfield      #1696               // Field icyllis/modernui/mc/text/TextLayoutEngine$FormattingCode.fontStyle:B
+     254: aload         12
+     256: iload         9
+     258: putfield      #1699               // Field icyllis/modernui/mc/text/TextLayoutEngine$FormattingCode.renderEffect:B
+     261: aload         4
+     263: aload         12
+     265: invokeinterface #1700,  2         // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+     270: pop
+     271: iload         7
+     273: iconst_2
+     274: iadd
+     275: istore        5
+     277: iinc          6, 2
+     280: goto          24
+     283: aload_1
+     284: aload         4
+     286: iconst_0
+     287: anewarray     #17                 // class icyllis/modernui/mc/text/TextLayoutEngine$FormattingCode
+     290: invokeinterface #1621,  2         // InterfaceMethod java/util/List.toArray:([Ljava/lang/Object;)[Ljava/lang/Object;
+     295: checkcast     #1701               // class "[Licyllis/modernui/mc/text/TextLayoutEngine$FormattingCode;"
+     298: putfield      #1607               // Field icyllis/modernui/mc/text/TextLayoutEngine$Entry.codes:[Licyllis/modernui/mc/text/TextLayoutEngine$FormattingCode;
+     301: aload_3
+     302: arraylength
+     303: iload         6
+     305: isub
+     306: ireturn
+
+  private float layoutBidiString(java.util.List<icyllis.modernui.mc.text.TextLayoutEngine$Glyph>, char[], int, int, icyllis.modernui.mc.text.TextLayoutEngine$FormattingCode[]);
+    Code:
+       0: fconst_0
+       1: fstore        6
+       3: aload_2
+       4: iload_3
+       5: iload         4
+       7: invokestatic  #1715               // Method com/ibm/icu/text/Bidi.requiresBidi:([CII)Z
+      10: ifeq          189
+      13: new           #1711               // class com/ibm/icu/text/Bidi
+      16: dup
+      17: aload_2
+      18: iload_3
+      19: aconst_null
+      20: iconst_0
+      21: iload         4
+      23: iload_3
+      24: isub
+      25: bipush        126
+      27: invokespecial #1718               // Method com/ibm/icu/text/Bidi."<init>":([CI[BIII)V
+      30: astore        7
+      32: aload         7
+      34: invokevirtual #1721               // Method com/ibm/icu/text/Bidi.isRightToLeft:()Z
+      37: ifeq          55
+      40: aload_0
+      41: aload_1
+      42: aload_2
+      43: iload_3
+      44: iload         4
+      46: iconst_0
+      47: fload         6
+      49: aload         5
+      51: invokevirtual #1725               // Method layoutStyle:(Ljava/util/List;[CIIIF[Licyllis/modernui/mc/text/TextLayoutEngine$FormattingCode;)F
+      54: freturn
+      55: aload         7
+      57: invokevirtual #1728               // Method com/ibm/icu/text/Bidi.getRunCount:()I
+      60: istore        8
+      62: iload         8
+      64: newarray       byte
+      66: astore        9
+      68: iload         8
+      70: anewarray     #371                // class java/lang/Integer
+      73: astore        10
+      75: iconst_0
+      76: istore        11
+      78: iload         11
+      80: iload         8
+      82: if_icmpge     114
+      85: aload         9
+      87: iload         11
+      89: aload         7
+      91: iload         11
+      93: invokevirtual #1735               // Method com/ibm/icu/text/Bidi.getRunLevel:(I)I
+      96: i2b
+      97: bastore
+      98: aload         10
+     100: iload         11
+     102: iload         11
+     104: invokestatic  #375                // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+     107: aastore
+     108: iinc          11, 1
+     111: goto          78
+     114: aload         9
+     116: iconst_0
+     117: aload         10
+     119: iconst_0
+     120: iload         8
+     122: invokestatic  #1739               // Method com/ibm/icu/text/Bidi.reorderVisually:([BI[Ljava/lang/Object;II)V
+     125: iconst_0
+     126: istore        11
+     128: iload         11
+     130: iload         8
+     132: if_icmpge     186
+     135: aload         10
+     137: iload         11
+     139: aaload
+     140: invokevirtual #1742               // Method java/lang/Integer.intValue:()I
+     143: istore        12
+     145: iconst_0
+     146: istore        13
+     148: aload_0
+     149: aload_1
+     150: aload_2
+     151: iload_3
+     152: aload         7
+     154: iload         12
+     156: invokevirtual #1745               // Method com/ibm/icu/text/Bidi.getRunStart:(I)I
+     159: iadd
+     160: iload_3
+     161: aload         7
+     163: iload         12
+     165: invokevirtual #1748               // Method com/ibm/icu/text/Bidi.getRunLimit:(I)I
+     168: iadd
+     169: iload         13
+     171: fload         6
+     173: aload         5
+     175: invokevirtual #1725               // Method layoutStyle:(Ljava/util/List;[CIIIF[Licyllis/modernui/mc/text/TextLayoutEngine$FormattingCode;)F
+     178: fstore        6
+     180: iinc          11, 1
+     183: goto          128
+     186: fload         6
+     188: freturn
+     189: aload_0
+     190: aload_1
+     191: aload_2
+     192: iload_3
+     193: iload         4
+     195: iconst_0
+     196: fload         6
+     198: aload         5
+     200: invokevirtual #1725               // Method layoutStyle:(Ljava/util/List;[CIIIF[Licyllis/modernui/mc/text/TextLayoutEngine$FormattingCode;)F
+     203: freturn
+
+  private float layoutStyle(java.util.List<icyllis.modernui.mc.text.TextLayoutEngine$Glyph>, char[], int, int, int, float, icyllis.modernui.mc.text.TextLayoutEngine$FormattingCode[]);
+    Code:
+       0: iconst_0
+       1: istore        8
+       3: fload         6
+       5: freturn
+
+  private float layoutString(java.util.List<icyllis.modernui.mc.text.TextLayoutEngine$Glyph>, char[], int, int, int, float, int);
+    Code:
+       0: iload_3
+       1: iload         4
+       3: if_icmpge     24
+       6: iconst_0
+       7: istore        8
+       9: iload         8
+      11: iload_3
+      12: if_icmpne     18
+      15: iinc          8, 1
+      18: iload         8
+      20: istore_3
+      21: goto          0
+      24: fload         6
+      26: freturn
+
+  private float layoutFont(java.util.List<icyllis.modernui.mc.text.TextLayoutEngine$Glyph>, char[], int, int, int, float, icyllis.modernui.graphics.text.Font);
+    Code:
+       0: aconst_null
+       1: astore        8
+       3: aconst_null
+       4: astore        9
+       6: iconst_1
+       7: istore        10
+       9: fload         6
+      11: freturn
+
+  private icyllis.modernui.mc.text.TextLayout lambda$generateAndCache$15(icyllis.modernui.mc.text.VanillaLayoutKey, java.lang.CharSequence, net.minecraft.class_2583);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: aload_2
+       3: aload_3
+       4: invokevirtual #1771               // Method generateAndCache:(Licyllis/modernui/mc/text/VanillaLayoutKey;Ljava/lang/CharSequence;Lnet/minecraft/class_2583;)Licyllis/modernui/mc/text/TextLayout;
+       7: areturn
+
+  private static boolean lambda$onEndClientTick$14(int, icyllis.modernui.mc.text.TextLayout);
+    Code:
+       0: aload_1
+       1: iload_0
+       2: invokevirtual #1775               // Method icyllis/modernui/mc/text/TextLayout.tick:(I)Z
+       5: ireturn
+
+  private icyllis.modernui.mc.text.TextLayout lambda$lookupFormattedLayout$13(net.minecraft.class_5481, int);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: iload_2
+       3: invokevirtual #1431               // Method lookupFormattedLayout:(Lnet/minecraft/class_5481;I)Licyllis/modernui/mc/text/TextLayout;
+       6: areturn
+
+  private icyllis.modernui.mc.text.TextLayout lambda$lookupFormattedLayout$12(net.minecraft.class_5348, net.minecraft.class_2583, int);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: aload_2
+       3: iload_3
+       4: invokevirtual #1387               // Method lookupFormattedLayout:(Lnet/minecraft/class_5348;Lnet/minecraft/class_2583;I)Licyllis/modernui/mc/text/TextLayout;
+       7: areturn
+
+  private icyllis.modernui.mc.text.TextLayout lambda$lookupVanillaLayout$11(java.lang.String, net.minecraft.class_2583, int);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: aload_2
+       3: iload_3
+       4: invokevirtual #1322               // Method lookupVanillaLayout:(Ljava/lang/String;Lnet/minecraft/class_2583;I)Licyllis/modernui/mc/text/TextLayout;
+       7: areturn
+
+  private static void lambda$loadFonts$10(java.util.HashMap, net.minecraft.class_2960, icyllis.modernui.mc.text.TextLayoutEngine$RawFontBundle);
+    Code:
+       0: aload_1
+       1: invokestatic  #1028               // Method isUnicodeFont:(Lnet/minecraft/class_2960;)Z
+       4: ifeq          8
+       7: return
+       8: new           #508                // class java/util/LinkedHashSet
+      11: dup
+      12: invokespecial #509                // Method java/util/LinkedHashSet."<init>":()V
+      15: astore_3
+      16: aload_2
+      17: getfield      #1128               // Field icyllis/modernui/mc/text/TextLayoutEngine$RawFontBundle.families:Ljava/util/Set;
+      20: invokeinterface #552,  1          // InterfaceMethod java/util/Set.iterator:()Ljava/util/Iterator;
+      25: astore        4
+      27: aload         4
+      29: invokeinterface #342,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+      34: ifeq          126
+      37: aload         4
+      39: invokeinterface #346,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      44: astore        5
+      46: aload         5
+      48: instanceof    #525                // class icyllis/modernui/graphics/text/FontFamily
+      51: ifeq          71
+      54: aload         5
+      56: checkcast     #525                // class icyllis/modernui/graphics/text/FontFamily
+      59: astore        6
+      61: aload_3
+      62: aload         6
+      64: invokevirtual #1776               // Method java/util/LinkedHashSet.add:(Ljava/lang/Object;)Z
+      67: pop
+      68: goto          123
+      71: aload         5
+      73: checkcast     #557                // class net/minecraft/class_2960
+      76: astore        7
+      78: aload_0
+      79: aload         7
+      81: invokevirtual #539                // Method java/util/HashMap.get:(Ljava/lang/Object;)Ljava/lang/Object;
+      84: checkcast     #523                // class icyllis/modernui/graphics/text/FontCollection
+      87: astore        8
+      89: aload         8
+      91: ifnull        107
+      94: aload_3
+      95: aload         8
+      97: invokevirtual #706                // Method icyllis/modernui/graphics/text/FontCollection.getFamilies:()Ljava/util/List;
+     100: invokevirtual #521                // Method java/util/LinkedHashSet.addAll:(Ljava/util/Collection;)Z
+     103: pop
+     104: goto          123
+     107: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     110: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     113: ldc_w         #1780               // String Failed to resolve font: {}
+     116: aload         7
+     118: invokeinterface #961,  4          // InterfaceMethod org/apache/logging/log4j/Logger.warn:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;)V
+     123: goto          27
+     126: aload_3
+     127: invokevirtual #1781               // Method java/util/LinkedHashSet.isEmpty:()Z
+     130: ifne          200
+     133: aload_0
+     134: aload_1
+     135: new           #523                // class icyllis/modernui/graphics/text/FontCollection
+     138: dup
+     139: aload_3
+     140: iconst_0
+     141: anewarray     #525                // class icyllis/modernui/graphics/text/FontFamily
+     144: invokevirtual #529                // Method java/util/LinkedHashSet.toArray:([Ljava/lang/Object;)[Ljava/lang/Object;
+     147: checkcast     #531                // class "[Licyllis/modernui/graphics/text/FontFamily;"
+     150: invokespecial #534                // Method icyllis/modernui/graphics/text/FontCollection."<init>":([Licyllis/modernui/graphics/text/FontFamily;)V
+     153: invokevirtual #506                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     156: pop
+     157: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     160: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     163: ldc_w         #1783               // String Loaded font: \'{}\', font set: [{}]
+     166: aload_1
+     167: aload_3
+     168: invokevirtual #1784               // Method java/util/LinkedHashSet.stream:()Ljava/util/stream/Stream;
+     171: invokedynamic #1788,  0           // InvokeDynamic #23:apply:()Ljava/util/function/Function;
+     176: invokeinterface #1140,  2         // InterfaceMethod java/util/stream/Stream.map:(Ljava/util/function/Function;)Ljava/util/stream/Stream;
+     181: ldc_w         #1142               // String ,
+     184: invokestatic  #687                // Method java/util/stream/Collectors.joining:(Ljava/lang/CharSequence;)Ljava/util/stream/Collector;
+     187: invokeinterface #691,  2          // InterfaceMethod java/util/stream/Stream.collect:(Ljava/util/stream/Collector;)Ljava/lang/Object;
+     192: invokeinterface #957,  5          // InterfaceMethod org/apache/logging/log4j/Logger.info:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V
+     197: goto          215
+     200: getstatic     #285                // Field icyllis/modernui/mc/ModernUIMod.LOGGER:Lorg/apache/logging/log4j/Logger;
+     203: getstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+     206: ldc_w         #1790               // String Ignore font: \'{}\', because it\'s empty
+     209: aload_1
+     210: invokeinterface #961,  4          // InterfaceMethod org/apache/logging/log4j/Logger.warn:(Lorg/apache/logging/log4j/Marker;Ljava/lang/String;Ljava/lang/Object;)V
+     215: return
+
+  private static java.lang.String lambda$loadFonts$9(java.lang.Object);
+    Code:
+       0: aload_0
+       1: instanceof    #525                // class icyllis/modernui/graphics/text/FontFamily
+       4: ifeq          17
+       7: aload_0
+       8: checkcast     #525                // class icyllis/modernui/graphics/text/FontFamily
+      11: astore_1
+      12: aload_1
+      13: invokevirtual #711                // Method icyllis/modernui/graphics/text/FontFamily.getFamilyName:()Ljava/lang/String;
+      16: areturn
+      17: aload_0
+      18: invokevirtual #1796               // Method java/lang/Object.toString:()Ljava/lang/String;
+      21: areturn
+
+  private static boolean lambda$loadFonts$8(net.minecraft.class_2960);
+    Code:
+       0: aload_0
+       1: invokevirtual #974                // Method net/minecraft/class_2960.method_12832:()Ljava/lang/String;
+       4: ldc_w         #1799               // String .json
+       7: invokevirtual #1802               // Method java/lang/String.endsWith:(Ljava/lang/String;)Z
+      10: ireturn
+
+  private void lambda$applyResources$7(net.minecraft.class_1060, java.util.Map, net.minecraft.class_2960, icyllis.modernui.graphics.text.FontCollection);
+    Code:
+       0: new           #350                // class icyllis/modernui/mc/text/StandardFontSet
+       3: dup
+       4: aload_1
+       5: aload_3
+       6: invokespecial #574                // Method icyllis/modernui/mc/text/StandardFontSet."<init>":(Lnet/minecraft/class_1060;Lnet/minecraft/class_2960;)V
+       9: astore        5
+      11: aload         5
+      13: aload         4
+      15: aload_0
+      16: getfield      #221                // Field mResLevel:I
+      19: invokevirtual #542                // Method icyllis/modernui/mc/text/StandardFontSet.reload:(Licyllis/modernui/graphics/text/FontCollection;I)V
+      22: aload_2
+      23: aload_3
+      24: aload         5
+      26: invokeinterface #575,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+      31: pop
+      32: return
+
+  private static icyllis.modernui.mc.text.TextLayoutEngine$LoadResults lambda$prepareResources$6(icyllis.modernui.mc.text.TextLayoutEngine$LoadResults, java.lang.Void);
+    Code:
+       0: aload_0
+       1: areturn
+
+  private static void lambda$prepareResources$5(net.minecraft.class_3300, icyllis.modernui.mc.text.TextLayoutEngine$LoadResults);
+    Code:
+       0: aload_0
+       1: invokeinterface #1807,  1         // InterfaceMethod net/minecraft/class_3300.method_14487:()Ljava/util/Set;
+       6: ldc_w         #1809               // String modernui
+       9: invokeinterface #1812,  2         // InterfaceMethod java/util/Set.contains:(Ljava/lang/Object;)Z
+      14: ifeq          22
+      17: aload_0
+      18: aload_1
+      19: invokestatic  #1815               // Method loadShortcodes:(Lnet/minecraft/class_3300;Licyllis/modernui/mc/FontResourceManager$LoadResults;)V
+      22: return
+
+  private static void lambda$prepareResources$4(net.minecraft.class_3300, icyllis.modernui.mc.text.TextLayoutEngine$LoadResults);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: invokestatic  #1817               // Method loadEmojis:(Lnet/minecraft/class_3300;Licyllis/modernui/mc/FontResourceManager$LoadResults;)V
+       5: return
+
+  private static void lambda$prepareResources$3(net.minecraft.class_3300, icyllis.modernui.mc.text.TextLayoutEngine$LoadResults);
+    Code:
+       0: aload_0
+       1: invokeinterface #1807,  1         // InterfaceMethod net/minecraft/class_3300.method_14487:()Ljava/util/Set;
+       6: ldc_w         #1809               // String modernui
+       9: invokeinterface #1812,  2         // InterfaceMethod java/util/Set.contains:(Ljava/lang/Object;)Z
+      14: ifeq          23
+      17: invokestatic  #1820               // Method icyllis/modernui/mc/ModernUIClient.getInstance:()Licyllis/modernui/mc/ModernUIClient;
+      20: invokevirtual #1823               // Method icyllis/modernui/mc/ModernUIClient.loadTypeface:()V
+      23: aload_0
+      24: aload_1
+      25: invokestatic  #1825               // Method loadFonts:(Lnet/minecraft/class_3300;Licyllis/modernui/mc/text/TextLayoutEngine$LoadResults;)V
+      28: return
+
+  private void lambda$reload$2(net.minecraft.class_3695, icyllis.modernui.mc.text.TextLayoutEngine$LoadResults);
+    Code:
+       0: aload_1
+       1: invokeinterface #760,  1          // InterfaceMethod net/minecraft/class_3695.method_16065:()V
+       6: aload_1
+       7: ldc_w         #1826               // String reload
+      10: invokeinterface #1829,  2         // InterfaceMethod net/minecraft/class_3695.method_15396:(Ljava/lang/String;)V
+      15: aload_0
+      16: aload_2
+      17: invokevirtual #1831               // Method applyResources:(Licyllis/modernui/mc/text/TextLayoutEngine$LoadResults;)V
+      20: aload_1
+      21: invokeinterface #1834,  1         // InterfaceMethod net/minecraft/class_3695.method_15407:()V
+      26: aload_1
+      27: invokeinterface #763,  1          // InterfaceMethod net/minecraft/class_3695.method_16066:()V
+      32: return
+
+  private static float lambda$new$1(int, net.minecraft.class_2583);
+    Code:
+       0: new           #1471               // class java/lang/UnsupportedOperationException
+       3: dup
+       4: ldc_w         #1837               // String Modern Text Engine
+       7: invokespecial #1838               // Method java/lang/UnsupportedOperationException."<init>":(Ljava/lang/String;)V
+      10: athrow
+
+  private void lambda$new$0(icyllis.modernui.mc.text.GlyphManager$AtlasInvalidationInfo);
+    Code:
+       0: aload_1
+       1: invokevirtual #1842               // Method icyllis/modernui/mc/text/GlyphManager$AtlasInvalidationInfo.resize:()Z
+       4: ifeq          14
+       7: aload_0
+       8: invokevirtual #1844               // Method invalidateStrikeCache:()V
+      11: goto          18
+      14: aload_0
+      15: invokevirtual #603                // Method reload:()V
+      18: return
+
+  static {};
+    Code:
+       0: ldc_w         #1848               // String TextLayout
+       3: invokestatic  #1854               // Method org/apache/logging/log4j/MarkerManager.getMarker:(Ljava/lang/String;)Lorg/apache/logging/log4j/Marker;
+       6: putstatic     #367                // Field MARKER:Lorg/apache/logging/log4j/Marker;
+       9: iconst_0
+      10: putstatic     #412                // Field sFixedResolution:Z
+      13: iconst_1
+      14: putstatic     #451                // Field sTextDirection:I
+      17: bipush        6
+      19: putstatic     #1523               // Field sCacheLifespan:I
+      22: iconst_1
+      23: putstatic     #1548               // Field sUseTextShadersInWorld:Z
+      26: iconst_1
+      27: putstatic     #1539               // Field sRawUseTextShadersInWorld:Z
+      30: ldc_w         #1856               // String sans-serif
+      33: invokestatic  #952                // Method icyllis/modernui/mc/ModernUIMod.location:(Ljava/lang/String;)Lnet/minecraft/class_2960;
+      36: putstatic     #470                // Field SANS_SERIF:Lnet/minecraft/class_2960;
+      39: ldc_w         #1858               // String serif
+      42: invokestatic  #952                // Method icyllis/modernui/mc/ModernUIMod.location:(Ljava/lang/String;)Lnet/minecraft/class_2960;
+      45: putstatic     #481                // Field SERIF:Lnet/minecraft/class_2960;
+      48: ldc_w         #1860               // String monospace
+      51: invokestatic  #952                // Method icyllis/modernui/mc/ModernUIMod.location:(Ljava/lang/String;)Lnet/minecraft/class_2960;
+      54: putstatic     #485                // Field MONOSPACED:Lnet/minecraft/class_2960;
+      57: ldc_w         #1862               // String internal-default
+      60: invokestatic  #952                // Method icyllis/modernui/mc/ModernUIMod.location:(Ljava/lang/String;)Lnet/minecraft/class_2960;
+      63: putstatic     #1152               // Field INTERNAL_DEFAULT:Lnet/minecraft/class_2960;
+      66: iconst_0
+      67: putstatic     #489                // Field sDefaultFontBehavior:I
+      70: iconst_1
+      71: putstatic     #1416               // Field sUseComponentCache:Z
+      74: iconst_1
+      75: putstatic     #1339               // Field sAllowAsyncLayout:Z
+      78: iconst_4
+      79: putstatic     #1307               // Field sMinPixelDensityForSDF:I
+      82: return
+}

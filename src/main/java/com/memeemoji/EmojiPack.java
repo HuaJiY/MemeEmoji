@@ -10,8 +10,8 @@ import java.util.List;
  * 把每个表情图写成独立纹理文件，font.json 里每个纹理一个 bitmap provider。
  * 再传给 PackRepositoryMixin 挂进客户端资源包列表。
  *
- * <p>font.json 的 ascent=0 与 MemeEmojiGlyph 的 up=0 保持一致（表情顶部对齐 baseline），
- * mixin 会替换字体渲染使用的 BakedGlyph，这个值仅作 fallback。
+ * <p>font.json 的 ascent = height - 5，让表情底部在 baseline 以下 5px，气泡底部留 3px；
+ * MemeEmojiGlyph 的 computeUp 与这个值等价，ModernUI 使用 font.json 的 ascent 做布局。
  */
 public final class EmojiPack {
     private EmojiPack() {
@@ -63,9 +63,9 @@ public final class EmojiPack {
         json.append("{\n  \"providers\": [\n");
         for (int i = 0; i < tiles.size(); i++) {
             EmojiTile tile = tiles.get(i);
-            // ascent=0：表情顶部对齐 baseline，与 MemeEmojiGlyph up=0 保持一致。
-            // mixin 会替换 BakedGlyph，此值仅作 fallback。
-            int ascent = 0;
+            // ascent = tile.height()：让表情顶部对齐基线，底部在 baseline 以下 height 像素
+            // ModernUI 的 BitmapFont 使用这个值做布局定位。
+            int ascent = Math.max(1, tile.height());
             int codepoint = MemeEmoji.PUA_BASE + i;
 
             if (i > 0) {
@@ -97,3 +97,5 @@ public final class EmojiPack {
         return sb.toString();
     }
 }
+
+

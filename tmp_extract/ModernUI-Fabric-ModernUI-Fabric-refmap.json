@@ -1,0 +1,282 @@
+{
+  "mappings": {
+    "icyllis/modernui/mc/mixin/AccessClientTextTooltip": {
+      "text": "field_27997:Lnet/minecraft/class_5481;"
+    },
+    "icyllis/modernui/mc/mixin/AccessFontRenderer": {
+      "SHADOW_OFFSET": "field_24237:Lorg/joml/Vector3f;"
+    },
+    "icyllis/modernui/mc/mixin/AccessFoodData": {
+      "exhaustionLevel": "field_7752:F"
+    },
+    "icyllis/modernui/mc/mixin/AccessGameRenderer": {
+      "loadEffect": "method_3168(Lnet/minecraft/class_2960;)V"
+    },
+    "icyllis/modernui/mc/mixin/AccessNativeImage": {
+      "pixels": "field_4988:J"
+    },
+    "icyllis/modernui/mc/mixin/AccessOptions": {
+      "guiScale": "field_1868:Lnet/minecraft/class_7172;"
+    },
+    "icyllis/modernui/mc/mixin/AccessPostChain": {
+      "passes": "field_1497:Ljava/util/List;"
+    },
+    "icyllis/modernui/mc/mixin/AccessRenderType": {
+      "sortOnUpload": "field_21402:Z"
+    },
+    "icyllis/modernui/mc/mixin/MixinChatScreen": {
+      "onEdited": "Lnet/minecraft/class_408;method_23945(Ljava/lang/String;)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinClientTelemetryManager": {
+      "createEventSender": "Lnet/minecraft/class_6628;method_47707()Lnet/minecraft/class_7965;"
+    },
+    "icyllis/modernui/mc/mixin/MixinCommandSuggestions": {
+      "Lnet/minecraft/client/multiplayer/ClientSuggestionProvider;getCustomTabSugggestions()Ljava/util/Collection;": "Lnet/minecraft/class_637;method_44750()Ljava/util/Collection;",
+      "updateCommandInfo": "Lnet/minecraft/class_4717;method_23934()V"
+    },
+    "icyllis/modernui/mc/mixin/MixinContainerScreen": {
+      "Lnet/minecraft/client/gui/GuiGraphics;renderTooltip(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;II)V": "Lnet/minecraft/class_332;method_51437(Lnet/minecraft/class_327;Ljava/util/List;Ljava/util/Optional;II)V",
+      "renderTooltip": "Lnet/minecraft/class_465;method_2380(Lnet/minecraft/class_332;II)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinEditBox": {
+      "Lnet/minecraft/client/gui/components/EditBox;value:Ljava/lang/String;": "Lnet/minecraft/class_342;field_2092:Ljava/lang/String;",
+      "Lnet/minecraft/client/gui/screens/Screen;isSelectAll(I)Z": "Lnet/minecraft/class_437;method_25439(I)Z",
+      "deleteCharsToPos": "Lnet/minecraft/class_342;method_55506(I)V",
+      "getCursorPos": "Lnet/minecraft/class_342;method_27537(I)I",
+      "getWordPosition(IIZ)I": "Lnet/minecraft/class_342;method_1864(IIZ)I",
+      "insertText": "Lnet/minecraft/class_342;method_1867(Ljava/lang/String;)V",
+      "keyPressed": "Lnet/minecraft/class_342;method_25404(III)Z",
+      "setCursorPosition": "Lnet/minecraft/class_342;method_1875(I)V",
+      "setValue": "Lnet/minecraft/class_342;method_1852(Ljava/lang/String;)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinFoodData": {
+      "tick": "Lnet/minecraft/class_1702;method_7588(Lnet/minecraft/class_1657;)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinGameRenderer": {
+      "loadBlurEffect": "Lnet/minecraft/class_757;method_57797(Lnet/minecraft/class_5912;)V",
+      "processBlurEffect": "Lnet/minecraft/class_757;method_57796(F)V",
+      "resize": "Lnet/minecraft/class_757;method_3169(II)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinGuiGraphics": {
+      "renderTooltip(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;II)V": "Lnet/minecraft/class_332;method_51437(Lnet/minecraft/class_327;Ljava/util/List;Ljava/util/Optional;II)V",
+      "renderTooltip(Lnet/minecraft/client/gui/Font;Lnet/minecraft/world/item/ItemStack;II)V": "Lnet/minecraft/class_332;method_51446(Lnet/minecraft/class_327;Lnet/minecraft/class_1799;II)V",
+      "renderTooltipInternal": "Lnet/minecraft/class_332;method_51435(Lnet/minecraft/class_327;Ljava/util/List;IILnet/minecraft/class_8000;)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinKeyboardHandler": {
+      "keyPress": "Lnet/minecraft/class_309;method_1466(JIIII)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinLevelLoadingScreen": {
+      "render": "Lnet/minecraft/class_3928;method_25394(Lnet/minecraft/class_332;IIF)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinLevelRendererDBG": {
+      "renderLevel": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_9779;ZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinMinecraft": {
+      "Lnet/minecraft/Util;shutdownExecutors()V": "Lnet/minecraft/class_156;method_18350()V",
+      "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;": "Lnet/minecraft/class_310;field_1755:Lnet/minecraft/class_437;",
+      "allowsTelemetry": "Lnet/minecraft/class_310;method_47596()Z",
+      "close": "Lnet/minecraft/class_310;close()V",
+      "getFramerateLimit": "Lnet/minecraft/class_310;method_16009()I",
+      "onGameLoadFinished": "Lnet/minecraft/class_310;method_51736(Lnet/minecraft/class_310$class_8764;)V",
+      "setScreen": "Lnet/minecraft/class_310;method_1507(Lnet/minecraft/class_437;)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinMinecraftEXT": {
+      "Lnet/minecraft/client/renderer/GameRenderer;render(Lnet/minecraft/client/DeltaTracker;Z)V": "Lnet/minecraft/class_757;method_3192(Lnet/minecraft/class_9779;Z)V",
+      "runTick": "Lnet/minecraft/class_310;method_1523(Z)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinMouseHandler": {
+      "onPress": "Lnet/minecraft/class_312;method_1601(JIII)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinScreen": {
+      "Lnet/minecraft/client/gui/GuiGraphics;fillGradient(IIIIII)V": "Lnet/minecraft/class_332;method_25296(IIIIII)V",
+      "renderTransparentBackground": "Lnet/minecraft/class_437;method_52752(Lnet/minecraft/class_332;)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinSelectionList": {
+      "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderHeader(Lnet/minecraft/client/gui/GuiGraphics;II)V": "Lnet/minecraft/class_350;method_25312(Lnet/minecraft/class_332;II)V",
+      "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderListItems(Lnet/minecraft/client/gui/GuiGraphics;IIF)V": "Lnet/minecraft/class_350;method_25311(Lnet/minecraft/class_332;IIF)V",
+      "renderWidget": "Lnet/minecraft/class_350;method_48579(Lnet/minecraft/class_332;IIF)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinStringSplitter": {
+      "getWordPosition": "Lnet/minecraft/class_5225;method_27483(Ljava/lang/String;IIZ)I"
+    },
+    "icyllis/modernui/mc/mixin/MixinTextFieldHelper": {
+      "Lnet/minecraft/Util;offsetByCodepoints(Ljava/lang/String;II)I": "Lnet/minecraft/class_156;method_27761(Ljava/lang/String;II)I",
+      "moveByChars(IZ)V": "Lnet/minecraft/class_3728;method_27549(IZ)V",
+      "removeCharsFromCursor": "Lnet/minecraft/class_3728;method_27564(I)V"
+    },
+    "icyllis/modernui/mc/mixin/MixinWindow": {
+      "calculateScale": "Lnet/minecraft/class_1041;method_4476(IZ)I",
+      "setGuiScale": "Lnet/minecraft/class_1041;method_15997(D)V"
+    },
+    "icyllis/modernui/mc/text/mixin/AccessBufferSource": {
+      "fixedBuffers": "field_20953:Ljava/util/SequencedMap;"
+    },
+    "icyllis/modernui/mc/text/mixin/AccessFontManager": {
+      "fontSets": "field_2259:Ljava/util/Map;"
+    },
+    "icyllis/modernui/mc/text/mixin/MixinEditBox": {
+      "Lnet/minecraft/client/gui/components/EditBox;isEditable:Z": "Lnet/minecraft/class_342;field_2094:Z",
+      "renderWidget": "Lnet/minecraft/class_342;method_48579(Lnet/minecraft/class_332;IIF)V"
+    },
+    "icyllis/modernui/mc/text/mixin/MixinFontRenderer": {
+      "(Lnet/minecraft/client/StringSplitter$WidthProvider;)Lnet/minecraft/client/StringSplitter;": "(Lnet/minecraft/class_5225$class_5231;)Lnet/minecraft/class_5225;",
+      "<init>": "Lnet/minecraft/class_327;<init>(Ljava/util/function/Function;Z)V"
+    },
+    "icyllis/modernui/mc/text/mixin/MixinGameRenderer": {
+      "preloadUiShader": "Lnet/minecraft/class_757;method_34521(Lnet/minecraft/class_5912;)V",
+      "renderLevel": "Lnet/minecraft/class_757;method_3188(Lnet/minecraft/class_9779;)V"
+    },
+    "icyllis/modernui/mc/text/mixin/MixinIngameGui": {
+      "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)I": "Lnet/minecraft/class_332;method_51433(Lnet/minecraft/class_327;Ljava/lang/String;IIIZ)I",
+      "renderExperienceLevel": "Lnet/minecraft/class_329;method_56136(Lnet/minecraft/class_332;Lnet/minecraft/class_9779;)V"
+    },
+    "icyllis/modernui/mc/text/mixin/MixinLevelRenderer": {
+      "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V": "Lnet/minecraft/class_4618;method_23285()V",
+      "renderLevel": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_9779;ZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"
+    },
+    "icyllis/modernui/mc/text/mixin/MixinSignEditScreen": {
+      "renderSignText": "Lnet/minecraft/class_7743;method_45655(Lnet/minecraft/class_332;)V"
+    }
+  },
+  "data": {
+    "named:intermediary": {
+      "icyllis/modernui/mc/mixin/AccessClientTextTooltip": {
+        "text": "field_27997:Lnet/minecraft/class_5481;"
+      },
+      "icyllis/modernui/mc/mixin/AccessFontRenderer": {
+        "SHADOW_OFFSET": "field_24237:Lorg/joml/Vector3f;"
+      },
+      "icyllis/modernui/mc/mixin/AccessFoodData": {
+        "exhaustionLevel": "field_7752:F"
+      },
+      "icyllis/modernui/mc/mixin/AccessGameRenderer": {
+        "loadEffect": "method_3168(Lnet/minecraft/class_2960;)V"
+      },
+      "icyllis/modernui/mc/mixin/AccessNativeImage": {
+        "pixels": "field_4988:J"
+      },
+      "icyllis/modernui/mc/mixin/AccessOptions": {
+        "guiScale": "field_1868:Lnet/minecraft/class_7172;"
+      },
+      "icyllis/modernui/mc/mixin/AccessPostChain": {
+        "passes": "field_1497:Ljava/util/List;"
+      },
+      "icyllis/modernui/mc/mixin/AccessRenderType": {
+        "sortOnUpload": "field_21402:Z"
+      },
+      "icyllis/modernui/mc/mixin/MixinChatScreen": {
+        "onEdited": "Lnet/minecraft/class_408;method_23945(Ljava/lang/String;)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinClientTelemetryManager": {
+        "createEventSender": "Lnet/minecraft/class_6628;method_47707()Lnet/minecraft/class_7965;"
+      },
+      "icyllis/modernui/mc/mixin/MixinCommandSuggestions": {
+        "Lnet/minecraft/client/multiplayer/ClientSuggestionProvider;getCustomTabSugggestions()Ljava/util/Collection;": "Lnet/minecraft/class_637;method_44750()Ljava/util/Collection;",
+        "updateCommandInfo": "Lnet/minecraft/class_4717;method_23934()V"
+      },
+      "icyllis/modernui/mc/mixin/MixinContainerScreen": {
+        "Lnet/minecraft/client/gui/GuiGraphics;renderTooltip(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;II)V": "Lnet/minecraft/class_332;method_51437(Lnet/minecraft/class_327;Ljava/util/List;Ljava/util/Optional;II)V",
+        "renderTooltip": "Lnet/minecraft/class_465;method_2380(Lnet/minecraft/class_332;II)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinEditBox": {
+        "Lnet/minecraft/client/gui/components/EditBox;value:Ljava/lang/String;": "Lnet/minecraft/class_342;field_2092:Ljava/lang/String;",
+        "Lnet/minecraft/client/gui/screens/Screen;isSelectAll(I)Z": "Lnet/minecraft/class_437;method_25439(I)Z",
+        "deleteCharsToPos": "Lnet/minecraft/class_342;method_55506(I)V",
+        "getCursorPos": "Lnet/minecraft/class_342;method_27537(I)I",
+        "getWordPosition(IIZ)I": "Lnet/minecraft/class_342;method_1864(IIZ)I",
+        "insertText": "Lnet/minecraft/class_342;method_1867(Ljava/lang/String;)V",
+        "keyPressed": "Lnet/minecraft/class_342;method_25404(III)Z",
+        "setCursorPosition": "Lnet/minecraft/class_342;method_1875(I)V",
+        "setValue": "Lnet/minecraft/class_342;method_1852(Ljava/lang/String;)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinFoodData": {
+        "tick": "Lnet/minecraft/class_1702;method_7588(Lnet/minecraft/class_1657;)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinGameRenderer": {
+        "loadBlurEffect": "Lnet/minecraft/class_757;method_57797(Lnet/minecraft/class_5912;)V",
+        "processBlurEffect": "Lnet/minecraft/class_757;method_57796(F)V",
+        "resize": "Lnet/minecraft/class_757;method_3169(II)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinGuiGraphics": {
+        "renderTooltip(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;II)V": "Lnet/minecraft/class_332;method_51437(Lnet/minecraft/class_327;Ljava/util/List;Ljava/util/Optional;II)V",
+        "renderTooltip(Lnet/minecraft/client/gui/Font;Lnet/minecraft/world/item/ItemStack;II)V": "Lnet/minecraft/class_332;method_51446(Lnet/minecraft/class_327;Lnet/minecraft/class_1799;II)V",
+        "renderTooltipInternal": "Lnet/minecraft/class_332;method_51435(Lnet/minecraft/class_327;Ljava/util/List;IILnet/minecraft/class_8000;)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinKeyboardHandler": {
+        "keyPress": "Lnet/minecraft/class_309;method_1466(JIIII)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinLevelLoadingScreen": {
+        "render": "Lnet/minecraft/class_3928;method_25394(Lnet/minecraft/class_332;IIF)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinLevelRendererDBG": {
+        "renderLevel": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_9779;ZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinMinecraft": {
+        "Lnet/minecraft/Util;shutdownExecutors()V": "Lnet/minecraft/class_156;method_18350()V",
+        "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;": "Lnet/minecraft/class_310;field_1755:Lnet/minecraft/class_437;",
+        "allowsTelemetry": "Lnet/minecraft/class_310;method_47596()Z",
+        "close": "Lnet/minecraft/class_310;close()V",
+        "getFramerateLimit": "Lnet/minecraft/class_310;method_16009()I",
+        "onGameLoadFinished": "Lnet/minecraft/class_310;method_51736(Lnet/minecraft/class_310$class_8764;)V",
+        "setScreen": "Lnet/minecraft/class_310;method_1507(Lnet/minecraft/class_437;)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinMinecraftEXT": {
+        "Lnet/minecraft/client/renderer/GameRenderer;render(Lnet/minecraft/client/DeltaTracker;Z)V": "Lnet/minecraft/class_757;method_3192(Lnet/minecraft/class_9779;Z)V",
+        "runTick": "Lnet/minecraft/class_310;method_1523(Z)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinMouseHandler": {
+        "onPress": "Lnet/minecraft/class_312;method_1601(JIII)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinScreen": {
+        "Lnet/minecraft/client/gui/GuiGraphics;fillGradient(IIIIII)V": "Lnet/minecraft/class_332;method_25296(IIIIII)V",
+        "renderTransparentBackground": "Lnet/minecraft/class_437;method_52752(Lnet/minecraft/class_332;)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinSelectionList": {
+        "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderHeader(Lnet/minecraft/client/gui/GuiGraphics;II)V": "Lnet/minecraft/class_350;method_25312(Lnet/minecraft/class_332;II)V",
+        "Lnet/minecraft/client/gui/components/AbstractSelectionList;renderListItems(Lnet/minecraft/client/gui/GuiGraphics;IIF)V": "Lnet/minecraft/class_350;method_25311(Lnet/minecraft/class_332;IIF)V",
+        "renderWidget": "Lnet/minecraft/class_350;method_48579(Lnet/minecraft/class_332;IIF)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinStringSplitter": {
+        "getWordPosition": "Lnet/minecraft/class_5225;method_27483(Ljava/lang/String;IIZ)I"
+      },
+      "icyllis/modernui/mc/mixin/MixinTextFieldHelper": {
+        "Lnet/minecraft/Util;offsetByCodepoints(Ljava/lang/String;II)I": "Lnet/minecraft/class_156;method_27761(Ljava/lang/String;II)I",
+        "moveByChars(IZ)V": "Lnet/minecraft/class_3728;method_27549(IZ)V",
+        "removeCharsFromCursor": "Lnet/minecraft/class_3728;method_27564(I)V"
+      },
+      "icyllis/modernui/mc/mixin/MixinWindow": {
+        "calculateScale": "Lnet/minecraft/class_1041;method_4476(IZ)I",
+        "setGuiScale": "Lnet/minecraft/class_1041;method_15997(D)V"
+      },
+      "icyllis/modernui/mc/text/mixin/AccessBufferSource": {
+        "fixedBuffers": "field_20953:Ljava/util/SequencedMap;"
+      },
+      "icyllis/modernui/mc/text/mixin/AccessFontManager": {
+        "fontSets": "field_2259:Ljava/util/Map;"
+      },
+      "icyllis/modernui/mc/text/mixin/MixinEditBox": {
+        "Lnet/minecraft/client/gui/components/EditBox;isEditable:Z": "Lnet/minecraft/class_342;field_2094:Z",
+        "renderWidget": "Lnet/minecraft/class_342;method_48579(Lnet/minecraft/class_332;IIF)V"
+      },
+      "icyllis/modernui/mc/text/mixin/MixinFontRenderer": {
+        "(Lnet/minecraft/client/StringSplitter$WidthProvider;)Lnet/minecraft/client/StringSplitter;": "(Lnet/minecraft/class_5225$class_5231;)Lnet/minecraft/class_5225;",
+        "<init>": "Lnet/minecraft/class_327;<init>(Ljava/util/function/Function;Z)V"
+      },
+      "icyllis/modernui/mc/text/mixin/MixinGameRenderer": {
+        "preloadUiShader": "Lnet/minecraft/class_757;method_34521(Lnet/minecraft/class_5912;)V",
+        "renderLevel": "Lnet/minecraft/class_757;method_3188(Lnet/minecraft/class_9779;)V"
+      },
+      "icyllis/modernui/mc/text/mixin/MixinIngameGui": {
+        "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)I": "Lnet/minecraft/class_332;method_51433(Lnet/minecraft/class_327;Ljava/lang/String;IIIZ)I",
+        "renderExperienceLevel": "Lnet/minecraft/class_329;method_56136(Lnet/minecraft/class_332;Lnet/minecraft/class_9779;)V"
+      },
+      "icyllis/modernui/mc/text/mixin/MixinLevelRenderer": {
+        "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V": "Lnet/minecraft/class_4618;method_23285()V",
+        "renderLevel": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_9779;ZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"
+      },
+      "icyllis/modernui/mc/text/mixin/MixinSignEditScreen": {
+        "renderSignText": "Lnet/minecraft/class_7743;method_45655(Lnet/minecraft/class_332;)V"
+      }
+    }
+  }
+}
