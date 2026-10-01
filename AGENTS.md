@@ -22,6 +22,14 @@ Minecraft 1.21.1 Fabric mod。把图片丢进 config/memeemoji/emoji/，聊天�
 - ModernUI 的 TextLayoutProcessor、ModernStringSplitter、FormattedTextWrapper 全部走 5-arg hook
 - ChatComponentMixin.getLineHeight()：返回 max(原始行高, maxEmojiHeight + 3)
 - ShapingScope 包裹 ModernUI 的 createVanillaLayout，禁用 shaping 防止 advance 数组长度不匹配
+- MemeEmojiGlyph 使用 up=-height 让表情在 baseline 上方绘制（BakedGlyph.render 用 y+up 计算 y0）
+- StandardFontSetMixin（@Pseudo target=icyllis.modernui.mc.text.StandardFontSet）拦截 ModernUI 的 getGlyph()，返回自定义 MemeEmojiGlyph 直接引用原始纹理
+- FontSetMixin 处理 vanilla 路径；StandardFontSetMixin 处理 ModernUI 路径，两者都从 MemeEmojiClientAccess 查找码位→glyph
+
+### 热加载（WatchService）
+- 启动时创建 2 个守护线程：Watcher（文件监听）+ Debouncer（500ms 去抖）
+- 监听 config/memeemoji/emoji/ 和 config/memeemoji/ 的变更事件
+- 检测到新图片或 config.json 变化后，自动重新生成资源包并调用 Minecraft.getInstance().reloadResourcePacks()
 
 ### WebP 支持
 - 手动 SPI 注册 WebpSupport.ensureRegistered()，不从 spi 服务文件加载

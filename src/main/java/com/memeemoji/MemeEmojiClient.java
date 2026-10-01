@@ -15,16 +15,23 @@ import net.minecraft.resources.ResourceLocation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
- * 客户端负责两件事：启动时把本地表情文件夹变成独立纹理资源包；进服务器后改由服务端下发的内容重建。
- * 两者写的是同一个资源包目录，谁后写谁生效。
+ * 客户端负责三件事：启动时把本地表情文件夹变成独立纹理资源包；进服务器后改由服务端下发的内容重建；
+ * 运行中通过 WatchService 监听表情文件夹和配置文件的变更，自动热加载。
  */
 public final class MemeEmojiClient implements ClientModInitializer {
     private static final Map<Integer, ChunkAssembly> ASSEMBLIES = new HashMap<>();
@@ -37,6 +44,10 @@ public final class MemeEmojiClient implements ClientModInitializer {
     /** 每个表情对应的 DynamicTexture 引用（防止 GC） */
     private static final List<DynamicTexture> OWNED_TEXTURES = new ArrayList<>();
 
+    /** 热加载去抖，最近一次文件变更时间戳（毫秒） */
+    private static final AtomicLong LAST_CHANGE = new AtomicLong(0);
+    private static volatile boolean watcherStarted;
+
     @Override
     public void onInitializeClient() {
         ClientPlayNetworking.registerGlobalReceiver(EmojiSyncStartPayload.TYPE,
@@ -46,6 +57,7 @@ public final class MemeEmojiClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(EmojiSyncEndPayload.TYPE,
                 (payload, context) -> context.client().execute(() -> onEnd(payload)));
         ensurePackOnDisk();
+        startWatcher();
     }
 
     /**
@@ -60,6 +72,29 @@ public final class MemeEmojiClient implements ClientModInitializer {
         }
         if (packReady) {
             return true;
+        }
+        return generatePack();
+    }
+
+    /**
+     * 强制重新生成资源包，用于热加载。
+     */
+    public static synchronized void reload() {
+        MemeEmoji.LOGGER.info("MemeEmoji 热加载……");
+        packReady = false;
+        // 清空 tile cache 确保重新读取
+        TileStore.clearCache();
+        // 重新读取配置
+        MemeEmoji.invalidateConfig();
+        generatePack();
+        Minecraft.getInstance().reloadResourcePacks();
+        MemeEmoji.LOGGER.info("MemeEmoji 热加载完成");
+    }
+
+    private static boolean generatePack() {
+        if (!MemeEmoji.config().enabled) {
+            packReady = false;
+            return false;
         }
         WebpSupport.ensureRegistered();
 
@@ -131,6 +166,84 @@ public final class MemeEmojiClient implements ClientModInitializer {
             }
         }
         MemeEmoji.LOGGER.info("已注册 {} 个自定义纹理 glyph", MemeEmojiClientAccess.size());
+    }
+
+    // ---- WatchService 热加载 ----
+
+    private static void startWatcher() {
+        if (watcherStarted) return;
+        watcherStarted = true;
+        Thread watcher = Thread.ofPlatform()
+                .name("MemeEmoji-Watcher")
+                .daemon(true)
+                .start(() -> {
+                    try (WatchService ws = FileSystems.getDefault().newWatchService()) {
+                        // 注册 emoji 文件夹
+                        Path emojiDir = MemeEmoji.emojiDir();
+                        Files.createDirectories(emojiDir);
+                        emojiDir.register(ws, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
+
+                        // 注册 config 文件夹
+                        Path configDir = MemeEmoji.configDir();
+                        Files.createDirectories(configDir);
+                        configDir.register(ws, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
+
+                        while (!Thread.interrupted()) {
+                            WatchKey key;
+                            try {
+                                key = ws.take();
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                break;
+                            }
+                            boolean relevant = false;
+                            for (WatchEvent<?> event : key.pollEvents()) {
+                                Path changed = (Path) event.context();
+                                String name = changed.toString().toLowerCase(java.util.Locale.ROOT);
+                                // emoji 文件夹里的图片文件
+                                if (event.kind() == ENTRY_CREATE || event.kind() == ENTRY_MODIFY || event.kind() == ENTRY_DELETE) {
+                                    if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg")
+                                            || name.endsWith(".gif") || name.endsWith(".webp")
+                                            || name.equals("config.json")) {
+                                        relevant = true;
+                                    }
+                                }
+                            }
+                            key.reset();
+
+                            if (relevant) {
+                                LAST_CHANGE.set(System.currentTimeMillis());
+                            }
+                        }
+                    } catch (IOException e) {
+                        MemeEmoji.LOGGER.warn("MemeEmoji 文件监听启动失败，热加载不可用", e);
+                    }
+                });
+
+        // 去抖线程：500ms 无新变更后触发 reload
+        Thread debouncer = Thread.ofPlatform()
+                .name("MemeEmoji-Debouncer")
+                .daemon(true)
+                .start(() -> {
+                    while (!Thread.currentThread().isInterrupted()) {
+                        long last = LAST_CHANGE.get();
+                        if (last > 0 && System.currentTimeMillis() - last > 500) {
+                            LAST_CHANGE.set(0);
+                            // 在主线程执行 reload
+                            try {
+                                Minecraft.getInstance().execute(MemeEmojiClient::reload);
+                            } catch (Exception e) {
+                                MemeEmoji.LOGGER.warn("MemeEmoji 热加载执行异常", e);
+                            }
+                        }
+                        try {
+                            Thread.sleep(200);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                });
     }
 
     private static void onStart(EmojiSyncStartPayload payload) {

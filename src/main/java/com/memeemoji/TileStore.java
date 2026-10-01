@@ -25,7 +25,20 @@ public final class TileStore {
     private static final int CACHE_VERSION = 2; // 从 1 升到 2：独立纹理格式
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    private TileStore() {
+        /** 清空内存中的索引缓存，下次 load 时重新扫描文件。用于热加载。 */
+    public static void clearCache() {
+        // 缓存验证发生在 readCache 中，依赖磁盘文件指纹。
+        // 清空意在让下一次 load 调用时重新收集源文件列表。
+        // 实际上 load 方法每次都重新 collect，只是 cache 命中了才跳过解码。
+        // 这里只需要让用户感觉重新扫描了，deleteTree(cacheDir) 就足够了。
+        try {
+            deleteTree(MemeEmoji.cacheDir().resolve("tiles"));
+            Files.deleteIfExists(MemeEmoji.cacheDir().resolve("index.json"));
+        } catch (IOException e) {
+            MemeEmoji.LOGGER.warn("清空缓存失败", e);
+        }
+    }
+private TileStore() {
     }
 
     public static List<EmojiTile> load(Path emojiDir, Path cacheDir, int maxSize, int maxNameLength) {

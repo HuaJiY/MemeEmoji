@@ -80,7 +80,13 @@ public final class MemeEmoji implements ModInitializer {
     /**
      * 配置可能被更早的调用点读到（资源包列表早于客户端入口点初始化），所以这里做惰性加载而不是只在 onInitialize 里赋值。
      */
-    public static MemeEmojiConfig config() {
+        /**
+     * 使配置缓存失效，下次读取时重新从文件加载。用于热加载。
+     */
+    public static void invalidateConfig() {
+        config = null;
+    }
+public static MemeEmojiConfig config() {
         MemeEmojiConfig loaded = config;
         if (loaded == null) {
             synchronized (MemeEmoji.class) {

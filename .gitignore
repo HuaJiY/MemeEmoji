@@ -8,3 +8,8 @@ run/
 .tmp-*
 logs/
 *.gz
+
+# Reference projects (not part of the mod)
+/twemoji_ref/
+/emogg/
+/net/

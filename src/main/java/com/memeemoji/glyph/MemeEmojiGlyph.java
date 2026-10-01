@@ -23,7 +23,7 @@ public class MemeEmojiGlyph extends BakedGlyph {
                 GlyphRenderTypes.createForColorTexture(texture),
                 0.0F, 1.0F, 0.0F, 1.0F,
                 0.0F, width,
-                height, 0.0F
+                -height, 0.0F
         );
         this.width = width;
         this.height = height;

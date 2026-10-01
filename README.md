@@ -1,30 +1,30 @@
 # MemeEmoji 🎭
 
 ![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-blue?logo=minecraft)
-![Fabric](https://img.shields.io/badge/Fabric-0.19.3-orange?logo=fabric)
-![ModernUI](https://img.shields.io/badge/ModernUI-3.13.0.1-green)
+![Fabric](https://img.shields.io/badge/Fabric-Fabric_0.16.0-orange?logo=fabric)
+![ModernUI](https://img.shields.io/badge/ModernUI-3.13.0-green)
+![License](https://img.shields.io/badge/License-All_Rights_Reserved-lightgrey)
 
-Minecraft 1.21.1 Fabric 模组，把自定义图片/GIF 丢进文件夹，聊天时用 :名字: 就能发送。兼容 ModernUI 现代文本引擎。
+**Minecraft 1.21.1 Fabric 模组** — 把图片/GIF 丢进文件夹，聊天打 :名字: 就能发出来。兼容 ModernUI 现代文本引擎。
 
 ---
 
-## 效果
+## 功能速览
 
-![demo](https://github.com/user-attachments/assets/xxxxx) <!-- 你可以替换成实际的截图 -->
-
-## 功能
-
-- 🖼️ **图片/GIF 便捷安装** — 支持 PNG、JPG、WebP、GIF、BMP，不用转格式
-- 📝 **:名字: 发送** — 支持中文，不区分大小写
-- 🎨 **ModernUI 兼容** — 与 ModernUI 文本引擎无缝集成，不互相干扰
-- 🔄 **服务端自动同步** — 服务器装了这个 mod，客户端的表情自动下发，无需每个玩家手动装
-- 📐 **表情包大小可控** — Small / Medium / Large，点几下配置文件就能调
-- 🖱️ **表情选择界面** — 聊天框旁边有个按钮，点开选表情
-- 💨 **缓存加速** — 图片裁切后缓存到磁盘，下次启动飞快
+- 🖼️ **即丢即用** — 支持 PNG、JPG、WebP、GIF、BMP，不用转格式，丢进 config/memeemoji/emoji/ 直接用
+- 📝 **:名字: 发送** — 支持中文、英文、数字，不区分大小写
+- 🔄 **服务端自动同步** — 服务端装了这个 mod，客户端的表情自动下发，无需每个玩家手动安装
+- 🖱️ **表情选择界面** — 聊天框旁边有 😊 按钮，点开选表情
+- ✨ **ModernUI 兼容** — 与现代文本引擎无缝集成，清晰度不打折
+- 📐 **三档尺寸预设** — Small / Medium / Large，丢多大的图就保持多大
+- 💨 **热加载** — 丢新图进文件夹、改配置都不用重启游戏
+- 🏖️ **服务端可不装** — 只装客户端也能用，图片本地生效
 
 ## 安装
 
-1. 下载 MemeEmoji 放进 mods/
+1. 需要 **Fabric Loader >= 0.16.0** + **Fabric API**
+2. 把 MemeEmoji jar 放进 mods/ 文件夹
+3. 可选：装 [ModernUI](https://github.com/BloCamLimb/ModernUI-MC) 获得更好的文本渲染
 
 ## 使用
 
@@ -40,19 +40,21 @@ config/memeemoji/emoji/
 └── 草.gif
 `
 
-文件名（不含扩展名）就是在聊天里用的 :名字:。中文名、英文名、数字都支持。
+文件名（不含扩展名）就是在聊天里用的 :名字:。不需要任何配置文件或资源包。
 
 ### 在聊天里使用
 
+发送：
+
 `
-:猫猫: 今天天气真不错
+:猫猫: 今天天气真不错 :dog:
 `
 
-发送后 :猫猫: 会被替换成对应的图片。
+:猫猫: 和 :dog: 会自动替换成对应的图片/GIF。支持在同一句话里混用多个表情。
 
 ### 表情选择界面
 
-在聊天框输入时，输入框右侧有个 😊 按钮，点击打开表情选择面板。
+聊天框输入时，输入框右侧有个 😊 按钮，点击打开表情选择面板。
 
 ## 配置
 
@@ -61,6 +63,8 @@ config/memeemoji/emoji/
 `json
 {
   "enabled": true,
+  "maxNameLength": 32,
+  "sendToClients": true,
   "sizePreset": "medium",
   "smallCellSize": 24,
   "mediumCellSize": 48,
@@ -72,13 +76,19 @@ config/memeemoji/emoji/
 | 字段 | 默认值 | 说明 |
 |------|--------|------|
 | nabled | 	rue | 是否启用 |
+| maxNameLength | 32 | 表情名字最大字符数 |
+| sendToClients | 	rue | 是否向客户端同步表情（服务端有效） |
 | sizePreset | "medium" | 大小预设："small" / "medium" / "large" |
-| smallCellSize | 24 | 小号时每个表情的像素大小 |
-| mediumCellSize | 48 | 中号时每个表情的像素大小 |
-| largeCellSize | 96 | 大号时每个表情的像素大小 |
-| maxCellSize | 128 | 格大小上限，防止意外值撑爆聊天 |
+| smallCellSize | 24 | 小号最大尺寸 |
+| mediumCellSize | 48 | 中号最大尺寸 |
+| largeCellSize | 96 | 大号最大尺寸 |
+| maxCellSize | 128 | 上限，兜底防意外超大值 |
 
-配置文件不存在时会自动生成；缺字段时会自动补全。
+配置文件不存在时自动生成，缺字段自动补全。
+
+## 热加载
+
+改配置文件或往 moji/ 丢新图，等 **500ms** 自动生效，不用重启游戏。
 
 ## 构建
 
@@ -88,18 +98,20 @@ cd MemeEmoji
 ./gradlew.bat build
 `
 
-构建产物：uild/libs/memeemoji-0.1.0.jar
+构建产物：uild/libs/memeemoji-*.jar
 
 ## 技术原理
 
-（给好奇的人看）
-
-- **字体注入**：把所有图片拼成一张图集，通过 BitmapProvider 注册为自定义字体，码位从 PUA 区 U+E000 开始分配
-- **文本拦截**：通过 Mixin 注入 StringDecomposer.iterate/iterateFormatted，将 :名字: 替换为对应的 PUA 码位
-- **ModernUI 集成**：TextLayoutProcessor.createVanillaLayout 的布局计算路径会跳过替换，只聊天渲染路径走替换，避免 advance 计算错误
-- **资源包注入**：生成的图集写入 config/memeemoji/generated/，通过 PackRepositoryMixin 挂进资源包列表，不走 Fabric 内置资源包 API（因为那个只能指向 mod jar 内部路径）
+- **独立纹理渲染**：每个表情拥有独立的 PNG 纹理 + 自定义 BakedGlyph 直接引用原始纹理渲染，绕过 ModernUI 的位图图集管道，保持原始清晰度
+- **PUA 码位分配**：从 BMP 私用区 U+E000 开始，每张表情占用一个固定码位
+- **文本替换**：通过 Mixin 注入 StringDecomposer.iterate/iterateFormatted，将 :名字: 匹配为对应的 PUA 码位
+- **ModernUI 集成**：配合 TextLayoutProcessor.createVanillaLayout 适配 ModernUI 布局计算路径；StandardFontSetMixin 拦截 ModernUI 的字形查找，返回自定义高清晰度 BakedGlyph
+- **资源包注入**：生成的资源包写入 config/memeemoji/generated/，通过 PackRepositoryMixin.discoverAvailable 挂进客户端资源包列表，不走 egisterBuiltinResourcePack（后者只能指向 mod jar 内部路径）
+- **服务端同步**：分片传输（每片 768KB），Start / Chunk / End 三段式协议
+- **WebP 支持**：通过 webp-imageio 解码 WebP 格式，手动注册 SPI 避免服务文件冲突
 
 ## 鸣谢
 
 - [Twemoji](https://github.com/Leclowndu93150/Twemoji) — 原始灵感来源
 - [ModernUI](https://github.com/BloCamLimb/ModernUI-MC) — 现代文本引擎
+- [Emogg](https://github.com/aratakileo/emogg) — 参考实现

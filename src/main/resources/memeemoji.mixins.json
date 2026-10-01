@@ -10,7 +10,8 @@
     "ChatScreenMixin",
     "TextLayoutProcessorMixin",
     "ChatComponentMixin",
-    "FontSetMixin"
+    "FontSetMixin",
+    "StandardFontSetMixin"
   ],
   "injectors": {
     "defaultRequire": 1
