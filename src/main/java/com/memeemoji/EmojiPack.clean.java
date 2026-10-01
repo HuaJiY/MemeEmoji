@@ -61,7 +61,7 @@ public final class EmojiPack {
         for (int i = 0; i < tiles.size(); i++) {
             EmojiTile tile = tiles.get(i);
             // ascent = height - 5：让表情底部在 baseline 以下 5px，与 background box 底部保持 3px 间距
-            int ascent = tile.height();
+            int ascent = Math.max(1, tile.height() - 5);
             int codepoint = MemeEmoji.PUA_BASE + i;
 
             if (i > 0) {

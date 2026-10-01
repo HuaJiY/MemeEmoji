@@ -9,7 +9,8 @@
     "StringDecomposerMixin",
     "ChatScreenMixin",
     "TextLayoutProcessorMixin",
-    "ChatComponentMixin"
+    "ChatComponentMixin",
+    "FontSetMixin"
   ],
   "injectors": {
     "defaultRequire": 1

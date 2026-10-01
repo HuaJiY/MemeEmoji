@@ -1,12 +1,18 @@
 package com.memeemoji;
 
+import com.memeemoji.glyph.MemeEmojiGlyph;
+import com.memeemoji.mixin.MemeEmojiClientAccess;
 import com.memeemoji.net.EmojiSyncChunkPayload;
 import com.memeemoji.net.EmojiSyncEndPayload;
 import com.memeemoji.net.EmojiSyncStartPayload;
+import com.mojang.blaze3d.platform.NativeImage;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.ResourceLocation;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,6 +33,9 @@ public final class MemeEmojiClient implements ClientModInitializer {
     private static long sessionId;
     private static boolean sessionActive;
     private static int expectedTotal;
+
+    /** 每个表情对应的 DynamicTexture 引用（防止 GC） */
+    private static final List<DynamicTexture> OWNED_TEXTURES = new ArrayList<>();
 
     @Override
     public void onInitializeClient() {
@@ -85,7 +94,43 @@ public final class MemeEmojiClient implements ClientModInitializer {
             return false;
         }
         EmojiRegistry.INSTANCE.apply(tiles, MemeEmoji.config().enabled);
+        registerCustomTextures(tiles);
         return true;
+    }
+
+    /**
+     * 为每个表情创建 DynamicTexture 和自定义 BakedGlyph，
+     * 注册到 MemeEmojiClientAccess 供 FontSetMixin 替换渲染。
+     */
+    private static void registerCustomTextures(List<EmojiTile> tiles) {
+        // 清理旧的纹理和 glyph
+        for (DynamicTexture tex : OWNED_TEXTURES) {
+            tex.close();
+        }
+        OWNED_TEXTURES.clear();
+        MemeEmojiClientAccess.clear();
+
+        Minecraft mc = Minecraft.getInstance();
+        for (int i = 0; i < tiles.size(); i++) {
+            EmojiTile tile = tiles.get(i);
+            int codepoint = MemeEmoji.PUA_BASE + i;
+
+            try {
+                NativeImage nativeImage = NativeImage.read(new ByteArrayInputStream(tile.png()));
+                DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
+                ResourceLocation location = ResourceLocation.fromNamespaceAndPath(
+                        MemeEmoji.MOD_ID, "emoji_texture/" + tile.name()
+                );
+                mc.getTextureManager().register(location, dynamicTexture);
+                OWNED_TEXTURES.add(dynamicTexture);
+
+                MemeEmojiGlyph glyph = new MemeEmojiGlyph(location, tile.width(), tile.height());
+                MemeEmojiClientAccess.put(codepoint, glyph);
+            } catch (IOException e) {
+                MemeEmoji.LOGGER.warn("注册表情纹理失败: {}", tile.name(), e);
+            }
+        }
+        MemeEmoji.LOGGER.info("已注册 {} 个自定义纹理 glyph", MemeEmojiClientAccess.size());
     }
 
     private static void onStart(EmojiSyncStartPayload payload) {
