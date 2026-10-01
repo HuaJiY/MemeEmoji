@@ -56,8 +56,10 @@ public final class MemeEmojiClient implements ClientModInitializer {
                 (payload, context) -> context.client().execute(() -> onChunk(payload)));
         ClientPlayNetworking.registerGlobalReceiver(EmojiSyncEndPayload.TYPE,
                 (payload, context) -> context.client().execute(() -> onEnd(payload)));
-        ensurePackOnDisk();
-        startWatcher();
+        Minecraft.getInstance().execute(() -> {
+            ensurePackOnDisk();
+            startWatcher();
+        });
     }
 
     /**
@@ -341,3 +343,4 @@ public final class MemeEmojiClient implements ClientModInitializer {
         }
     }
 }
+
