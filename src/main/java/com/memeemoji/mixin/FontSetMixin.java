@@ -2,6 +2,7 @@ package com.memeemoji.mixin;
 
 import com.memeemoji.EmojiRegistry;
 import com.memeemoji.glyph.MemeEmojiGlyph;
+import com.memeemoji.glyph.MemeEmojiClientAccess;
 import net.minecraft.client.gui.font.FontSet;
 import net.minecraft.client.gui.font.glyphs.BakedGlyph;
 import org.spongepowered.asm.mixin.Mixin;

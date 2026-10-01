@@ -1,7 +1,7 @@
 package com.memeemoji;
 
 import com.memeemoji.glyph.MemeEmojiGlyph;
-import com.memeemoji.mixin.MemeEmojiClientAccess;
+import com.memeemoji.glyph.MemeEmojiClientAccess;
 import com.memeemoji.net.EmojiSyncChunkPayload;
 import com.memeemoji.net.EmojiSyncEndPayload;
 import com.memeemoji.net.EmojiSyncStartPayload;

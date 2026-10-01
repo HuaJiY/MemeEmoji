@@ -1,4 +1,4 @@
-package com.memeemoji.mixin;
+package com.memeemoji.glyph;
 
 import com.memeemoji.glyph.MemeEmojiGlyph;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
