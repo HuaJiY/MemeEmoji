@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 
 /**
  * 表情选择界面，打开后显示所有已加载的表情供点击。
- * 使用 scaleToFill 把每个不同尺寸的表情缩放到统一格子大小显示。
+ * 使用 fitToCell 保持各表情原始分辨率居中显示，仅缩小超大的图片。
  */
 public final class EmojiPickerScreen extends Screen {
 
@@ -67,7 +67,7 @@ public final class EmojiPickerScreen extends Screen {
         buildAtlas();
     }
 
-    /** 把所有表情缩放到 pickerCell 大小，拼成一张纹理图集。 */
+    /** 把所有表情用 fitToCell（保持原始分辨率）拼成一张纹理图集。 */
     private void buildAtlas() {
         if (tiles.isEmpty()) return;
         atlasW = GRID_COLS * cellSize;
@@ -78,8 +78,8 @@ public final class EmojiPickerScreen extends Screen {
         for (int i = 0; i < tiles.size(); i++) {
             try {
                 BufferedImage img = ImageTiles.read(tiles.get(i).png());
-                // 缩放到 pickerCell 大小，bicubic 保证清晰度
-                img = ImageTiles.scaleToFill(img, cellSize);
+                // 只缩小不放大，保持原始清晰度
+                img = ImageTiles.fitToCell(img, cellSize);
                 int col = i % GRID_COLS;
                 int row = i / GRID_COLS;
                 int baseX = col * cellSize;

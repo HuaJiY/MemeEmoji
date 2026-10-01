@@ -94,25 +94,42 @@ public final class ImageTiles {
     }
 
     /**
-     * 把图片缩放到 targetSize×targetSize 画布内（居中+ bicubic），
-     * 用于表情选择器统一尺寸展示。
+     * 把图片放在 targetSize x targetSize 画布中央，保留原始分辨率。
+     * 只缩小超过 cellSize 的图片，绝不放大，保证选择界面不模糊。
      */
-    public static BufferedImage scaleToFill(BufferedImage source, int targetSize) {
-        BufferedImage canvas = new BufferedImage(targetSize, targetSize, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = canvas.createGraphics();
-        try {
-            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-            int w = source.getWidth();
-            int h = source.getHeight();
-            double scale = (double) targetSize / Math.max(w, h);
-            int tw = Math.max(1, (int) Math.round(w * scale));
-            int th = Math.max(1, (int) Math.round(h * scale));
-            BufferedImage scaled = scale(source, tw, th);
-            g.drawImage(scaled, (targetSize - tw) / 2, (targetSize - th) / 2, null);
-        } finally {
-            g.dispose();
+    public static BufferedImage fitToCell(BufferedImage source, int cellSize) {
+        int w = source.getWidth();
+        int h = source.getHeight();
+        int dw, dh;
+        if (w <= cellSize && h <= cellSize) {
+            dw = w;
+            dh = h;
+        } else {
+            double scale = (double) cellSize / Math.max(w, h);
+            dw = Math.max(1, (int) Math.round(w * scale));
+            dh = Math.max(1, (int) Math.round(h * scale));
+        }
+        BufferedImage canvas = new BufferedImage(cellSize, cellSize, BufferedImage.TYPE_INT_ARGB);
+        if (dw == w && dh == h) {
+            // 原始分辨率，直接画
+            Graphics2D g = canvas.createGraphics();
+            try {
+                g.drawImage(source, (cellSize - dw) / 2, (cellSize - dh) / 2, null);
+            } finally {
+                g.dispose();
+            }
+        } else {
+            // 需要缩小
+            BufferedImage scaled = scale(source, dw, dh);
+            Graphics2D g = canvas.createGraphics();
+            try {
+                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+                g.drawImage(scaled, (cellSize - dw) / 2, (cellSize - dh) / 2, null);
+            } finally {
+                g.dispose();
+            }
         }
         return canvas;
     }
