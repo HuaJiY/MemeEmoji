@@ -1,4 +1,4 @@
-# MemeEmoji — 项目笔记
+﻿# MemeEmoji — 项目笔记
 
 ## 概览
 
@@ -61,4 +61,8 @@ Minecraft 1.21.1 Fabric mod。把图片丢进 config/memeemoji/emoji/，聊天�
 6. **TextLayoutProcessorMixin createVanillaLayout 需 CallbackInfoReturnable**: 因为 createVanillaLayout 是非 void 方法，用 CallbackInfo 会导致 mixin 应用失败。
 7. **ModernUI BitmapFont advance 重叠**: 旧版统一图集时 font.json 的 height 必须等于纹理 cell 大小。独立纹理后由每个图片的实际 height 决定。
 8. **glyphAscent 计算**: ascent = height - 5，使所有表情底部对齐到 baseline + 5，比聊天气泡底部（baseline）高 3px。
-9. **从统一图集迁移到独立纹理**: 改了 EmojiTile（加 width/height）、ImageTiles（加 fitToMax/scaleToFill）、EmojiPack（多 provider）、TileStore（cache v2）、MemeEmoji（cell→maxSize）、MemeEmojiClient（跟踪 maxEmojiHeight）、协议（加 width/height）。
+9. **从统一图集迁移到独立纹理**: 改了 EmojiTile（加 width/height）、ImageTiles（加 fitToMax/scaleToFill）、EmojiPack（
+多 provider）、TileStore（cache v2）、MemeEmoji（cell→maxSize）、MemeEmojiClient（跟踪 maxEmojiHeight）、协议（加 width
+/height）。
+
+10. **Minecraft.<init> 期间 NPE**: PackRepositoryMixin → ensurePackOnDisk() 路径发生在 Minecraft 构造函数中，此时 getTextureManager() 为 null。即使 execute() 延迟也无法避免——BlockableEventLoop.execute() 在构造函数期间会同步执行。修复：纹理注册完全剥离出 writeAndApply()，用 pendingTiles 暂存，在 onInitializeClient 的 execute() 回调中执行 registerPendingTextures()。: 改了 EmojiTile（加 width/height）、ImageTiles（加 fitToMax/scaleToFill）、EmojiPack（多 provider）、TileStore（cache v2）、MemeEmoji（cell→maxSize）、MemeEmojiClient（跟踪 maxEmojiHeight）、协议（加 width/height）。
