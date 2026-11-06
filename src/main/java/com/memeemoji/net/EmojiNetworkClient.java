@@ -2,6 +2,7 @@ package com.memeemoji.net;
 
 import com.memeemoji.EmojiTokens;
 import com.memeemoji.chat.EmojiChatRenderer;
+import com.memeemoji.compat.TalkBubblesCompat;
 import com.memeemoji.MemeEmoji;
 import com.memeemoji.media.EmojiAsset;
 import com.memeemoji.media.EmojiLibrary;
@@ -57,6 +58,7 @@ public final class EmojiNetworkClient {
             EmojiChatRenderer.invalidate();
             context.client().gui.getChat().addMessage(Component.translatable("chat.type.text",
                     Component.literal(packet.name()), Component.literal(packet.text())));
+            TalkBubblesCompat.received(packet.sender(), packet.text());
         });
         ClientPlayNetworking.registerGlobalReceiver(Control.TYPE, (packet, context) -> control(packet));
         ClientPlayNetworking.registerGlobalReceiver(Start.TYPE, (packet, context) -> start(packet));

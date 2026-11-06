@@ -57,8 +57,12 @@ public final class EmojiGameChecks implements ClientModInitializer {
     public void onInitializeClient() {
         try {
             Files.createDirectories(evidence);
-            if (role.equals("sender")) fixtures();
+            if (role.equals("sender") || role.equals("bubbles")) fixtures();
         } catch (Exception e) { throw new RuntimeException(e); }
+        if (role.equals("bubbles")) {
+            new TalkBubblesGameChecks(evidence).start();
+            return;
+        }
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (finished) return;
             try { tick(client); }

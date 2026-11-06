@@ -18,6 +18,12 @@ Minecraft 1.21.1 Fabric 个人表情模组。把自己的图片放进表情库�
 
 表情文件与配置修改后约 500ms 自动刷新；面板刷新按钮和 `/memeemoji reload` 也可以重新读取。纯文字保持原版行高，只有实际包含图片的行增高。
 
+## TalkBubbles 头顶气泡
+
+可选支持 Minecraft 1.21.1 的 [TalkBubbles 1.0.8](https://modrinth.com/mod/talk-bubbles/version/MEHKQGEi)。需要显示头顶气泡的客户端安装 TalkBubbles 及其依赖 Cloth Config，服务器无需安装这两个模组。
+
+发送方式不变，行内表情、独立大图、GIF 和动态 WebP 都会显示在发送者头顶。图片气泡按实际内容计算大小，普通文字仍使用 TalkBubbles 原有实现；距离、显示时长、缩放、背景颜色和是否显示自己的气泡仍由 TalkBubbles 配置控制。可以与 ModernUI 同时使用。
+
 ## 图片如何传给其他玩家
 
 个人表情库只保存在自己的电脑。发送消息时，客户端只上传本条消息引用且服务器尚未缓存的图片。其他玩家收到图片信息后，在图片需要显示时向服务器请求文件，并缓存到本地。
@@ -64,7 +70,7 @@ Minecraft 1.21.1 Fabric 个人表情模组。把自己的图片放进表情库�
 .\gradlew.bat build
 ```
 
-产物：`build/libs/memeemoji-0.2.0.jar`。`build` 包含图片解码、真实目录监听、聊天几何和协议分片检查。
+产物：`build/libs/memeemoji-0.2.1.jar`。`build` 包含图片解码、真实目录监听、聊天几何和协议分片检查。
 
 游戏检查使用独立的 `src/qa` 模组，不打包进正式 jar。三个终端依次启动服务器、接收方、发送方：
 
@@ -75,6 +81,8 @@ Minecraft 1.21.1 Fabric 个人表情模组。把自己的图片放进表情库�
 ```
 
 检查使用 `build/qa-*` 隔离目录，本地服务器仅绑定 `127.0.0.1:25579`，生成专用世界，不使用现有存档。开发客户端可从 `run/mods` 复制 ModernUI 与 ForgeConfigAPIPort，也可通过 `-PqaModsDir=<目录>` 指定。结果和实机截图位于 `build/qa-evidence`，以 `sender-result.txt`、`receiver-result.txt` 中的 `PASS` / `FAIL` 为准，客户端正常退出不代表检查通过。检查完成后在服务器终端输入 `stop`。再次完整运行前清理这些专用 QA 目录。
+
+检查 TalkBubbles 时，在 QA 服务器运行期间执行 `./gradlew.bat runQaBubbles -PwithTalkBubbles`。此参数仅向开发客户端添加 TalkBubbles 和 Cloth Config，不打包进正式产物。检查文字、行内图片、大图、再次发送文字、隐藏自己的气泡和到期消失，结果为 `build/qa-evidence/talkbubbles-result.txt`。
 
 ## 实现与参考
 

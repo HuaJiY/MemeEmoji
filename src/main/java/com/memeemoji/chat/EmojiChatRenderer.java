@@ -52,12 +52,28 @@ public final class EmojiChatRenderer {
     public static boolean active(List<GuiMessage> messages) {
         if (!MemeEmoji.config().enabled) return false;
         for (GuiMessage message : messages) {
-            Matcher matcher = TOKENS.matcher(message.content().getString());
-            while (matcher.find()) {
-                if (asset(matcher.group()) != null) return true;
-            }
+            if (hasImages(message.content().getString())) return true;
         }
         return false;
+    }
+
+    public static boolean hasImages(String text) {
+        if (!MemeEmoji.config().enabled) return false;
+        Matcher matcher = TOKENS.matcher(text);
+        while (matcher.find()) {
+            if (asset(matcher.group()) != null) return true;
+        }
+        return false;
+    }
+
+    public static List<RichLine> messageLayout(Component content, int width, int normal) {
+        Builder builder = new Builder(Minecraft.getInstance().font, Math.max(12, width), normal,
+                MemeEmoji.config().targetMaxSize(), MemeEmoji.config().stickerSize);
+        content.visit((style, text) -> {
+            builder.append(text, style);
+            return Optional.empty();
+        }, Style.EMPTY);
+        return builder.finish();
     }
 
     private static EmojiAsset asset(String token) {
@@ -84,12 +100,10 @@ public final class EmojiChatRenderer {
 
         List<Line> next = new ArrayList<>();
         for (GuiMessage message : messages) {
-            Builder builder = new Builder(mc.font, width, normal, inline, sticker, message);
-            message.content().visit((style, text) -> {
-                builder.append(text, style);
-                return Optional.empty();
-            }, Style.EMPTY);
-            List<Line> messageLines = builder.finish();
+            List<Line> messageLines = new ArrayList<>();
+            for (RichLine line : messageLayout(message.content(), width, normal)) {
+                messageLines.add(new Line(line.parts(), line.height(), message));
+            }
             Collections.reverse(messageLines);
             next.addAll(messageLines);
         }
@@ -223,7 +237,12 @@ public final class EmojiChatRenderer {
         return hit != null && x / chat.getScale() - 4 < 0 ? hit.line().message().tag() : null;
     }
 
-    private record Part(String text, Style style, EmojiAsset asset, int x, int width, int height) { }
+    public record Part(String text, Style style, EmojiAsset asset, int x, int width, int height) { }
+    public record RichLine(List<Part> parts, int height) {
+        public int width() {
+            return parts.stream().mapToInt(p -> p.x() + p.width()).max().orElse(0);
+        }
+    }
     private record Line(List<Part> parts, int height, GuiMessage message) { }
     private record Hit(Line line, Part part) { }
 
@@ -233,19 +252,17 @@ public final class EmojiChatRenderer {
         private final int normal;
         private final int inline;
         private final int sticker;
-        private final GuiMessage message;
-        private final List<Line> result = new ArrayList<>();
+        private final List<RichLine> result = new ArrayList<>();
         private List<Part> parts = new ArrayList<>();
         private int x;
         private int imageHeight;
 
-        Builder(Font font, int width, int normal, int inline, int sticker, GuiMessage message) {
+        Builder(Font font, int width, int normal, int inline, int sticker) {
             this.font = font;
             this.width = width;
             this.normal = normal;
             this.inline = inline;
             this.sticker = sticker;
-            this.message = message;
         }
 
         void append(String text, Style style) {
@@ -312,13 +329,13 @@ public final class EmojiChatRenderer {
         }
 
         private void flush() {
-            result.add(new Line(List.copyOf(parts), ChatGeometry.lineHeight(normal, imageHeight), message));
+            result.add(new RichLine(List.copyOf(parts), ChatGeometry.lineHeight(normal, imageHeight)));
             parts = new ArrayList<>();
             x = 0;
             imageHeight = 0;
         }
 
-        List<Line> finish() {
+        List<RichLine> finish() {
             if (!parts.isEmpty() || result.isEmpty()) flush();
             return result;
         }
