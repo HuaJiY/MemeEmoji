@@ -93,7 +93,7 @@ view-distance=2
 simulation-distance=2
 max-tick-time=-1
 '''
-        ['sender', 'receiver', 'bubbles'].each { role ->
+        ['sender', 'receiver', 'bubbles', 'vanilla'].each { role ->
             def directory = file("build/qa-${role}")
             directory.mkdirs()
             new File(directory, 'options.txt').text = '''lang:zh_cn
@@ -106,7 +106,7 @@ onboardAccessibility:false
 autoJump:false
 tutorialStep:none
 '''
-            copy {
+            if (role != 'vanilla') copy {
                 from(providers.gradleProperty('qaModsDir').getOrElse('run/mods'))
                 include 'ModernUI*.jar', 'ForgeConfigAPIPort*.jar'
                 into new File(directory, 'mods')
@@ -115,7 +115,7 @@ tutorialStep:none
     }
 }
 
-tasks.matching { it.name in ['runQaServer', 'runQaSender', 'runQaReceiver', 'runQaBubbles'] }.configureEach {
+tasks.matching { it.name in ['runQaServer', 'runQaSender', 'runQaReceiver', 'runQaBubbles', 'runQaVanilla'] }.configureEach {
     dependsOn prepareGameQa
 }
 
@@ -143,12 +143,13 @@ loom {
             vmArgs '-Xmx1G', '-Djava.awt.headless=true'
             programArg 'nogui'
         }
-        ['Sender', 'Receiver', 'Bubbles'].each { role ->
+        ['Sender', 'Receiver', 'Bubbles', 'Vanilla'].each { role ->
             "qa${role}" {
                 client()
                 source sourceSets.qa
                 runDir "build/qa-${role.toLowerCase()}"
                 vmArgs '-Xmx2G', "-Dmemeemoji.qa.role=${role.toLowerCase()}",
+                        "-Dmemeemoji.qa.focus=${providers.gradleProperty('qaFocus').getOrElse(role == 'Vanilla' ? 'settings' : 'full')}",
                         "-Dmemeemoji.qa.root=${projectDir.toString().replace('\\', '/')}"
                 programArgs '--username', "Emoji${role}", '--width', '1280', '--height', '800',
                         '--quickPlayMultiplayer', '127.0.0.1:25579'

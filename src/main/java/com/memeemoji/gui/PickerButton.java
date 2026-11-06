@@ -8,21 +8,29 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 final class PickerButton extends AbstractButton {
     static final int TEXT = 0;
     static final int IMPORT = 1;
     static final int REFRESH = 2;
     static final int CLOSE = 3;
+    static final int SETTINGS = 4;
     private final int icon;
     private final BooleanSupplier selected;
     private final Runnable action;
+    private final Supplier<GlassStyle> style;
 
     PickerButton(int x, int y, int w, String label, int icon, BooleanSupplier selected, Runnable action) {
+        this(x, y, w, label, icon, selected, action, GlassStyle::current);
+    }
+
+    PickerButton(int x, int y, int w, String label, int icon, BooleanSupplier selected, Runnable action, Supplier<GlassStyle> style) {
         super(x, y, w, 20, Component.literal(label));
         this.icon = icon;
         this.selected = selected;
         this.action = action;
+        this.style = style;
         if (icon != TEXT) setTooltip(Tooltip.create(Component.literal(label)));
     }
 
@@ -31,10 +39,12 @@ final class PickerButton extends AbstractButton {
 
     @Override
     protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        int color = !active ? 0xFF65736D : selected.getAsBoolean() ? EmojiPickerScreen.ACCENT : EmojiPickerScreen.TEXT;
-        int background = selected.getAsBoolean() ? 0xFF344C43 : isHoveredOrFocused() ? 0xFF35413D : 0xFF252E2B;
-        graphics.fill(getX(), getY(), getRight(), getBottom(), background);
-        if (isFocused()) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), EmojiPickerScreen.ACCENT);
+        GlassStyle theme = style.get();
+        int color = !active ? theme.muted : theme.text;
+        int background = selected.getAsBoolean() ? theme.selected : isHoveredOrFocused() ? theme.hover : theme.control;
+        GlassStyle.rounded(graphics, getX(), getY(), getWidth(), getHeight(), 4, GlassStyle.alpha(background, 210));
+        if (selected.getAsBoolean()) graphics.fill(getX() + 6, getBottom() - 2, getRight() - 6, getBottom() - 1, theme.accent);
+        if (isFocused()) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), theme.accent);
         if (icon == TEXT) graphics.drawCenteredString(Minecraft.getInstance().font, getMessage(), getX() + width / 2, getY() + 6, color);
         else {
             int x = getX() + 5;
@@ -48,6 +58,13 @@ final class PickerButton extends AbstractButton {
                 graphics.fill(x + 5, y, x + 10, y + 3, background);
                 graphics.fill(x + 7, y, x + 9, y + 5, color);
                 graphics.fill(x + 5, y + 3, x + 9, y + 5, color);
+            } else if (icon == SETTINGS) {
+                graphics.renderOutline(x + 2, y + 2, 6, 6, color);
+                graphics.fill(x + 4, y, x + 6, y + 3, color);
+                graphics.fill(x + 4, y + 7, x + 6, y + 10, color);
+                graphics.fill(x, y + 4, x + 3, y + 6, color);
+                graphics.fill(x + 7, y + 4, x + 10, y + 6, color);
+                graphics.fill(x + 4, y + 4, x + 6, y + 6, color);
             } else {
                 for (int i = 0; i < 9; i++) {
                     graphics.fill(x + i, y + i, x + i + 1, y + i + 1, color);

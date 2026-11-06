@@ -43,6 +43,17 @@ public final class EmojiDecoder {
 
     public record Info(int width, int height, boolean animated) {}
 
+    public static String extension(byte[] bytes) throws IOException {
+        if (isWebp(bytes)) return "webp";
+        try (MemoryCacheImageInputStream in = input(bytes)) {
+            ImageReader reader = reader(bytes, in);
+            try {
+                String format = reader.getFormatName().toLowerCase(java.util.Locale.ROOT);
+                return format.equals("jpeg") ? "jpg" : format;
+            } finally { reader.dispose(); }
+        }
+    }
+
     public static Info inspect(byte[] bytes) throws IOException {
         checkBytes(bytes);
         if (isWebp(bytes)) {

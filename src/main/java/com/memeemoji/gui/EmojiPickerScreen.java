@@ -25,14 +25,12 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 public final class EmojiPickerScreen extends Screen {
-    static final int TEXT = 0xFFE4E9E8;
-    static final int MUTED = 0xFF98A5A2;
-    static final int ACCENT = 0xFF7AD8BE;
     private static final String[] STAR = {"000010000", "000010000", "111111111", "011111110", "001111100", "001111100", "011101110", "010000010"};
 
     private final Screen parent;
     private final Consumer<String> callback;
-    private final PickerPreferences preferences = PickerPreferences.load();
+    private PickerPreferences preferences = PickerPreferences.load();
+    private GlassStyle theme = GlassStyle.current();
     private List<EmojiAsset> assets = List.of();
     private List<EmojiAsset> visible = List.of();
     private EditBox search;
@@ -58,17 +56,21 @@ public final class EmojiPickerScreen extends Screen {
 
     @Override
     protected void init() {
+        preferences = PickerPreferences.load();
+        theme = GlassStyle.current();
         String query = search == null ? "" : search.getValue();
         layout = PickerLayout.calculate(width, height);
         int left = layout.x() + 10;
         int right = layout.x() + layout.width() - 10;
         int top = layout.y();
-        importButton = button(right - 68, top + 8, 20, "导入图片", PickerButton.IMPORT, () -> false, this::chooseFiles);
+        importButton = button(right - 92, top + 8, 20, "导入图片", PickerButton.IMPORT, () -> false, this::chooseFiles);
+        button(right - 68, top + 8, 20, "设置", PickerButton.SETTINGS, () -> false,
+                () -> Minecraft.getInstance().setScreen(new EmojiSettingsScreen(this)));
         reloadButton = button(right - 44, top + 8, 20, "刷新", PickerButton.REFRESH, () -> false, this::reload);
         button(right - 20, top + 8, 20, "关闭", PickerButton.CLOSE, () -> false, this::onClose);
         search = new EditBox(font, left + 22, top + 42, right - left - 30, 10, Component.literal("搜索表情"));
         search.setBordered(false);
-        search.setTextColor(TEXT);
+        search.setTextColor(theme.text);
         search.setMaxLength(128);
         search.setValue(query);
         search.setResponder(value -> { scroll = 0; selected = -1; filter(); });
@@ -111,6 +113,7 @@ public final class EmojiPickerScreen extends Screen {
     public void tick() {
         List<EmojiAsset> current = EmojiLibrary.local();
         if (!assets.equals(current)) {
+            preferences = PickerPreferences.load();
             assets = List.copyOf(current);
             filter();
         }
@@ -122,11 +125,12 @@ public final class EmojiPickerScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        graphics.fill(0, 0, width, height, 0x85000000);
-        graphics.fill(layout.x(), layout.y(), layout.x() + layout.width(), layout.y() + layout.height(), 0xFA1C2222);
-        graphics.renderOutline(layout.x(), layout.y(), layout.width(), layout.height(), 0xFF4B5955);
-        graphics.drawString(font, title, layout.x() + 11, layout.y() + 14, TEXT, false);
-        graphics.fill(layout.x() + 10, layout.y() + 84, layout.x() + layout.width() - 10, layout.y() + 85, 0xFF384540);
+        theme = GlassStyle.current();
+        search.setTextColor(theme.text);
+        theme.background(graphics, width, height, delta);
+        theme.panel(graphics, layout.x(), layout.y(), layout.width(), layout.height());
+        graphics.drawString(font, title, layout.x() + 11, layout.y() + 14, theme.text, false);
+        graphics.fill(layout.x() + 10, layout.y() + 84, layout.x() + layout.width() - 10, layout.y() + 85, theme.border);
         renderSearchBackground(graphics);
 
         graphics.enableScissor(layout.gridX(), layout.gridY(), layout.gridX() + layout.gridWidth(), layout.gridY() + layout.gridHeight());
@@ -140,8 +144,8 @@ public final class EmojiPickerScreen extends Screen {
             int size = layout.cell() - 4;
             boolean focused = gridFocused && selected == i;
             if (hovered == i || focused) {
-                graphics.fill(x, y, x + size, y + size, 0xFF303C38);
-                if (focused) graphics.renderOutline(x, y, size, size, ACCENT);
+                GlassStyle.rounded(graphics, x, y, size, size, 5, GlassStyle.alpha(theme.hover, 200));
+                if (focused) graphics.renderOutline(x, y, size, size, theme.accent);
             }
             int box = Math.max(8, size - 19);
             double scale = Math.min((double) box / asset.width(), (double) box / asset.height());
@@ -150,26 +154,26 @@ public final class EmojiPickerScreen extends Screen {
             EmojiTextures.render(graphics, asset, x + (size - imageWidth) / 2,
                     y + 3 + (box - imageHeight) / 2, imageWidth, imageHeight, 255);
             String label = font.plainSubstrByWidth(asset.name(), size - 8);
-            graphics.drawCenteredString(font, label, x + size / 2, y + size - 12, MUTED);
+            graphics.drawString(font, label, x + (size - font.width(label)) / 2, y + size - 12, theme.muted, false);
             if (hovered == i || preferences.isFavorite(asset.id())) {
                 int color = preferences.isFavorite(asset.id()) ? 0xFFFFD57B : 0xFFB6C5BF;
-                graphics.fill(x + size - 15, y + 1, x + size - 1, y + 15, 0xD91C2222);
+                GlassStyle.rounded(graphics, x + size - 15, y + 1, 14, 14, 3, GlassStyle.alpha(theme.surface, 220));
                 drawStar(graphics, x + size - 13, y + 4, color);
             }
-            if (asset.animated()) graphics.fill(x + 4, y + 4, x + 7, y + 7, ACCENT);
+            if (asset.animated()) graphics.fill(x + 4, y + 4, x + 7, y + 7, theme.accent);
         }
         if (visible.isEmpty()) {
             String empty = busy ? "正在加载…" : !search.getValue().isBlank() ? "没有匹配的表情"
                     : switch (category) { case ALL -> "表情库为空"; case RECENT -> "暂无最近使用"; case FAVORITES -> "暂无收藏"; };
             graphics.drawCenteredString(font, empty, layout.x() + layout.width() / 2,
-                    layout.gridY() + Math.max(0, (layout.gridHeight() - font.lineHeight) / 2), MUTED);
+                    layout.gridY() + Math.max(0, (layout.gridHeight() - font.lineHeight) / 2), theme.muted);
         }
         graphics.disableScissor();
         drawScrollbar(graphics);
         int problems = EmojiLibrary.problems().size();
         String footer = status.isBlank() ? visible.size() + " 个表情" + (problems == 0 ? "" : " · " + problems + " 个无法载入") : status;
         graphics.drawString(font, font.plainSubstrByWidth(footer, layout.width() - 22),
-                layout.x() + 11, layout.y() + layout.height() - 14, error || problems > 0 ? 0xFFFFA7A7 : MUTED, false);
+                layout.x() + 11, layout.y() + layout.height() - 14, error || problems > 0 ? 0xFFFFA7A7 : theme.muted, false);
         super.render(graphics, mouseX, mouseY, delta);
         if (hovered >= 0) {
             EmojiAsset asset = visible.get(hovered);
@@ -190,11 +194,11 @@ public final class EmojiPickerScreen extends Screen {
         int x = layout.x() + 11;
         int y = layout.y() + 37;
         int width = layout.width() - 22;
-        graphics.fill(x, y, x + width, y + 18, 0xFF242D29);
-        graphics.renderOutline(x, y, width, 18, search.isFocused() ? 0xFF5D9684 : 0xFF384A42);
+        GlassStyle.rounded(graphics, x, y, width, 18, 4, GlassStyle.alpha(theme.control, 210));
+        graphics.fill(x + 5, y + 17, x + width - 5, y + 18, search.isFocused() ? theme.accent : theme.border);
         int iconX = x + 5;
         int iconY = y + 4;
-        int color = search.isFocused() ? ACCENT : MUTED;
+        int color = search.isFocused() ? theme.accent : theme.muted;
         graphics.fill(iconX + 2, iconY, iconX + 6, iconY + 1, color);
         graphics.fill(iconX + 2, iconY + 7, iconX + 6, iconY + 8, color);
         graphics.fill(iconX, iconY + 2, iconX + 1, iconY + 6, color);
@@ -207,7 +211,7 @@ public final class EmojiPickerScreen extends Screen {
         }
         if (search.getValue().isEmpty()) {
             graphics.drawString(font, font.plainSubstrByWidth("搜索表情", search.getWidth() - 7),
-                    search.getX() + 7, search.getY(), MUTED, false);
+                    search.getX(), search.getY(), theme.muted, false);
         }
     }
 
@@ -243,8 +247,8 @@ public final class EmojiPickerScreen extends Screen {
         int x = layout.gridX() + layout.gridWidth() + 2;
         int thumb = Math.max(14, layout.gridHeight() * layout.gridHeight() / contentHeight());
         int y = layout.gridY() + (layout.gridHeight() - thumb) * scroll / maxScroll();
-        graphics.fill(x, layout.gridY(), x + 3, layout.gridY() + layout.gridHeight(), 0xFF303B37);
-        graphics.fill(x, y, x + 3, y + thumb, 0xFF839D92);
+        graphics.fill(x, layout.gridY(), x + 3, layout.gridY() + layout.gridHeight(), theme.border);
+        graphics.fill(x, y, x + 3, y + thumb, theme.muted);
     }
 
     @Override
@@ -346,6 +350,7 @@ public final class EmojiPickerScreen extends Screen {
     }
 
     private void toggleFavorite(UUID id) {
+        preferences = PickerPreferences.load();
         preferences.toggleFavorite(id);
         savePreferences();
         filter();
@@ -354,6 +359,7 @@ public final class EmojiPickerScreen extends Screen {
     private void choose(int index) {
         if (index < 0 || index >= visible.size()) return;
         EmojiAsset asset = visible.get(index);
+        preferences = PickerPreferences.load();
         preferences.use(asset.id());
         savePreferences();
         callback.accept(sticker ? EmojiTokens.reference(asset.id(), true) : ":" + asset.name() + ":");

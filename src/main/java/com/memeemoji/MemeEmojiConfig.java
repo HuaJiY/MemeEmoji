@@ -16,6 +16,7 @@ import java.nio.file.Path;
  * 显示尺寸与文件像素分辨率独立，切换尺寸不会重新压缩图片。
  */
 public final class MemeEmojiConfig {
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     public static final MemeEmojiConfig DEFAULT = new MemeEmojiConfig();
 
     public boolean enabled = true;
@@ -31,6 +32,12 @@ public final class MemeEmojiConfig {
     /** 尺寸上限，兜底防止意外超大值 */
     public int maxCellSize = 128;
     public int stickerSize = 96;
+    public String uiTheme = "dark";
+    public int blurRadius = 7;
+    public int panelOpacity = 190;
+    public String accentColor = "#7AD8BE";
+    public String darkSurfaceColor = "#192222";
+    public String lightSurfaceColor = "#F1F5F3";
 
     public MemeEmojiConfig() {
     }
@@ -54,7 +61,9 @@ public final class MemeEmojiConfig {
         return new MemeEmojiConfig();
     }
 
-    private void normalize() {
+    public MemeEmojiConfig copy() { return GSON.fromJson(GSON.toJson(this), MemeEmojiConfig.class); }
+
+    public void normalize() {
         if (maxNameLength < 1) {
             maxNameLength = DEFAULT.maxNameLength;
         }
@@ -77,6 +86,16 @@ public final class MemeEmojiConfig {
         if (stickerSize < 24 || stickerSize > 256) {
             stickerSize = DEFAULT.stickerSize;
         }
+        if (!"light".equals(uiTheme)) uiTheme = "dark";
+        blurRadius = Math.max(0, Math.min(10, blurRadius));
+        panelOpacity = Math.max(64, Math.min(255, panelOpacity));
+        accentColor = color(accentColor, DEFAULT.accentColor);
+        darkSurfaceColor = color(darkSurfaceColor, DEFAULT.darkSurfaceColor);
+        lightSurfaceColor = color(lightSurfaceColor, DEFAULT.lightSurfaceColor);
+    }
+
+    private static String color(String value, String fallback) {
+        return value != null && value.matches("#[0-9a-fA-F]{6}") ? value.toUpperCase(java.util.Locale.ROOT) : fallback;
     }
 
     /** 根据预设返回最大尺寸限制，再 clamp 到 maxCellSize。 */
@@ -91,13 +110,16 @@ public final class MemeEmojiConfig {
 
     public void save(Path file) {
         try {
-            Files.createDirectories(file.getParent());
-            String json = new GsonBuilder().setPrettyPrinting().create().toJson(this) + System.lineSeparator();
-            if (!Files.isRegularFile(file) || !Files.readString(file, StandardCharsets.UTF_8).equals(json)) {
-                Files.writeString(file, json, StandardCharsets.UTF_8);
-            }
+            saveOrThrow(file);
         } catch (IOException e) {
             MemeEmoji.LOGGER.warn("写入 {} 失败", file, e);
         }
+    }
+
+    public void saveOrThrow(Path file) throws IOException {
+        Files.createDirectories(file.getParent());
+        String json = GSON.toJson(this) + System.lineSeparator();
+        if (!Files.isRegularFile(file) || !Files.readString(file, StandardCharsets.UTF_8).equals(json))
+            Files.writeString(file, json, StandardCharsets.UTF_8);
     }
 }

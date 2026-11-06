@@ -40,7 +40,7 @@ public final class EmojiLibrary {
         return thread;
     });
     private static final Map<UUID, EmojiAsset> REMOTE = new ConcurrentHashMap<>();
-    private static volatile Snapshot snapshot = new Snapshot(List.of(), Map.of(), Map.of(), Map.of());
+    private static volatile Snapshot snapshot = new Snapshot(List.of(), Map.of(), Map.of(), Map.of(), Map.of());
     private static volatile Map<String, String> problems = Map.of();
     private static volatile Consumer<UUID> availableListener = id -> {};
 
@@ -59,6 +59,43 @@ public final class EmojiLibrary {
     }
 
     public static EmojiAsset findName(String name) { return snapshot.names.get(name.toLowerCase(Locale.ROOT)); }
+
+    public static EmojiAsset personalCopy(UUID id) {
+        Snapshot current = snapshot;
+        Source source = current.ids.get(current.collected.getOrDefault(id, id));
+        return source == null ? null : source.asset;
+    }
+
+    public static CompletableFuture<EmojiAsset> collect(UUID id) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                EmojiAsset existing = personalCopy(id);
+                if (existing != null) return existing;
+                EmojiAsset asset = find(id);
+                if (asset == null) throw new IOException("图片信息已失效");
+                byte[] bytes = read(id);
+                EmojiDecoder.inspect(bytes);
+                String extension = EmojiDecoder.extension(bytes);
+                if (!EXTENSIONS.contains(extension)) throw new IOException("不支持的图片格式");
+                String name = asset.name().replaceAll("[\\s\\p{Cntrl}<>:\"/\\\\|?*.]", "_");
+                if (name.isBlank()) name = "表情";
+                if (name.matches("(?i)CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]")) name = "_" + name;
+                name = truncate(name, MemeEmoji.config().maxNameLength);
+                if (name.isBlank()) name = truncate("表情", MemeEmoji.config().maxNameLength);
+                if (name.isBlank()) throw new IOException("名称长度上限过小，无法保存图片");
+                Set<String> reserved = new HashSet<>(snapshot.names.keySet());
+                Path target = availableName(name + "." + extension, reserved);
+                writeAtomic(target, bytes);
+                scan();
+                EmojiAsset saved = snapshot.paths.get(relative(target)).asset;
+                Map<UUID, UUID> collected = new LinkedHashMap<>(snapshot.collected);
+                collected.put(id, saved.id());
+                snapshot = new Snapshot(snapshot.local, snapshot.ids, snapshot.names, snapshot.paths, Map.copyOf(collected));
+                writeIndex();
+                return saved;
+            } catch (IOException e) { throw new CompletionException(e); }
+        }, IO);
+    }
 
     public static void initialize() { reload(); }
 
@@ -147,12 +184,16 @@ public final class EmojiLibrary {
         Files.createDirectories(received());
         Snapshot previous = snapshot;
         Map<String, Source> old = new HashMap<>(previous.paths);
+        Map<UUID, UUID> collected = new LinkedHashMap<>(previous.collected);
         Path indexPath = directory().resolve("library-index.json");
         if (old.isEmpty() && Files.isRegularFile(indexPath)) {
             try {
-                Index index = GSON.fromJson(Files.readString(indexPath, StandardCharsets.UTF_8), Index.class);
-                if (index != null && index.version == 1 && index.sources != null)
+                String json = Files.readString(indexPath, StandardCharsets.UTF_8);
+                Index index = GSON.fromJson(json, Index.class);
+                if (index != null && index.version == 1 && index.sources != null) {
                     for (Source source : index.sources) if (source != null && source.path != null && source.asset != null) old.put(source.path, source);
+                    if (index.collected != null) collected.putAll(index.collected);
+                }
             } catch (RuntimeException | IOException e) { LOGGER.warn("个人表情索引无法读取，将重新扫描：{}", e.getMessage()); }
         }
         Map<UUID, Source> ids = new LinkedHashMap<>();
@@ -184,12 +225,13 @@ public final class EmojiLibrary {
             }
         }
         List<EmojiAsset> local = ids.values().stream().map(Source::asset).toList();
-        snapshot = new Snapshot(local, Map.copyOf(ids), Map.copyOf(names), Map.copyOf(paths));
+        collected.values().removeIf(id -> !ids.containsKey(id));
+        snapshot = new Snapshot(local, Map.copyOf(ids), Map.copyOf(names), Map.copyOf(paths), Map.copyOf(collected));
         problems = Map.copyOf(errors);
         for (UUID id : previous.ids.keySet()) {
             if (!ids.containsKey(id)) availableListener.accept(id);
         }
-        writeAtomic(indexPath, GSON.toJson(new Index(1, new ArrayList<>(paths.values()))).getBytes(StandardCharsets.UTF_8));
+        writeIndex();
         try (var stream = Files.list(received())) {
             for (Path path : stream.filter(p -> p.getFileName().toString().endsWith(".json")).toList()) {
                 try {
@@ -205,10 +247,31 @@ public final class EmojiLibrary {
         Path target = personal().resolve(fileName);
         int dot = fileName.lastIndexOf('.');
         String stem = fileName.substring(0, dot), extension = fileName.substring(dot);
-        for (int i = 2; Files.exists(target) || reserved.contains(baseName(target.getFileName().toString()).toLowerCase(Locale.ROOT)); i++)
-            target = personal().resolve(stem + "_" + i + extension);
+        int limit = MemeEmoji.config().maxNameLength;
+        for (int i = 2; Files.exists(target) || reserved.contains(baseName(target.getFileName().toString()).toLowerCase(Locale.ROOT)); i++) {
+            String suffix = "_" + i;
+            if (suffix.length() >= limit) suffix = Integer.toString(i, 36);
+            if (suffix.length() > limit) throw new IOException("名称长度上限过小，无法为同名图片分配名称");
+            target = personal().resolve(truncate(stem, limit - suffix.length()) + suffix + extension);
+        }
         validateName(baseName(target.getFileName().toString()));
         return target;
+    }
+
+    private static String truncate(String name, int limit) {
+        int end = Math.min(name.length(), limit);
+        if (end > 0 && Character.isHighSurrogate(name.charAt(end - 1))) end--;
+        return name.substring(0, end);
+    }
+
+    private static void writeIndex() throws IOException {
+        writeAtomic(directory().resolve("library-index.json"),
+                GSON.toJson(new Index(1, new ArrayList<>(snapshot.paths.values()), snapshot.collected)).getBytes(StandardCharsets.UTF_8));
+    }
+
+    static Map<UUID, UUID> readCollected(String json) {
+        Index index = GSON.fromJson(json, Index.class);
+        return index == null || index.collected == null ? Map.of() : index.collected;
     }
 
     private static void validateName(String name) throws IOException {
@@ -245,6 +308,7 @@ public final class EmojiLibrary {
     private static String baseName(String name) { return name.substring(0, name.lastIndexOf('.')); }
     private static String relative(Path path) { return personal().relativize(path).toString().replace('\\', '/'); }
     private record Source(String path, long size, long modified, EmojiAsset asset) {}
-    private record Index(int version, List<Source> sources) {}
-    private record Snapshot(List<EmojiAsset> local, Map<UUID, Source> ids, Map<String, EmojiAsset> names, Map<String, Source> paths) {}
+    private record Index(int version, List<Source> sources, Map<UUID, UUID> collected) {}
+    private record Snapshot(List<EmojiAsset> local, Map<UUID, Source> ids, Map<String, EmojiAsset> names,
+                            Map<String, Source> paths, Map<UUID, UUID> collected) {}
 }

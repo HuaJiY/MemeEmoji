@@ -19,12 +19,14 @@ import net.minecraft.network.chat.Component;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -39,8 +41,10 @@ public final class EmojiNetworkClient {
     private static final Map<UUID, Outgoing> OUTGOING = new HashMap<>();
     private static final Map<UUID, Incoming> INCOMING = new HashMap<>();
     private static final Set<UUID> CHECKING = new HashSet<>();
-    private static final Set<UUID> AVAILABLE = new HashSet<>();
     private static final Map<UUID, Long> RETRY_AFTER = new HashMap<>();
+    private static final Map<UUID, CompletableFuture<Void>> FETCHES = new HashMap<>();
+    private static final Map<UUID, Long> FETCH_DEADLINES = new HashMap<>();
+    private static final Set<UUID> WAITING = new LinkedHashSet<>();
     private static long session;
 
     private EmojiNetworkClient() { }
@@ -68,14 +72,13 @@ public final class EmojiNetworkClient {
             for (var entry : List.copyOf(OUTGOING.entrySet())) {
                 if (now > entry.getValue().deadline) cancel(entry.getKey(), "图片消息发送超时，请重试");
             }
-            for (var entry : List.copyOf(INCOMING.entrySet())) {
-                if (now > entry.getValue().deadline) downloadFailed(entry.getKey(), "图片下载超时，请稍后重试");
-            }
+            for (var entry : List.copyOf(FETCH_DEADLINES.entrySet()))
+                if (now > entry.getValue()) downloadFailed(entry.getKey(), "图片下载超时，请稍后重试");
+            pumpFetches(now);
         });
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registry) -> dispatcher.register(
                 ClientCommandManager.literal("memeemoji").then(ClientCommandManager.literal("reload").executes(context -> {
                     EmojiLibrary.reload().whenComplete((assets, failure) -> Minecraft.getInstance().execute(() -> {
-                        AVAILABLE.clear();
                         EmojiChatRenderer.invalidate();
                         if (failure != null) error("重新读取表情库失败：" + reason(failure));
                         else {
@@ -125,25 +128,85 @@ public final class EmojiNetworkClient {
     }
 
     public static void request(UUID id) {
-        if (!MemeEmoji.config().enabled || AVAILABLE.contains(id) || CHECKING.contains(id) || INCOMING.containsKey(id)
-                || INCOMING.size() + CHECKING.size() >= 4 || RETRY_AFTER.getOrDefault(id, 0L) > System.currentTimeMillis()
-                || !ClientPlayNetworking.canSend(Control.TYPE)) return;
-        EmojiAsset asset = EmojiLibrary.find(id);
-        if (asset == null) return;
+        if (!MemeEmoji.config().enabled || id == null || FETCHES.containsKey(id)
+                || INCOMING.size() + CHECKING.size() >= 4 || RETRY_AFTER.getOrDefault(id, 0L) > System.currentTimeMillis()) return;
+        fetch(id);
+    }
+
+    public static CompletableFuture<Void> fetch(UUID id) {
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        Minecraft.getInstance().execute(() -> fetchOnClient(id, result));
+        return result;
+    }
+
+    private static void fetchOnClient(UUID id, CompletableFuture<Void> result) {
+        if (id == null) { result.completeExceptionally(new IOException("图片 UUID 无效")); return; }
+        CompletableFuture<Void> active = FETCHES.get(id);
+        if (active != null) { active.whenComplete((ignored, failure) -> complete(result, failure)); return; }
+        if (RETRY_AFTER.getOrDefault(id, 0L) > System.currentTimeMillis()) {
+            result.completeExceptionally(new IOException("图片下载刚刚失败，请稍后重试")); return;
+        }
+        FETCHES.put(id, result);
+        FETCH_DEADLINES.put(id, System.currentTimeMillis() + 45_000);
+        WAITING.add(id);
+        pumpFetches(System.currentTimeMillis());
+    }
+
+    private static void pumpFetches(long now) {
+        while (INCOMING.size() + CHECKING.size() < 4 && !WAITING.isEmpty()) {
+            UUID id = WAITING.iterator().next();
+            WAITING.remove(id);
+            if (!FETCHES.containsKey(id)) continue;
+            if (now > FETCH_DEADLINES.getOrDefault(id, now)) {
+                downloadFailed(id, "图片下载超时，请稍后重试");
+                continue;
+            }
+            checkLocalThenRequest(id);
+        }
+    }
+
+    private static void checkLocalThenRequest(UUID id) {
         CHECKING.add(id);
         long generation = session;
         CompletableFuture.supplyAsync(() -> {
+            if (!EmojiLibrary.hasFile(id)) return false;
             try { EmojiLibrary.read(id); return true; }
-            catch (IOException e) { return false; }
+            catch (IOException e) { throw new CompletionException(e); }
         }, IO).whenComplete((exists, failure) -> Minecraft.getInstance().execute(() -> {
-            if (generation != session) return;
+            if (generation != session || !FETCHES.containsKey(id)) return;
             CHECKING.remove(id);
-            if (Boolean.TRUE.equals(exists)) { AVAILABLE.add(id); return; }
-            if (!MemeEmoji.config().enabled || !ClientPlayNetworking.canSend(Control.TYPE)) return;
+            if (System.currentTimeMillis() > FETCH_DEADLINES.getOrDefault(id, 0L)) {
+                downloadFailed(id, "图片下载超时，请稍后重试");
+                return;
+            }
+            if (failure != null) { downloadFailed(id, "检查图片缓存失败：" + reason(failure)); return; }
+            if (Boolean.TRUE.equals(exists)) {
+                finishFetch(id, null);
+                pumpFetches(System.currentTimeMillis());
+                return;
+            }
+            if (!MemeEmoji.config().enabled || Minecraft.getInstance().getConnection() == null
+                    || !ClientPlayNetworking.canSend(Control.TYPE)) { downloadFailed(id, "连接已断开，无法下载图片"); return; }
+            EmojiAsset asset = EmojiLibrary.find(id);
+            if (asset == null) { downloadFailed(id, "图片信息尚未载入，无法下载"); return; }
             UUID ticket = UUID.randomUUID();
             INCOMING.put(id, new Incoming(ticket, asset));
             ClientPlayNetworking.send(new Control(REQUEST, ticket, id, ""));
+            pumpFetches(System.currentTimeMillis());
         }));
+    }
+
+    private static void complete(CompletableFuture<Void> target, Throwable failure) {
+        if (failure == null) target.complete(null);
+        else target.completeExceptionally(failure instanceof CompletionException && failure.getCause() != null ? failure.getCause() : failure);
+    }
+
+    private static void finishFetch(UUID id, Throwable failure) {
+        CompletableFuture<Void> future = FETCHES.remove(id);
+        FETCH_DEADLINES.remove(id);
+        WAITING.remove(id);
+        if (future == null) return;
+        if (failure == null) future.complete(null); else future.completeExceptionally(failure);
     }
 
     private static void control(Control packet) {
@@ -199,8 +262,8 @@ public final class EmojiNetworkClient {
             if (generation != session || INCOMING.get(packet.id()) != incoming) return;
             if (failure != null) { downloadFailed(packet.id(), "保存图片失败：" + reason(failure)); return; }
             INCOMING.remove(packet.id());
-            AVAILABLE.add(packet.id());
             RETRY_AFTER.remove(packet.id());
+            finishFetch(packet.id(), null);
         }));
     }
 
@@ -213,13 +276,19 @@ public final class EmojiNetworkClient {
 
     private static void downloadFailed(UUID id, String message) {
         INCOMING.remove(id);
+        CHECKING.remove(id);
+        WAITING.remove(id);
         RETRY_AFTER.put(id, System.currentTimeMillis() + 15_000);
+        finishFetch(id, new IOException(message));
         error(message);
+        pumpFetches(System.currentTimeMillis());
     }
 
     private static void reset() {
         session++;
-        OUTGOING.clear(); INCOMING.clear(); CHECKING.clear(); AVAILABLE.clear(); RETRY_AFTER.clear();
+        FETCHES.forEach((id, future) -> future.completeExceptionally(new IOException("服务器连接已断开")));
+        FETCHES.clear(); FETCH_DEADLINES.clear(); WAITING.clear();
+        OUTGOING.clear(); INCOMING.clear(); CHECKING.clear(); RETRY_AFTER.clear();
     }
 
     private static String reason(Throwable failure) {
@@ -242,7 +311,6 @@ public final class EmojiNetworkClient {
     private static final class Incoming {
         final UUID ticket;
         final EmojiAsset asset;
-        final long deadline = System.currentTimeMillis() + 45_000;
         Assembly assembly;
         boolean saving;
         Incoming(UUID ticket, EmojiAsset asset) { this.ticket = ticket; this.asset = asset; }

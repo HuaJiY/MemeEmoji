@@ -2,6 +2,7 @@ package com.memeemoji.mixin;
 
 import com.memeemoji.gui.EmojiPickerScreen;
 import com.memeemoji.gui.EmojiPreviewScreen;
+import com.memeemoji.gui.EmojiCollection;
 import com.memeemoji.chat.EmojiChatRenderer;
 import com.memeemoji.media.EmojiAsset;
 import com.memeemoji.net.EmojiNetworkClient;
@@ -85,6 +86,20 @@ public class ChatScreenMixin {
             memeemoji$saveDraft();
             Minecraft.getInstance().setScreen(new EmojiPreviewScreen((ChatScreen) (Object) this, asset));
             cir.setReturnValue(true);
+            return;
+        }
+        if (button == 1) {
+            EmojiAsset collectible = EmojiChatRenderer.assetAt(x, y);
+            if (collectible != null) {
+                Minecraft.getInstance().gui.setOverlayMessage(Component.literal("正在收藏表情…"), false);
+                EmojiCollection.collect(collectible.id()).whenComplete((saved, failure) -> Minecraft.getInstance().execute(() -> {
+                    Component message = failure == null
+                            ? Component.literal("已收藏表情：" + saved.name())
+                            : Component.literal("收藏失败：" + memeemoji$failureMessage(failure));
+                    Minecraft.getInstance().gui.setOverlayMessage(message, false);
+                }));
+                cir.setReturnValue(true);
+            }
         }
     }
 
@@ -103,5 +118,11 @@ public class ChatScreenMixin {
             if (addToHistory) Minecraft.getInstance().gui.getChat().addRecentChat(normalized);
             ci.cancel();
         }
+    }
+
+    @Unique
+    private static String memeemoji$failureMessage(Throwable failure) {
+        while (failure.getCause() != null) failure = failure.getCause();
+        return failure.getMessage() == null ? "请稍后重试" : failure.getMessage();
     }
 }

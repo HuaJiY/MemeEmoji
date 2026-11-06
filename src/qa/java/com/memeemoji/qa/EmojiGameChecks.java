@@ -52,14 +52,17 @@ public final class EmojiGameChecks implements ClientModInitializer {
     private final Map<UUID, Set<Integer>> frames = new HashMap<>();
     private UUID replacedId;
     private boolean reloaded;
+    private SettingsGameChecks settings;
+    private CollectionGameChecks collection;
+    private final boolean settingsOnly = System.getProperty("memeemoji.qa.focus", "full").equals("settings");
 
     @Override
     public void onInitializeClient() {
         try {
             Files.createDirectories(evidence);
-            if (role.equals("sender") || role.equals("bubbles")) fixtures();
+            if (role.equals("sender") || role.equals("bubbles") || role.equals("vanilla")) fixtures();
         } catch (Exception e) { throw new RuntimeException(e); }
-        if (role.equals("bubbles")) {
+        if (role.equals("bubbles") && !settingsOnly) {
             new TalkBubblesGameChecks(evidence).start();
             return;
         }
@@ -75,6 +78,10 @@ public final class EmojiGameChecks implements ClientModInitializer {
 
     private void tick(Minecraft mc) throws Exception {
         if (++ticks > 12000) throw new AssertionError("Game QA timed out at stage " + stage);
+        if (settings != null) {
+            if (settings.tick(mc)) finish(mc, "PASS: settings draft/cancel/save, themes, verified shader blur, responsive layout and queued/offline collection");
+            return;
+        }
         if (mc.player == null || mc.getConnection() == null) return;
         connected++;
         if (connected == 1) {
@@ -86,6 +93,17 @@ public final class EmojiGameChecks implements ClientModInitializer {
             mc.resizeDisplay();
         }
         observeAnimation();
+        if (settingsOnly) {
+            if (connected > 80 && !EmojiLibrary.local().isEmpty()) {
+                settings = new SettingsGameChecks(evidence);
+                settings.start(mc, new ChatScreen(""));
+            }
+            return;
+        }
+        if (collection != null) {
+            if (collection.tick(mc)) finish(mc, "PASS: network/chat + preview and right-click collection, original GIF/WebP, duplicate and collision handling, resend");
+            return;
+        }
         if (role.equals("sender")) {
             sender(mc);
             return;
@@ -136,7 +154,8 @@ public final class EmojiGameChecks implements ClientModInitializer {
             capture(mc, "preview");
             mc.screen.onClose();
             check(mc.screen == chat && input(chat).getValue().equals("draft-right") && input(chat).getCursorPosition() == 5, "Preview preserves draft/cursor");
-            finish(mc, "PASS: network, original pixels, variable chat heights, image click preview and draft restoration");
+            collection = new CollectionGameChecks(root, evidence, ids, chat);
+            collection.start(mc);
         }
     }
 
@@ -199,7 +218,8 @@ public final class EmojiGameChecks implements ClientModInitializer {
             check(EmojiLibrary.find(replacedId) != null, "Sent metadata survives local file replacement");
             check(!EmojiLibrary.findName("清晰测试").id().equals(replacedId), "Replacement must get a new UUID");
             if (!EmojiLibrary.hasFile(replacedId)) return;
-            finish(mc, "PASS: inline/sticker send, search, cursor insertion, favorites, responsive picker, drag import, ESC and old image recovery after local edit");
+            settings = new SettingsGameChecks(evidence);
+            settings.start(mc, chat);
         }
     }
 
@@ -219,7 +239,7 @@ public final class EmojiGameChecks implements ClientModInitializer {
 
     private void finish(Minecraft mc, String result) {
         finished = true;
-        try { Files.writeString(evidence.resolve(role + "-result.txt"), result); }
+        try { Files.writeString(evidence.resolve(role + (settingsOnly ? "-focus" : "") + "-result.txt"), result); }
         catch (Exception e) { e.printStackTrace(); }
         System.out.println("MEMEEMOJI_QA " + role + " " + result);
         mc.stop();

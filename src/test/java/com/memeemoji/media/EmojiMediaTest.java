@@ -17,6 +17,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class EmojiMediaTest {
@@ -33,8 +35,17 @@ public final class EmojiMediaTest {
         webpBlendAndDisposal();
         webpRawAlpha();
         rejectOversizedImages();
+        collectionIndexCompatibility();
         recursiveWatcher();
-        System.out.println("Media tests passed: PNG pixels, transparent GIF disposal/timing, static/animated WebP, WebP blend/disposal/raw alpha, decode limits, recursive watcher/debounce/config order.");
+        System.out.println("Media tests passed: image format retention, PNG pixels, transparent GIF disposal/timing, static/animated WebP, WebP blend/disposal/raw alpha, decode limits, collection index compatibility, recursive watcher/debounce/config order.");
+    }
+
+    private static void collectionIndexCompatibility() {
+        UUID source = UUID.fromString("150e8400-e29b-41d4-a716-446655440000");
+        UUID copy = UUID.fromString("150e8400-e29b-41d4-a716-446655440001");
+        check(EmojiLibrary.readCollected("{\"version\":1,\"sources\":[]}").isEmpty(), "Legacy library index without collection map");
+        check(EmojiLibrary.readCollected("{\"version\":1,\"sources\":[],\"collected\":{\"" + source + "\":\"" + copy + "\"}}")
+                .equals(Map.of(source, copy)), "Collected mapping survives index reload");
     }
 
     private static void pngPreservesPixels() throws Exception {
@@ -48,7 +59,9 @@ public final class EmojiMediaTest {
     }
 
     private static void transparentGif() throws Exception {
-        EmojiDecoder.Decoded decoded = EmojiDecoder.decode(gif());
+        byte[] bytes = gif();
+        check(EmojiDecoder.extension(bytes).equals("gif"), "GIF source format");
+        EmojiDecoder.Decoded decoded = EmojiDecoder.decode(bytes);
         check(decoded.width() == 4 && decoded.height() == 4 && decoded.frames().size() == 4, "GIF frame count/canvas");
         check(pixel(decoded, 0, 0, 0) == 0xffff0000 && pixel(decoded, 0, 3, 3) == 0, "GIF transparency");
         check(pixel(decoded, 1, 0, 0) == 0xffff0000 && pixel(decoded, 1, 2, 0) == 0xff00ff00, "GIF overlay");
@@ -60,6 +73,7 @@ public final class EmojiMediaTest {
     }
 
     private static void staticAndAnimatedWebp() throws Exception {
+        check(EmojiDecoder.extension(RED_WEBP).equals("webp") && EmojiDecoder.extension(ANIMATED_WEBP).equals("webp"), "WebP source format");
         EmojiDecoder.Decoded still = EmojiDecoder.decode(RED_WEBP);
         check(still.width() == 4 && pixel(still, 0, 3, 3) == 0xffff0000, "Static WebP");
         EmojiDecoder.Decoded decoded = EmojiDecoder.decode(ANIMATED_WEBP);

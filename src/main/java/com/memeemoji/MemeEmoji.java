@@ -29,6 +29,13 @@ public final class MemeEmoji implements ModInitializer {
         config = null;
     }
 
+    public static void applyConfig(MemeEmojiConfig next) throws java.io.IOException {
+        MemeEmojiConfig saved = next.copy();
+        saved.normalize();
+        saved.saveOrThrow(configDir().resolve("config.json"));
+        config = saved;
+    }
+
     public static MemeEmojiConfig config() {
         MemeEmojiConfig current = config;
         if (current == null) {
