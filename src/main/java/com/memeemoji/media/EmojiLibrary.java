@@ -1,0 +1,250 @@
+package com.memeemoji.media;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.memeemoji.MemeEmoji;
+import net.fabricmc.loader.api.FabricLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+
+public final class EmojiLibrary {
+    private static final Logger LOGGER = LoggerFactory.getLogger("MemeEmoji/Library");
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Set<String> EXTENSIONS = Set.of("png", "jpg", "jpeg", "gif", "webp", "bmp");
+    private static final ExecutorService IO = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r, "MemeEmoji-Library");
+        thread.setDaemon(true);
+        return thread;
+    });
+    private static final Map<UUID, EmojiAsset> REMOTE = new ConcurrentHashMap<>();
+    private static volatile Snapshot snapshot = new Snapshot(List.of(), Map.of(), Map.of(), Map.of());
+    private static volatile Map<String, String> problems = Map.of();
+    private static volatile Consumer<UUID> availableListener = id -> {};
+
+    private EmojiLibrary() {}
+
+    public static Path directory() { return FabricLoader.getInstance().getConfigDir().resolve("memeemoji"); }
+    private static Path personal() { return directory().resolve("emoji"); }
+    private static Path received() { return directory().resolve("received"); }
+    public static List<EmojiAsset> local() { return snapshot.local; }
+    public static Map<String, String> problems() { return problems; }
+    public static void onAvailable(Consumer<UUID> listener) { availableListener = listener; }
+
+    public static EmojiAsset find(UUID id) {
+        Source source = snapshot.ids.get(id);
+        return source == null ? REMOTE.get(id) : source.asset;
+    }
+
+    public static EmojiAsset findName(String name) { return snapshot.names.get(name.toLowerCase(Locale.ROOT)); }
+
+    public static void initialize() { reload(); }
+
+    public static CompletableFuture<List<EmojiAsset>> reload() {
+        return CompletableFuture.supplyAsync(() -> {
+            try { return scan(); }
+            catch (IOException e) { throw new CompletionException(e); }
+        }, IO);
+    }
+
+    public static CompletableFuture<List<EmojiAsset>> importFiles(List<Path> files) {
+        List<Path> inputs = List.copyOf(files);
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Files.createDirectories(personal());
+                List<Path> copied = new ArrayList<>();
+                List<String> rejected = new ArrayList<>();
+                Set<String> reserved = new HashSet<>();
+                try (var stream = Files.walk(personal())) {
+                    stream.filter(Files::isRegularFile).filter(EmojiLibrary::isImage)
+                            .forEach(path -> reserved.add(baseName(path.getFileName().toString()).toLowerCase(Locale.ROOT)));
+                }
+                for (Path input : inputs) {
+                    try {
+                        if (!isImage(input)) throw new IOException("不支持的图片格式");
+                        validateName(baseName(input.getFileName().toString()));
+                        byte[] bytes = readLimited(input);
+                        EmojiDecoder.inspect(bytes);
+                        Path target = availableName(input.getFileName().toString(), reserved);
+                        Files.write(target, bytes);
+                        reserved.add(baseName(target.getFileName().toString()).toLowerCase(Locale.ROOT));
+                        copied.add(target);
+                    } catch (IOException | IllegalArgumentException e) {
+                        rejected.add(input.getFileName() + "：" + e.getMessage());
+                    }
+                }
+                scan();
+                if (!rejected.isEmpty()) throw new IOException("已导入 " + copied.size() + " 张；" + String.join("；", rejected));
+                return copied.stream().map(path -> snapshot.paths.get(relative(path))).filter(java.util.Objects::nonNull)
+                        .map(Source::asset).toList();
+            } catch (IOException e) { throw new CompletionException(e); }
+        }, IO);
+    }
+
+    public static Path file(UUID id) {
+        Source source = snapshot.ids.get(id);
+        return source == null ? received().resolve(id.toString()) : personal().resolve(source.path);
+    }
+
+    public static boolean hasFile(UUID id) { return Files.isRegularFile(file(id)); }
+
+    public static byte[] read(UUID id) throws IOException {
+        Source source = snapshot.ids.get(id);
+        Path path = file(id);
+        if (source != null && (Files.size(path) != source.size || Files.getLastModifiedTime(path).toMillis() != source.modified))
+            throw new IOException("表情文件已更改，请刷新表情库");
+        return readLimited(path);
+    }
+
+    public static void acceptMetadata(EmojiAsset asset) {
+        REMOTE.putIfAbsent(asset.id(), asset);
+    }
+
+    public static CompletableFuture<Void> accept(EmojiAsset asset, byte[] input) {
+        if (input.length > EmojiAsset.MAX_FILE_BYTES) return CompletableFuture.failedFuture(new IOException("图片须在 8 MB 以内"));
+        byte[] bytes = input.clone();
+        return CompletableFuture.runAsync(() -> {
+            try {
+                EmojiAsset known = find(asset.id());
+                if (known != null && !known.equals(asset)) throw new IOException("表情 UUID 已对应其他描述");
+                EmojiDecoder.Info info = EmojiDecoder.inspect(bytes);
+                if (info.width() != asset.width() || info.height() != asset.height() || info.animated() != asset.animated())
+                    throw new IOException("表情文件与描述不匹配");
+                Files.createDirectories(received());
+                Path target = received().resolve(asset.id().toString());
+                if (!snapshot.ids.containsKey(asset.id()) && !Files.isRegularFile(target)) writeAtomic(target, bytes);
+                writeAtomic(received().resolve(asset.id() + ".json"), GSON.toJson(asset).getBytes(StandardCharsets.UTF_8));
+                acceptMetadata(asset);
+                availableListener.accept(asset.id());
+            } catch (IOException e) { throw new CompletionException(e); }
+        }, IO);
+    }
+
+    private static List<EmojiAsset> scan() throws IOException {
+        Files.createDirectories(personal());
+        Files.createDirectories(received());
+        Snapshot previous = snapshot;
+        Map<String, Source> old = new HashMap<>(previous.paths);
+        Path indexPath = directory().resolve("library-index.json");
+        if (old.isEmpty() && Files.isRegularFile(indexPath)) {
+            try {
+                Index index = GSON.fromJson(Files.readString(indexPath, StandardCharsets.UTF_8), Index.class);
+                if (index != null && index.version == 1 && index.sources != null)
+                    for (Source source : index.sources) if (source != null && source.path != null && source.asset != null) old.put(source.path, source);
+            } catch (RuntimeException | IOException e) { LOGGER.warn("个人表情索引无法读取，将重新扫描：{}", e.getMessage()); }
+        }
+        Map<UUID, Source> ids = new LinkedHashMap<>();
+        Map<String, Source> paths = new LinkedHashMap<>();
+        Map<String, EmojiAsset> names = new LinkedHashMap<>();
+        Map<String, String> errors = new LinkedHashMap<>();
+        try (var walk = Files.walk(personal())) {
+            for (Path path : walk.filter(Files::isRegularFile).filter(EmojiLibrary::isImage)
+                    .sorted(Comparator.comparing(EmojiLibrary::relative)).toList()) {
+                String relative = relative(path);
+                try {
+                    String name = baseName(path.getFileName().toString());
+                    validateName(name);
+                    String key = name.toLowerCase(Locale.ROOT);
+                    if (names.containsKey(key)) throw new IOException("名称重复，请重命名此图片");
+                    long size = Files.size(path), modified = Files.getLastModifiedTime(path).toMillis();
+                    Source source = old.get(relative);
+                    if (source == null || source.size != size || source.modified != modified) {
+                        EmojiDecoder.Info info = EmojiDecoder.inspect(readLimited(path));
+                        source = new Source(relative, size, modified, new EmojiAsset(UUID.randomUUID(), name, info.width(), info.height(), info.animated()));
+                    }
+                    ids.put(source.asset.id(), source);
+                    paths.put(relative, source);
+                    names.put(key, source.asset);
+                } catch (IOException | RuntimeException e) {
+                    errors.put(relative, e.getMessage() == null ? "图片读取失败" : e.getMessage());
+                    LOGGER.warn("无法载入表情 {}：{}", relative, e.getMessage());
+                }
+            }
+        }
+        List<EmojiAsset> local = ids.values().stream().map(Source::asset).toList();
+        snapshot = new Snapshot(local, Map.copyOf(ids), Map.copyOf(names), Map.copyOf(paths));
+        problems = Map.copyOf(errors);
+        for (UUID id : previous.ids.keySet()) {
+            if (!ids.containsKey(id)) availableListener.accept(id);
+        }
+        writeAtomic(indexPath, GSON.toJson(new Index(1, new ArrayList<>(paths.values()))).getBytes(StandardCharsets.UTF_8));
+        try (var stream = Files.list(received())) {
+            for (Path path : stream.filter(p -> p.getFileName().toString().endsWith(".json")).toList()) {
+                try {
+                    EmojiAsset asset = GSON.fromJson(Files.readString(path, StandardCharsets.UTF_8), EmojiAsset.class);
+                    if (asset != null && path.getFileName().toString().equals(asset.id() + ".json")) acceptMetadata(asset);
+                } catch (RuntimeException | IOException e) { LOGGER.warn("缓存表情描述无法读取 {}：{}", path.getFileName(), e.getMessage()); }
+            }
+        }
+        return local;
+    }
+
+    private static Path availableName(String fileName, Set<String> reserved) throws IOException {
+        Path target = personal().resolve(fileName);
+        int dot = fileName.lastIndexOf('.');
+        String stem = fileName.substring(0, dot), extension = fileName.substring(dot);
+        for (int i = 2; Files.exists(target) || reserved.contains(baseName(target.getFileName().toString()).toLowerCase(Locale.ROOT)); i++)
+            target = personal().resolve(stem + "_" + i + extension);
+        validateName(baseName(target.getFileName().toString()));
+        return target;
+    }
+
+    private static void validateName(String name) throws IOException {
+        int limit = MemeEmoji.config().maxNameLength;
+        if (name.isBlank() || name.length() > limit || name.indexOf(':') >= 0 || name.chars().anyMatch(Character::isWhitespace))
+            throw new IOException("名称不能含空格、冒号，且须在 " + limit + " 字以内");
+    }
+
+    private static byte[] readLimited(Path path) throws IOException {
+        long size = Files.size(path);
+        if (size < 1 || size > EmojiAsset.MAX_FILE_BYTES) throw new IOException("图片须在 8 MB 以内");
+        try (var in = Files.newInputStream(path)) {
+            byte[] bytes = in.readNBytes(EmojiAsset.MAX_FILE_BYTES + 1);
+            if (bytes.length > EmojiAsset.MAX_FILE_BYTES) throw new IOException("图片须在 8 MB 以内");
+            return bytes;
+        }
+    }
+
+    private static void writeAtomic(Path path, byte[] bytes) throws IOException {
+        Path temporary = Files.createTempFile(path.getParent(), ".memeemoji-", ".tmp");
+        try {
+            Files.write(temporary, bytes);
+            try { Files.move(temporary, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE); }
+            catch (AtomicMoveNotSupportedException e) { Files.move(temporary, path, StandardCopyOption.REPLACE_EXISTING); }
+        } finally { Files.deleteIfExists(temporary); }
+    }
+
+    private static boolean isImage(Path path) {
+        String name = path.getFileName().toString();
+        int dot = name.lastIndexOf('.');
+        return dot > 0 && EXTENSIONS.contains(name.substring(dot + 1).toLowerCase(Locale.ROOT));
+    }
+
+    private static String baseName(String name) { return name.substring(0, name.lastIndexOf('.')); }
+    private static String relative(Path path) { return personal().relativize(path).toString().replace('\\', '/'); }
+    private record Source(String path, long size, long modified, EmojiAsset asset) {}
+    private record Index(int version, List<Source> sources) {}
+    private record Snapshot(List<EmojiAsset> local, Map<UUID, Source> ids, Map<String, EmojiAsset> names, Map<String, Source> paths) {}
+}

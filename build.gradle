@@ -17,29 +17,18 @@ repositories {
     mavenCentral()
 }
 
-configurations {
-    webpNatives
-}
-
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    implementation "org.sejda.imageio:webp-imageio:${project.webp_imageio_version}"
-    webpNatives "org.sejda.imageio:webp-imageio:${project.webp_imageio_version}"
-}
-
-// WebP 解码依赖 JNI 原生库，必须连同类文件一起打进 mod jar；Loader 的嵌套 jar 只保证加载 classpath，
-// 不保证 native 资源可被 NativeLibraryUtils 从自身 jar 内解出，所以直接展开合并。
-tasks.named('jar', Jar) {
-    from({ zipTree(configurations.webpNatives.singleFile) }) {
-        exclude 'META-INF/MANIFEST.MF'
-        exclude 'META-INF/*.SF'
-        exclude 'META-INF/*.DSA'
-        exclude 'META-INF/*.RSA'
-        exclude 'META-INF/services/*'
+    // WebP pixel decoding is pure Java; animation timing/composition lives in EmojiDecoder.
+    ['imageio-webp', 'imageio-core', 'imageio-metadata'].each { module ->
+        implementation include("com.twelvemonkeys.imageio:${module}:3.12.0")
+    }
+    ['common-lang', 'common-io', 'common-image'].each { module ->
+        implementation include("com.twelvemonkeys.common:${module}:3.12.0")
     }
 }
 
@@ -58,4 +47,104 @@ tasks.withType(JavaCompile).configureEach {
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.register('mediaTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.memeemoji.media.EmojiMediaTest'
+    jvmArgs '-Djava.awt.headless=true'
+}
+
+['geometryTest': 'com.memeemoji.chat.ChatGeometryTest',
+ 'protocolTest': 'com.memeemoji.net.EmojiPacketsTest'].each { taskName, entry ->
+    tasks.register(taskName, JavaExec) {
+        dependsOn testClasses
+        classpath = sourceSets.test.runtimeClasspath
+        mainClass = entry
+    }
+}
+
+check.dependsOn mediaTest, geometryTest, protocolTest
+
+tasks.register('prepareGameQa') {
+    doLast {
+        def server = file('build/qa-server')
+        server.mkdirs()
+        new File(server, 'eula.txt').text = 'eula=true\n'
+        new File(server, 'server.properties').text = '''online-mode=false
+server-ip=127.0.0.1
+server-port=25579
+level-name=qa-world
+level-type=minecraft:flat
+generate-structures=false
+spawn-animals=false
+spawn-monsters=false
+spawn-npcs=false
+view-distance=2
+simulation-distance=2
+max-tick-time=-1
+'''
+        ['sender', 'receiver'].each { role ->
+            def directory = file("build/qa-${role}")
+            directory.mkdirs()
+            new File(directory, 'options.txt').text = '''lang:zh_cn
+guiScale:2
+renderDistance:2
+simulationDistance:5
+maxFps:60
+enableVsync:false
+onboardAccessibility:false
+autoJump:false
+tutorialStep:none
+'''
+            copy {
+                from(providers.gradleProperty('qaModsDir').getOrElse('run/mods'))
+                include 'ModernUI*.jar', 'ForgeConfigAPIPort*.jar'
+                into new File(directory, 'mods')
+            }
+        }
+    }
+}
+
+tasks.matching { it.name in ['runQaServer', 'runQaSender', 'runQaReceiver'] }.configureEach {
+    dependsOn prepareGameQa
+}
+
+test {
+    failOnNoDiscoveredTests = false
+}
+
+sourceSets {
+    qa {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+    }
+}
+
+loom {
+    mods {
+        memeemoji { sourceSet sourceSets.main }
+        memeemoji_qa { sourceSet sourceSets.qa }
+    }
+    runs {
+        qaServer {
+            server()
+            source sourceSets.qa
+            runDir 'build/qa-server'
+            vmArgs '-Xmx1G', '-Djava.awt.headless=true'
+            programArg 'nogui'
+        }
+        ['Sender', 'Receiver'].each { role ->
+            "qa${role}" {
+                client()
+                source sourceSets.qa
+                runDir "build/qa-${role.toLowerCase()}"
+                vmArgs '-Xmx2G', "-Dmemeemoji.qa.role=${role.toLowerCase()}",
+                        "-Dmemeemoji.qa.root=${projectDir.toString().replace('\\', '/')}"
+                programArgs '--username', "Emoji${role}", '--width', '1280', '--height', '800',
+                        '--quickPlayMultiplayer', '127.0.0.1:25579'
+            }
+        }
+    }
 }

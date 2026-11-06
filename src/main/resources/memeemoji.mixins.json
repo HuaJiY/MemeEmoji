@@ -4,11 +4,7 @@
   "package": "com.memeemoji.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "FolderRepositorySourceAccessor",
-    "PackRepositoryMixin",
-    "StringDecomposerMixin",
     "ChatScreenMixin",
-    "TextLayoutProcessorMixin",
     "ChatComponentMixin"
   ],
   "injectors": {

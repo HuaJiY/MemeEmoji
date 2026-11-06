@@ -13,17 +13,15 @@ import java.nio.file.Path;
  * 可调项都放在这里。表情图片本身不需要写进配置，丢进 emoji 文件夹就算一张表情，
  * 文件名（去掉扩展名）就是 :名字: 里的名字。
  *
- * <p>表情尺寸由预设档位（small/medium/large）决定，每档对应一个最大尺寸限制。
- * 图片不超过该尺寸时保持原始分辨率，超过时按比例缩小。
+ * 显示尺寸与文件像素分辨率独立，切换尺寸不会重新压缩图片。
  */
 public final class MemeEmojiConfig {
     public static final MemeEmojiConfig DEFAULT = new MemeEmojiConfig();
 
     public boolean enabled = true;
     public int maxNameLength = 32;
-    public boolean sendToClients = true;
     /** 大小预设：small / medium / large */
-    public String sizePreset = "medium";
+    public String sizePreset = "small";
     /** 小号最大尺寸 */
     public int smallCellSize = 24;
     /** 中号最大尺寸 */
@@ -32,6 +30,7 @@ public final class MemeEmojiConfig {
     public int largeCellSize = 96;
     /** 尺寸上限，兜底防止意外超大值 */
     public int maxCellSize = 128;
+    public int stickerSize = 96;
 
     public MemeEmojiConfig() {
     }
@@ -59,6 +58,7 @@ public final class MemeEmojiConfig {
         if (maxNameLength < 1) {
             maxNameLength = DEFAULT.maxNameLength;
         }
+        maxNameLength = Math.min(128, maxNameLength);
         if (sizePreset == null || (!sizePreset.equals("small") && !sizePreset.equals("medium") && !sizePreset.equals("large"))) {
             sizePreset = DEFAULT.sizePreset;
         }
@@ -73,6 +73,9 @@ public final class MemeEmojiConfig {
         }
         if (maxCellSize < 8 || maxCellSize > 512) {
             maxCellSize = DEFAULT.maxCellSize;
+        }
+        if (stickerSize < 24 || stickerSize > 256) {
+            stickerSize = DEFAULT.stickerSize;
         }
     }
 
@@ -89,7 +92,10 @@ public final class MemeEmojiConfig {
     public void save(Path file) {
         try {
             Files.createDirectories(file.getParent());
-            Files.writeString(file, new GsonBuilder().setPrettyPrinting().create().toJson(this) + System.lineSeparator(), StandardCharsets.UTF_8);
+            String json = new GsonBuilder().setPrettyPrinting().create().toJson(this) + System.lineSeparator();
+            if (!Files.isRegularFile(file) || !Files.readString(file, StandardCharsets.UTF_8).equals(json)) {
+                Files.writeString(file, json, StandardCharsets.UTF_8);
+            }
         } catch (IOException e) {
             MemeEmoji.LOGGER.warn("写入 {} 失败", file, e);
         }

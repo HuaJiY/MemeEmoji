@@ -3,7 +3,7 @@
   "id": "memeemoji",
   "version": "${version}",
   "name": "MemeEmoji",
-  "description": "把图片丢进 config/memeemoji/emoji 就能用 :名字: 发送的自定义表情，服务端自动同步给客户端。",
+  "description": "个人表情库、高清图片聊天与 GIF / WebP 动图，服务器按需中转。",
   "authors": [],
   "license": "All-Rights-Reserved",
   "environment": "*",

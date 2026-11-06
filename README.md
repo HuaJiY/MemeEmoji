@@ -1,117 +1,84 @@
-# MemeEmoji 🎭
+# MemeEmoji
 
-![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-blue?logo=minecraft)
-![Fabric](https://img.shields.io/badge/Fabric-Fabric_0.16.0-orange?logo=fabric)
-![ModernUI](https://img.shields.io/badge/ModernUI-3.13.0-green)
-![License](https://img.shields.io/badge/License-All_Rights_Reserved-lightgrey)
+Minecraft 1.21.1 Fabric 个人表情模组。把自己的图片放进表情库，在聊天中发送行内表情或独立大图，其他玩家无需提前安装同一套图片。
 
-**Minecraft 1.21.1 Fabric 模组** — 把图片/GIF 丢进文件夹，聊天打 :名字: 就能发出来。兼容 ModernUI 现代文本引擎。
+## 安装与发送
 
----
+服务器和玩家都安装 MemeEmoji、Fabric API，使用 Java 21 和 Fabric Loader 0.16.0 以上版本。单人游戏也可使用。ModernUI 为可选项。
 
-## 功能速览
+打开聊天框，点击右侧表情按钮或按 `Ctrl+E`。面板可搜索、收藏、查看最近使用、导入文件，也可把图片直接拖进面板。选择“行内”或“大图”后点击图片插入，返回聊天框按回车发送。点击聊天中的图片可以放大查看，`ESC` 返回原聊天草稿。
 
-- 🖼️ **即丢即用** — 支持 PNG、JPG、WebP、GIF、BMP，不用转格式，丢进 config/memeemoji/emoji/ 直接用
-- 📝 **:名字: 发送** — 支持中文、英文、数字，不区分大小写
-- 🔄 **服务端自动同步** — 服务端装了这个 mod，客户端的表情自动下发，无需每个玩家手动安装
-- 🖱️ **表情选择界面** — 聊天框旁边有 😊 按钮，点开选表情
-- ✨ **ModernUI 兼容** — 与现代文本引擎无缝集成，清晰度不打折
-- 📐 **三档尺寸预设** — Small / Medium / Large，丢多大的图就保持多大
-- 💨 **热加载** — 丢新图进文件夹、改配置都不用重启游戏
-- 🏖️ **服务端可不装** — 只装客户端也能用，图片本地生效
+也可以直接将图片放进 `config/memeemoji/emoji/`，输入 `:文件名:`，例如：
 
-## 安装
+```text
+今天心情不错 :开心:
+```
 
-1. 需要 **Fabric Loader >= 0.16.0** + **Fabric API**
-2. 把 MemeEmoji jar 放进 mods/ 文件夹
-3. 可选：装 [ModernUI](https://github.com/BloCamLimb/ModernUI-MC) 获得更好的文本渲染
+支持 PNG、JPG、JPEG、GIF、WebP、BMP，GIF 和动态 WebP 会播放。文件名不含扩展名、不区分大小写，不能包含空格或冒号。同名导入会自动添加后缀；手动放入的重名文件会在面板底部提示。
 
-## 使用
+表情文件与配置修改后约 500ms 自动刷新；面板刷新按钮和 `/memeemoji reload` 也可以重新读取。纯文字保持原版行高，只有实际包含图片的行增高。
 
-### 添加表情
+## 图片如何传给其他玩家
 
-把图片文件直接丢进 .minecraft/config/memeemoji/emoji/ 目录：
+个人表情库只保存在自己的电脑。发送消息时，客户端只上传本条消息引用且服务器尚未缓存的图片。其他玩家收到图片信息后，在图片需要显示时向服务器请求文件，并缓存到本地。
 
-`
-config/memeemoji/emoji/
-├── 猫猫.webp
-├── 狗头.jpg
-├── happy.png
-└── 草.gif
-`
+不会在加入服务器时上传或下发整套表情库。同名图片通过 UUID 区分，不会替换其他玩家的图片。修改本地图片后会获得新 UUID，未修改的图片保持标识和缓存。
 
-文件名（不含扩展名）就是在聊天里用的 :名字:。不需要任何配置文件或资源包。
+聊天显示尺寸与源文件像素独立：不会为了显示成小表情而把文件压缩成低分辨率图片。图片按比例显示，不裁切；预览可使用保留下来的完整像素。
 
-### 在聊天里使用
+| 限制 | 数值 |
+|---|---|
+| 单文件 | 8 MB |
+| 宽、高 | 各不超过 2048 像素 |
+| 动图 | 最多 1000 帧，所有完整画布帧合计不超过 16,777,216 像素 |
+| 每条消息 | 最多 16 张不同图片，文字和内部图片标记合计 2048 字符 |
 
-发送：
+超限或无法读取的图片会在面板中提示原因。
 
-`
-:猫猫: 今天天气真不错 :dog:
-`
+## 配置与文件
 
-:猫猫: 和 :dog: 会自动替换成对应的图片/GIF。支持在同一句话里混用多个表情。
+配置位于 `config/memeemoji/config.json`。图片显示尺寸单位为游戏界面像素，最终屏幕大小还受 GUI 和聊天缩放影响。
 
-### 表情选择界面
+| 字段 | 默认值 | 用途 |
+|---|---|---|
+| `enabled` | `true` | 启用表情功能 |
+| `maxNameLength` | `32` | 本地名称长度上限，最大 128 |
+| `sizePreset` | `"small"` | 行内尺寸预设：`small` / `medium` / `large` |
+| `smallCellSize` | `24` | 小号最长边 |
+| `mediumCellSize` | `48` | 中号最长边 |
+| `largeCellSize` | `96` | 大号最长边 |
+| `maxCellSize` | `128` | 行内最长边上限 |
+| `stickerSize` | `96` | 独立大图最长边，范围 24–256 |
 
-聊天框输入时，输入框右侧有个 😊 按钮，点击打开表情选择面板。
+| 路径 | 内容 |
+|---|---|
+| `config/memeemoji/emoji/` | 自己的原始图片，可使用子目录 |
+| `config/memeemoji/library-index.json` | 文件与 UUID 的索引 |
+| `config/memeemoji/library-ui.json` | 收藏和最近使用 |
+| `config/memeemoji/received/` | 接收图片的独立缓存，不加入个人表情库 |
+| `<世界目录>/memeemoji/assets/` | 此世界的服务器图片缓存 |
 
-## 配置
+## 构建与检查
 
-文件位置：.minecraft/config/memeemoji/config.json
+```powershell
+.\gradlew.bat build
+```
 
-`json
-{
-  "enabled": true,
-  "maxNameLength": 32,
-  "sendToClients": true,
-  "sizePreset": "medium",
-  "smallCellSize": 24,
-  "mediumCellSize": 48,
-  "largeCellSize": 96,
-  "maxCellSize": 128
-}
-`
+产物：`build/libs/memeemoji-0.2.0.jar`。`build` 包含图片解码、真实目录监听、聊天几何和协议分片检查。
 
-| 字段 | 默认值 | 说明 |
-|------|--------|------|
-| nabled | 	rue | 是否启用 |
-| maxNameLength | 32 | 表情名字最大字符数 |
-| sendToClients | 	rue | 是否向客户端同步表情（服务端有效） |
-| sizePreset | "medium" | 大小预设："small" / "medium" / "large" |
-| smallCellSize | 24 | 小号最大尺寸 |
-| mediumCellSize | 48 | 中号最大尺寸 |
-| largeCellSize | 96 | 大号最大尺寸 |
-| maxCellSize | 128 | 上限，兜底防意外超大值 |
+游戏检查使用独立的 `src/qa` 模组，不打包进正式 jar。三个终端依次启动服务器、接收方、发送方：
 
-配置文件不存在时自动生成，缺字段自动补全。
+```powershell
+.\gradlew.bat runQaServer
+.\gradlew.bat runQaReceiver
+.\gradlew.bat runQaSender
+```
 
-## 热加载
+检查使用 `build/qa-*` 隔离目录，本地服务器仅绑定 `127.0.0.1:25579`，生成专用世界，不使用现有存档。开发客户端可从 `run/mods` 复制 ModernUI 与 ForgeConfigAPIPort，也可通过 `-PqaModsDir=<目录>` 指定。结果和实机截图位于 `build/qa-evidence`，以 `sender-result.txt`、`receiver-result.txt` 中的 `PASS` / `FAIL` 为准，客户端正常退出不代表检查通过。检查完成后在服务器终端输入 `stop`。再次完整运行前清理这些专用 QA 目录。
 
-改配置文件或往 moji/ 丢新图，等 **500ms** 自动生效，不用重启游戏。
+## 实现与参考
 
-## 构建
-
-`ash
-git clone https://github.com/HuaJiY/MemeEmoji.git
-cd MemeEmoji
-./gradlew.bat build
-`
-
-构建产物：uild/libs/memeemoji-*.jar
-
-## 技术原理
-
-- **独立纹理渲染**：每个表情拥有独立的 PNG 纹理 + 自定义 BakedGlyph 直接引用原始纹理渲染，绕过 ModernUI 的位图图集管道，保持原始清晰度
-- **PUA 码位分配**：从 BMP 私用区 U+E000 开始，每张表情占用一个固定码位
-- **文本替换**：通过 Mixin 注入 StringDecomposer.iterate/iterateFormatted，将 :名字: 匹配为对应的 PUA 码位
-- **ModernUI 集成**：配合 TextLayoutProcessor.createVanillaLayout 适配 ModernUI 布局计算路径；StandardFontSetMixin 拦截 ModernUI 的字形查找，返回自定义高清晰度 BakedGlyph
-- **资源包注入**：生成的资源包写入 config/memeemoji/generated/，通过 PackRepositoryMixin.discoverAvailable 挂进客户端资源包列表，不走 egisterBuiltinResourcePack（后者只能指向 mod jar 内部路径）
-- **服务端同步**：分片传输（每片 768KB），Start / Chunk / End 三段式协议
-- **WebP 支持**：通过 webp-imageio 解码 WebP 格式，手动注册 SPI 避免服务文件冲突
-
-## 鸣谢
-
-- [Twemoji](https://github.com/Leclowndu93150/Twemoji) — 原始灵感来源
-- [ModernUI](https://github.com/BloCamLimb/ModernUI-MC) — 现代文本引擎
-- [Emogg](https://github.com/aratakileo/emogg) — 参考实现
+- 图片使用独立动态纹理；文字仍调用 Minecraft 字体接口，兼容 ModernUI，不再生成资源包或占用私用区字体码位。
+- GIF 使用 Java ImageIO；WebP 使用 TwelveMonkeys 3.12.0 纯 Java 解码器，并实现动画帧时长、混合、清除及其缺失的原始透明通道处理，避免额外原生运行库。
+- 参考 [Exposure 1.21.1](https://github.com/mortuusars/Exposure/tree/1.21.1) 的上传、服务器存储、客户端按需请求结构；MemeEmoji 保留完整颜色和原始图片文件，不使用 Exposure 的调色板压缩。
+- [ModernUI](https://github.com/BloCamLimb/ModernUI-MC)、[TwelveMonkeys](https://github.com/haraldk/TwelveMonkeys)。

@@ -1,215 +1,447 @@
 package com.memeemoji.gui;
 
-import com.memeemoji.EmojiRegistry;
-import com.memeemoji.EmojiTile;
-import com.memeemoji.ImageTiles;
 import com.memeemoji.MemeEmoji;
-import com.mojang.blaze3d.platform.NativeImage;
+import com.memeemoji.EmojiTokens;
+import com.memeemoji.media.EmojiAsset;
+import com.memeemoji.media.EmojiLibrary;
+import com.memeemoji.media.EmojiTextures;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-/**
- * 表情选择界面，打开后显示所有已加载的表情供点击。
- * 使用 fitToCell 保持各表情原始分辨率居中显示，仅缩小超大的图片。
- */
 public final class EmojiPickerScreen extends Screen {
+    static final int TEXT = 0xFFE4E9E8;
+    static final int MUTED = 0xFF98A5A2;
+    static final int ACCENT = 0xFF7AD8BE;
+    private static final String[] STAR = {"000010000", "000010000", "111111111", "011111110", "001111100", "001111100", "011101110", "010000010"};
 
-    private static final int GRID_COLS = 8;
-
+    private final Screen parent;
     private final Consumer<String> callback;
-    private final List<EmojiTile> tiles;
-    private final int cellSize;
-    private final int gridWidth;
-    private int scrollOffset;
-    private int panelX;
-    private int panelY;
-    private int panelW;
-    private int panelH;
+    private final PickerPreferences preferences = PickerPreferences.load();
+    private List<EmojiAsset> assets = List.of();
+    private List<EmojiAsset> visible = List.of();
+    private EditBox search;
+    private PickerLayout layout;
+    private Category category = Category.ALL;
+    private boolean sticker;
+    private boolean busy;
+    private boolean error;
+    private String status = "";
+    private int scroll;
+    private int selected = -1;
+    private boolean gridFocused;
+    private boolean draggingScrollbar;
+    private PickerButton importButton;
+    private PickerButton reloadButton;
 
-    private DynamicTexture atlasTexture;
-    private ResourceLocation atlasLocation;
-    private int atlasW;
-    private int atlasH;
-    private int atlasRows;
-
-    public EmojiPickerScreen(Consumer<String> callback) {
-        super(Component.literal("表情选择"));
+    public EmojiPickerScreen(Screen parent, Consumer<String> callback) {
+        super(Component.literal("表情库"));
+        this.parent = parent;
         this.callback = callback;
-        this.tiles = EmojiRegistry.INSTANCE.tiles();
-        this.cellSize = MemeEmoji.pickerCell();
-        this.gridWidth = GRID_COLS * cellSize;
+        assets = List.copyOf(EmojiLibrary.local());
     }
 
     @Override
     protected void init() {
-        if (atlasTexture != null) {
-            atlasTexture.close();
-            atlasTexture = null;
+        String query = search == null ? "" : search.getValue();
+        layout = PickerLayout.calculate(width, height);
+        int left = layout.x() + 10;
+        int right = layout.x() + layout.width() - 10;
+        int top = layout.y();
+        importButton = button(right - 68, top + 8, 20, "导入图片", PickerButton.IMPORT, () -> false, this::chooseFiles);
+        reloadButton = button(right - 44, top + 8, 20, "刷新", PickerButton.REFRESH, () -> false, this::reload);
+        button(right - 20, top + 8, 20, "关闭", PickerButton.CLOSE, () -> false, this::onClose);
+        search = new EditBox(font, left + 22, top + 42, right - left - 30, 10, Component.literal("搜索表情"));
+        search.setBordered(false);
+        search.setTextColor(TEXT);
+        search.setMaxLength(128);
+        search.setValue(query);
+        search.setResponder(value -> { scroll = 0; selected = -1; filter(); });
+        addRenderableWidget(search);
+        int tabWidth = layout.width() < 300 ? 34 : 42;
+        for (Category value : Category.values()) {
+            button(left + value.ordinal() * tabWidth, top + 60, tabWidth, value.label, PickerButton.TEXT,
+                    () -> category == value, () -> { category = value; scroll = 0; selected = -1; filter(); });
         }
-
-        int maxW = Math.min(width - 40, 400);
-        int maxH = Math.min(height - 40, 400);
-        atlasRows = Math.max(1, (tiles.size() + GRID_COLS - 1) / GRID_COLS);
-        int gridH = atlasRows * cellSize;
-        panelW = Math.max(maxW, gridWidth + 20);
-        panelH = Math.min(maxH, Math.max(80, gridH + 40));
-        panelX = (width - panelW) / 2;
-        panelY = (height - panelH) / 2;
-        buildAtlas();
-    }
-
-    /** 把所有表情用 fitToCell（保持原始分辨率）拼成一张纹理图集。 */
-    private void buildAtlas() {
-        if (tiles.isEmpty()) return;
-        atlasW = GRID_COLS * cellSize;
-        atlasH = atlasRows * cellSize;
-
-        NativeImage nativeImage = new NativeImage(NativeImage.Format.RGBA, atlasW, atlasH, false);
-
-        for (int i = 0; i < tiles.size(); i++) {
-            try {
-                BufferedImage img = ImageTiles.read(tiles.get(i).png());
-                // 只缩小不放大，保持原始清晰度
-                img = ImageTiles.fitToCell(img, cellSize);
-                int col = i % GRID_COLS;
-                int row = i / GRID_COLS;
-                int baseX = col * cellSize;
-                int baseY = row * cellSize;
-
-                for (int y = 0; y < cellSize; y++) {
-                    for (int x = 0; x < cellSize; x++) {
-                        int argb = img.getRGB(x, y);
-                        int a = (argb >> 24) & 0xFF;
-                        int r = (argb >> 16) & 0xFF;
-                        int g = (argb >> 8) & 0xFF;
-                        int b = argb & 0xFF;
-                        int abgr = (a << 24) | (b << 16) | (g << 8) | r;
-                        nativeImage.setPixelRGBA(baseX + x, baseY + y, abgr);
-                    }
-                }
-            } catch (IOException e) {
-                MemeEmoji.LOGGER.warn("Picker: 无法加载表情 {}: {}", tiles.get(i).name(), e.getMessage());
-            }
-        }
-
-        atlasTexture = new DynamicTexture(nativeImage);
-        atlasLocation = ResourceLocation.fromNamespaceAndPath(MemeEmoji.MOD_ID, "picker_atlas");
-        Minecraft.getInstance().getTextureManager().register(atlasLocation, atlasTexture);
+        button(right - 78, top + 60, 38, "行内", PickerButton.TEXT, () -> !sticker, () -> sticker = false);
+        button(right - 38, top + 60, 38, "大图", PickerButton.TEXT, () -> sticker, () -> sticker = true);
+        filter();
+        updateBusyButtons();
+        setInitialFocus(search);
     }
 
     @Override
-    public void render(GuiGraphics gr, int mouseX, int mouseY, float delta) {
+    protected void setInitialFocus() { setInitialFocus(search); }
 
-        gr.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xC0101010);
-        gr.renderOutline(panelX, panelY, panelW, panelH, 0xFF555555);
+    private PickerButton button(int x, int y, int w, String label, int icon,
+                                BooleanSupplier selected, Runnable action) {
+        return addRenderableWidget(new PickerButton(x, y, w, label, icon, selected, action));
+    }
 
-        if (tiles.isEmpty()) {
-            gr.drawCenteredString(font, Component.literal("没有加载表情"),
-                    width / 2, panelY + panelH / 2 - font.lineHeight / 2, 0x888888);
-            super.render(gr, mouseX, mouseY, delta);
-            return;
+    private void filter() {
+        String query = search == null ? "" : search.getValue().strip().toLowerCase(Locale.ROOT);
+        List<EmojiAsset> source = assets;
+        if (category == Category.RECENT) {
+            source = preferences.recent().stream().map(id -> assets.stream()
+                    .filter(asset -> asset.id().equals(id)).findFirst().orElse(null)).filter(a -> a != null).toList();
         }
+        visible = source.stream()
+                .filter(asset -> category != Category.FAVORITES || preferences.isFavorite(asset.id()))
+                .filter(asset -> asset.name().toLowerCase(Locale.ROOT).contains(query)).toList();
+        selected = Math.min(selected, visible.size() - 1);
+        clampScroll();
+    }
 
-        int gridH = atlasRows * cellSize;
-        int contentH = panelH - 20;
-        int maxScroll = Math.max(0, gridH - contentH);
-        scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
-
-        int startX = panelX + (panelW - gridWidth) / 2;
-        int startY = panelY + 10;
-
-        for (int i = 0; i < tiles.size(); i++) {
-            int col = i % GRID_COLS;
-            int row = i / GRID_COLS;
-            int cellX = startX + col * cellSize;
-            int cellY = startY + row * cellSize - scrollOffset;
-
-            if (cellY + cellSize < panelY + 10 || cellY > panelY + panelH - 10) {
-                continue;
-            }
-
-            boolean hovered = mouseX >= cellX && mouseX < cellX + cellSize
-                    && mouseY >= cellY && mouseY < cellY + cellSize;
-
-            gr.blit(atlasLocation, cellX, cellY, cellSize, cellSize,
-                    col * cellSize, row * cellSize, cellSize, cellSize, atlasW, atlasH);
-
-            if (hovered) {
-                gr.fill(cellX, cellY, cellX + cellSize, cellY + cellSize, 0x40FFFFFF);
-            }
-        }
-
-        super.render(gr, mouseX, mouseY, delta);
-
-        if (panelY + 10 <= mouseY && mouseY <= panelY + panelH - 10) {
-            int relX = mouseX - startX;
-            int relY = mouseY - startY + scrollOffset;
-            if (relX >= 0 && relY >= 0) {
-                int col = relX / cellSize;
-                int row = relY / cellSize;
-                int idx = row * GRID_COLS + col;
-                if (col < GRID_COLS && idx >= 0 && idx < tiles.size()) {
-                    EmojiTile tile = tiles.get(idx);
-                    gr.renderTooltip(font, Component.literal(":" + tile.name() + ":"), mouseX, mouseY);
-                }
-            }
+    @Override
+    public void tick() {
+        List<EmojiAsset> current = EmojiLibrary.local();
+        if (!assets.equals(current)) {
+            assets = List.copyOf(current);
+            filter();
         }
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double deltaX, double deltaY) {
-        if (mouseX >= panelX && mouseX <= panelX + panelW && mouseY >= panelY && mouseY <= panelY + panelH) {
-            int gridH = atlasRows * cellSize;
-            int contentH = panelH - 20;
-            if (gridH > contentH) {
-                scrollOffset = (int) Math.max(0, Math.min(scrollOffset - deltaY * cellSize, gridH - contentH));
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+    }
+
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+        graphics.fill(0, 0, width, height, 0x85000000);
+        graphics.fill(layout.x(), layout.y(), layout.x() + layout.width(), layout.y() + layout.height(), 0xFA1C2222);
+        graphics.renderOutline(layout.x(), layout.y(), layout.width(), layout.height(), 0xFF4B5955);
+        graphics.drawString(font, title, layout.x() + 11, layout.y() + 14, TEXT, false);
+        graphics.fill(layout.x() + 10, layout.y() + 84, layout.x() + layout.width() - 10, layout.y() + 85, 0xFF384540);
+        renderSearchBackground(graphics);
+
+        graphics.enableScissor(layout.gridX(), layout.gridY(), layout.gridX() + layout.gridWidth(), layout.gridY() + layout.gridHeight());
+        int first = (scroll / layout.cell()) * layout.columns();
+        int last = Math.min(visible.size(), ((scroll + layout.gridHeight()) / layout.cell() + 1) * layout.columns());
+        int hovered = indexAt(mouseX, mouseY);
+        for (int i = first; i < last; i++) {
+            EmojiAsset asset = visible.get(i);
+            int x = cellX(i);
+            int y = cellY(i);
+            int size = layout.cell() - 4;
+            boolean focused = gridFocused && selected == i;
+            if (hovered == i || focused) {
+                graphics.fill(x, y, x + size, y + size, 0xFF303C38);
+                if (focused) graphics.renderOutline(x, y, size, size, ACCENT);
+            }
+            int box = Math.max(8, size - 19);
+            double scale = Math.min((double) box / asset.width(), (double) box / asset.height());
+            int imageWidth = Math.max(1, (int) Math.round(asset.width() * scale));
+            int imageHeight = Math.max(1, (int) Math.round(asset.height() * scale));
+            EmojiTextures.render(graphics, asset, x + (size - imageWidth) / 2,
+                    y + 3 + (box - imageHeight) / 2, imageWidth, imageHeight, 255);
+            String label = font.plainSubstrByWidth(asset.name(), size - 8);
+            graphics.drawCenteredString(font, label, x + size / 2, y + size - 12, MUTED);
+            if (hovered == i || preferences.isFavorite(asset.id())) {
+                int color = preferences.isFavorite(asset.id()) ? 0xFFFFD57B : 0xFFB6C5BF;
+                graphics.fill(x + size - 15, y + 1, x + size - 1, y + 15, 0xD91C2222);
+                drawStar(graphics, x + size - 13, y + 4, color);
+            }
+            if (asset.animated()) graphics.fill(x + 4, y + 4, x + 7, y + 7, ACCENT);
+        }
+        if (visible.isEmpty()) {
+            String empty = busy ? "正在加载…" : !search.getValue().isBlank() ? "没有匹配的表情"
+                    : switch (category) { case ALL -> "表情库为空"; case RECENT -> "暂无最近使用"; case FAVORITES -> "暂无收藏"; };
+            graphics.drawCenteredString(font, empty, layout.x() + layout.width() / 2,
+                    layout.gridY() + Math.max(0, (layout.gridHeight() - font.lineHeight) / 2), MUTED);
+        }
+        graphics.disableScissor();
+        drawScrollbar(graphics);
+        int problems = EmojiLibrary.problems().size();
+        String footer = status.isBlank() ? visible.size() + " 个表情" + (problems == 0 ? "" : " · " + problems + " 个无法载入") : status;
+        graphics.drawString(font, font.plainSubstrByWidth(footer, layout.width() - 22),
+                layout.x() + 11, layout.y() + layout.height() - 14, error || problems > 0 ? 0xFFFFA7A7 : MUTED, false);
+        super.render(graphics, mouseX, mouseY, delta);
+        if (hovered >= 0) {
+            EmojiAsset asset = visible.get(hovered);
+            boolean star = isStar(mouseX, mouseY, hovered);
+            String failure = EmojiTextures.failure(asset.id());
+            String tooltip = star ? (preferences.isFavorite(asset.id()) ? "取消收藏" : "收藏") : failure != null ? failure
+                    : asset.name() + " · " + asset.width() + " × " + asset.height() + (asset.animated() ? " · 动图" : "");
+            graphics.renderTooltip(font, font.split(Component.literal(tooltip), Math.min(350, width - 24)), mouseX, mouseY);
+        } else if (mouseX >= layout.x() + 10 && mouseX < layout.x() + layout.width() - 10
+                && mouseY >= layout.y() + layout.height() - 18 && mouseY < layout.y() + layout.height()) {
+            String details = error ? status : EmojiLibrary.problems().entrySet().stream()
+                    .map(entry -> entry.getKey() + "：" + entry.getValue()).reduce((a, b) -> a + "\n" + b).orElse(footer);
+            graphics.renderTooltip(font, font.split(Component.literal(details), Math.min(350, width - 24)), mouseX, mouseY);
+        }
+    }
+
+    private void renderSearchBackground(GuiGraphics graphics) {
+        int x = layout.x() + 11;
+        int y = layout.y() + 37;
+        int width = layout.width() - 22;
+        graphics.fill(x, y, x + width, y + 18, 0xFF242D29);
+        graphics.renderOutline(x, y, width, 18, search.isFocused() ? 0xFF5D9684 : 0xFF384A42);
+        int iconX = x + 5;
+        int iconY = y + 4;
+        int color = search.isFocused() ? ACCENT : MUTED;
+        graphics.fill(iconX + 2, iconY, iconX + 6, iconY + 1, color);
+        graphics.fill(iconX + 2, iconY + 7, iconX + 6, iconY + 8, color);
+        graphics.fill(iconX, iconY + 2, iconX + 1, iconY + 6, color);
+        graphics.fill(iconX + 7, iconY + 2, iconX + 8, iconY + 6, color);
+        graphics.fill(iconX + 1, iconY + 1, iconX + 2, iconY + 2, color);
+        graphics.fill(iconX + 6, iconY + 1, iconX + 7, iconY + 2, color);
+        graphics.fill(iconX + 1, iconY + 6, iconX + 2, iconY + 7, color);
+        for (int i = 0; i < 4; i++) {
+            graphics.fill(iconX + 6 + i, iconY + 6 + i, iconX + 8 + i, iconY + 7 + i, color);
+        }
+        if (search.getValue().isEmpty()) {
+            graphics.drawString(font, font.plainSubstrByWidth("搜索表情", search.getWidth() - 7),
+                    search.getX() + 7, search.getY(), MUTED, false);
+        }
+    }
+
+    private static void drawStar(GuiGraphics graphics, int x, int y, int color) {
+        for (int row = 0; row < STAR.length; row++) {
+            for (int col = 0; col < STAR[row].length(); col++) {
+                if (STAR[row].charAt(col) == '1') graphics.fill(x + col, y + row, x + col + 1, y + row + 1, color);
+            }
+        }
+    }
+
+    private int cellX(int index) { return layout.gridX() + index % layout.columns() * layout.cell(); }
+    private int cellY(int index) { return layout.gridY() + index / layout.columns() * layout.cell() - scroll; }
+    private int contentHeight() { return (visible.size() + layout.columns() - 1) / layout.columns() * layout.cell(); }
+    private int maxScroll() { return Math.max(0, contentHeight() - layout.gridHeight()); }
+    private void clampScroll() { if (layout != null) scroll = Math.max(0, Math.min(scroll, maxScroll())); }
+
+    private int indexAt(double x, double y) {
+        if (!layout.inGrid(x, y)) return -1;
+        int column = (int) (x - layout.gridX()) / layout.cell();
+        int row = (int) (y - layout.gridY() + scroll) / layout.cell();
+        int index = row * layout.columns() + column;
+        if (column >= layout.columns() || index >= visible.size()) return -1;
+        return x < cellX(index) + layout.cell() - 4 && y < cellY(index) + layout.cell() - 4 ? index : -1;
+    }
+
+    private boolean isStar(double x, double y, int index) {
+        return x >= cellX(index) + layout.cell() - 20 && y < cellY(index) + 16;
+    }
+
+    private void drawScrollbar(GuiGraphics graphics) {
+        if (maxScroll() <= 0) return;
+        int x = layout.gridX() + layout.gridWidth() + 2;
+        int thumb = Math.max(14, layout.gridHeight() * layout.gridHeight() / contentHeight());
+        int y = layout.gridY() + (layout.gridHeight() - thumb) * scroll / maxScroll();
+        graphics.fill(x, layout.gridY(), x + 3, layout.gridY() + layout.gridHeight(), 0xFF303B37);
+        graphics.fill(x, y, x + 3, y + thumb, 0xFF839D92);
+    }
+
+    @Override
+    public boolean mouseClicked(double x, double y, int button) {
+        if (button == 0 && x >= layout.x() + 11 && x < layout.x() + layout.width() - 11
+                && y >= layout.y() + 37 && y < layout.y() + 55) {
+            gridFocused = false;
+            setFocused(search);
+            search.mouseClicked(x, y, button);
+            return true;
+        }
+        if (button == 0 && maxScroll() > 0 && x >= layout.gridX() + layout.gridWidth()
+                && x < layout.x() + layout.width() && y >= layout.gridY() && y < layout.gridY() + layout.gridHeight()) {
+            draggingScrollbar = true;
+            dragScrollbar(y);
+            return true;
+        }
+        int index = indexAt(x, y);
+        if (index >= 0 && (button == 0 || button == 1)) {
+            selected = index;
+            gridFocused = true;
+            setFocused(null);
+            if (button == 1 || isStar(x, y, index)) toggleFavorite(visible.get(index).id());
+            else choose(index);
+            return true;
+        }
+        gridFocused = false;
+        return super.mouseClicked(x, y, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double x, double y, int button, double dx, double dy) {
+        if (draggingScrollbar) { dragScrollbar(y); return true; }
+        return super.mouseDragged(x, y, button, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(double x, double y, int button) {
+        draggingScrollbar = false;
+        return super.mouseReleased(x, y, button);
+    }
+
+    private void dragScrollbar(double y) {
+        int thumb = Math.max(14, layout.gridHeight() * layout.gridHeight() / Math.max(1, contentHeight()));
+        scroll = (int) ((y - layout.gridY() - thumb / 2.0) * maxScroll() / Math.max(1, layout.gridHeight() - thumb));
+        clampScroll();
+    }
+
+    @Override
+    public boolean mouseScrolled(double x, double y, double dx, double dy) {
+        if (layout.inGrid(x, y)) {
+            scroll -= (int) (dy * layout.cell() * 0.75);
+            clampScroll();
+            return true;
+        }
+        return super.mouseScrolled(x, y, dx, dy);
+    }
+
+    @Override
+    public boolean keyPressed(int key, int scan, int modifiers) {
+        if (key == GLFW.GLFW_KEY_ESCAPE) { onClose(); return true; }
+        if (hasControlDown() && key == GLFW.GLFW_KEY_F) { gridFocused = false; setFocused(search); return true; }
+        if ((search.isFocused() && key == GLFW.GLFW_KEY_DOWN) || gridFocused) {
+            if (visible.isEmpty()) {
+                gridFocused = false;
+                setFocused(search);
+                return super.keyPressed(key, scan, modifiers);
+            }
+            if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) { choose(Math.max(0, selected)); return true; }
+            if (key == GLFW.GLFW_KEY_SPACE && gridFocused) { toggleFavorite(visible.get(Math.max(0, selected)).id()); return true; }
+            int move = switch (key) {
+                case GLFW.GLFW_KEY_LEFT -> -1;
+                case GLFW.GLFW_KEY_RIGHT -> 1;
+                case GLFW.GLFW_KEY_UP -> -layout.columns();
+                case GLFW.GLFW_KEY_DOWN -> layout.columns();
+                case GLFW.GLFW_KEY_PAGE_UP -> -layout.columns() * Math.max(1, layout.gridHeight() / layout.cell());
+                case GLFW.GLFW_KEY_PAGE_DOWN -> layout.columns() * Math.max(1, layout.gridHeight() / layout.cell());
+                default -> 0;
+            };
+            if (move != 0 || key == GLFW.GLFW_KEY_HOME || key == GLFW.GLFW_KEY_END) {
+                selected = selected < 0 ? 0 : Math.max(0, Math.min(visible.size() - 1, selected + move));
+                if (key == GLFW.GLFW_KEY_HOME) selected = 0;
+                if (key == GLFW.GLFW_KEY_END) selected = visible.size() - 1;
+                gridFocused = true;
+                setFocused(null);
+                int top = selected / layout.columns() * layout.cell();
+                if (top < scroll) scroll = top;
+                if (top + layout.cell() > scroll + layout.gridHeight()) scroll = top + layout.cell() - layout.gridHeight();
+                clampScroll();
                 return true;
             }
+            if (key == GLFW.GLFW_KEY_TAB) gridFocused = false;
         }
-        return super.mouseScrolled(mouseX, mouseY, deltaX, deltaY);
+        if (search.isFocused() && (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) && !visible.isEmpty()) {
+            choose(0);
+            return true;
+        }
+        return super.keyPressed(key, scan, modifiers);
     }
 
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && mouseX >= panelX && mouseX <= panelX + panelW
-                && mouseY >= panelY && mouseY <= panelY + panelH) {
-            int startX = panelX + (panelW - gridWidth) / 2;
-            int relX = (int) mouseX - startX;
-            int relY = (int) mouseY - panelY - 10 + scrollOffset;
-            if (relX >= 0 && relY >= 0) {
-                int col = relX / cellSize;
-                int row = relY / cellSize;
-                int idx = row * GRID_COLS + col;
-                if (col < GRID_COLS && idx >= 0 && idx < tiles.size()) {
-                    callback.accept(tiles.get(idx).name());
-                    return true;
-                }
+    private void toggleFavorite(UUID id) {
+        preferences.toggleFavorite(id);
+        savePreferences();
+        filter();
+    }
+
+    private void choose(int index) {
+        if (index < 0 || index >= visible.size()) return;
+        EmojiAsset asset = visible.get(index);
+        preferences.use(asset.id());
+        savePreferences();
+        callback.accept(sticker ? EmojiTokens.reference(asset.id(), true) : ":" + asset.name() + ":");
+    }
+
+    private void savePreferences() {
+        try { preferences.save(); }
+        catch (Exception exception) { failure("无法保存收藏与最近使用", exception); }
+    }
+
+    private void chooseFiles() {
+        if (busy) return;
+        begin("正在选择图片…");
+        CompletableFuture.supplyAsync(() -> {
+            // tinyfd owns a blocking native window, so it must not run on the render thread.
+            try (MemoryStack stack = MemoryStack.stackPush()) {
+                PointerBuffer filters = stack.mallocPointer(6);
+                for (String pattern : List.of("*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp")) filters.put(stack.UTF8(pattern));
+                filters.flip();
+                TinyFileDialogs.tinyfd_setGlobalInt("tinyfd_winUtf8", 1);
+                String result = TinyFileDialogs.tinyfd_openFileDialog("导入表情", "", filters, "图片", true);
+                if (result == null) return List.<Path>of();
+                List<Path> paths = new ArrayList<>();
+                for (String path : result.split("\\|")) paths.add(Path.of(path));
+                return paths;
             }
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
+        }).whenComplete((paths, exception) -> Minecraft.getInstance().execute(() -> {
+            if (exception != null) { finish(); failure("无法打开文件选择器", exception); }
+            else if (paths.isEmpty()) { finish(); status = "已取消导入"; }
+            else importFiles(paths);
+        }));
     }
 
     @Override
-    public boolean isPauseScreen() {
-        return false;
+    public void onFilesDrop(List<Path> paths) {
+        if (!busy && !paths.isEmpty()) { begin("正在导入…"); importFiles(List.copyOf(paths)); }
+    }
+
+    private void importFiles(List<Path> paths) {
+        status = "正在导入…";
+        EmojiLibrary.importFiles(paths).whenComplete((result, exception) -> Minecraft.getInstance().execute(() -> {
+            finish();
+            if (exception != null) failure("导入失败", exception);
+            else {
+                assets = List.copyOf(EmojiLibrary.local());
+                category = Category.ALL;
+                if (search != null) search.setValue("");
+                scroll = 0;
+                filter();
+                status = "已导入 " + result.size() + " 个表情";
+            }
+        }));
+    }
+
+    private void reload() {
+        if (busy) return;
+        begin("正在刷新…");
+        EmojiLibrary.reload().whenComplete((result, exception) -> Minecraft.getInstance().execute(() -> {
+            finish();
+            if (exception != null) failure("刷新失败", exception);
+            else { assets = List.copyOf(result); filter(); status = ""; }
+        }));
+    }
+
+    private void begin(String message) { busy = true; error = false; status = message; updateBusyButtons(); }
+    private void finish() { busy = false; updateBusyButtons(); }
+    private void updateBusyButtons() {
+        if (importButton != null) importButton.active = !busy;
+        if (reloadButton != null) reloadButton.active = !busy;
+    }
+
+    private void failure(String message, Throwable exception) {
+        Throwable cause = exception;
+        while (cause.getCause() != null) cause = cause.getCause();
+        error = true;
+        status = message + (cause.getMessage() == null ? "" : "：" + cause.getMessage());
+        MemeEmoji.LOGGER.warn(message, exception);
     }
 
     @Override
-    public void removed() {
-        if (atlasTexture != null) {
-            atlasTexture.close();
-            atlasTexture = null;
-        }
-        super.removed();
+    public void onClose() { Minecraft.getInstance().setScreen(parent); }
+
+    @Override
+    public boolean isPauseScreen() { return false; }
+
+    private enum Category {
+        ALL("全部"), RECENT("最近"), FAVORITES("收藏");
+        final String label;
+        Category(String label) { this.label = label; }
     }
 }
-

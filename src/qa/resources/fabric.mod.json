@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "memeemoji_qa",
+  "version": "1.0.0",
+  "name": "MemeEmoji Development Checks",
+  "environment": "*",
+  "entrypoints": { "client": ["com.memeemoji.qa.EmojiGameChecks"] }
+}
