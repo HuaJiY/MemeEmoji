@@ -20,6 +20,8 @@ import net.minecraft.world.entity.player.ChatVisiblity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -31,6 +33,10 @@ public final class EmojiChatRenderer {
     private static List<EmojiAsset> localSnapshot;
     private static List<Line> lines = List.of();
     private static int[] heights = new int[0];
+    private static int[] offsets = new int[1];
+    private static final Map<LayoutKey, List<RichLine>> MESSAGE_LAYOUTS = new LinkedHashMap<>(16, .75f, true);
+    private static final Map<GuiMessage, Boolean> IMAGE_MESSAGES = new LinkedHashMap<>(16, .75f, true);
+    private static List<EmojiAsset> imageLibrary;
     private static int cachedWidth = -1;
     private static int cachedNormal;
     private static int cachedInline;
@@ -46,13 +52,23 @@ public final class EmojiChatRenderer {
         snapshot = List.of();
         lines = List.of();
         heights = new int[0];
+        offsets = new int[1];
+        MESSAGE_LAYOUTS.clear();
+        IMAGE_MESSAGES.clear();
         lastChat = null;
     }
 
     public static boolean active(List<GuiMessage> messages) {
         if (!MemeEmoji.config().enabled) return false;
+        checkLibrary();
         for (GuiMessage message : messages) {
-            if (hasImages(message.content().getString())) return true;
+            Boolean known = IMAGE_MESSAGES.get(message);
+            if (known == null) {
+                known = hasImages(message.content().getString());
+                IMAGE_MESSAGES.put(message, known);
+                if (IMAGE_MESSAGES.size() > 256) IMAGE_MESSAGES.remove(IMAGE_MESSAGES.keySet().iterator().next());
+            }
+            if (known) return true;
         }
         return false;
     }
@@ -67,13 +83,30 @@ public final class EmojiChatRenderer {
     }
 
     public static List<RichLine> messageLayout(Component content, int width, int normal) {
+        checkLibrary();
+        LayoutKey key = new LayoutKey(content, Math.max(12, width), normal,
+                MemeEmoji.config().targetMaxSize(), MemeEmoji.config().stickerSize);
+        List<RichLine> known = MESSAGE_LAYOUTS.get(key);
+        if (known != null) return known;
         Builder builder = new Builder(Minecraft.getInstance().font, Math.max(12, width), normal,
                 MemeEmoji.config().targetMaxSize(), MemeEmoji.config().stickerSize);
         content.visit((style, text) -> {
             builder.append(text, style);
             return Optional.empty();
         }, Style.EMPTY);
-        return builder.finish();
+        List<RichLine> result = List.copyOf(builder.finish());
+        MESSAGE_LAYOUTS.put(key, result);
+        if (MESSAGE_LAYOUTS.size() > 256) MESSAGE_LAYOUTS.remove(MESSAGE_LAYOUTS.keySet().iterator().next());
+        return result;
+    }
+
+    private static void checkLibrary() {
+        List<EmojiAsset> local = EmojiLibrary.local();
+        if (imageLibrary != local) {
+            IMAGE_MESSAGES.clear();
+            MESSAGE_LAYOUTS.clear();
+            imageLibrary = local;
+        }
     }
 
     private static EmojiAsset asset(String token) {
@@ -110,6 +143,8 @@ public final class EmojiChatRenderer {
         snapshot = List.copyOf(messages);
         lines = List.copyOf(next);
         heights = lines.stream().mapToInt(Line::height).toArray();
+        offsets = new int[heights.length + 1];
+        for (int i = 0; i < heights.length; i++) offsets[i + 1] = offsets[i] + heights[i];
         localSnapshot = local;
         cachedWidth = width;
         cachedNormal = normal;
@@ -128,8 +163,9 @@ public final class EmojiChatRenderer {
     }
 
     public static int messageLineCount(ChatComponent chat, GuiMessage message) {
-        layout(chat, List.of(message));
-        return lines.size();
+        int width = Math.max(12, Mth.floor(chat.getWidth() / chat.getScale()));
+        int normal = (int) (9 * (Minecraft.getInstance().options.chatLineSpacing().get() + 1));
+        return messageLayout(message.content(), width, normal).size();
     }
 
     public static void render(ChatComponent chat, List<GuiMessage> messages, int scroll, boolean unread,
@@ -169,7 +205,7 @@ public final class EmojiChatRenderer {
             graphics.pose().translate(0, 0, 50);
             for (Part part : line.parts()) {
                 if (part.asset() == null) {
-                    graphics.drawString(mc.font, Component.literal(part.text()).withStyle(part.style()),
+                    graphics.drawString(mc.font, part.content(),
                             part.x(), lineBottom + textOffset, 0xFFFFFF | alpha << 24);
                 } else {
                     EmojiTextures.render(graphics, part.asset(), part.x(), lineBottom - part.height() - 2,
@@ -180,12 +216,8 @@ public final class EmojiChatRenderer {
         }
         graphics.disableScissor();
         if (focused && lines.size() > 0) {
-            int total = 0;
-            int skipped = 0;
-            for (int i = 0; i < heights.length; i++) {
-                total += heights[i];
-                if (i < scroll) skipped += heights[i];
-            }
+            int total = offsets[heights.length];
+            int skipped = offsets[Math.min(scroll, heights.length)];
             if (total > viewport) {
                 int thumb = Math.max(8, viewport * viewport / total);
                 int y = bottom - thumb - (int) ((viewport - thumb) * (double) skipped / Math.max(1, total - viewport));
@@ -237,7 +269,12 @@ public final class EmojiChatRenderer {
         return hit != null && x / chat.getScale() - 4 < 0 ? hit.line().message().tag() : null;
     }
 
-    public record Part(String text, Style style, EmojiAsset asset, int x, int width, int height) { }
+    public record Part(String text, Style style, EmojiAsset asset, int x, int width, int height, Component content) {
+        Part(String text, Style style, EmojiAsset asset, int x, int width, int height) {
+            this(text, style, asset, x, width, height, text == null ? null : Component.literal(text).withStyle(style));
+        }
+    }
+    private record LayoutKey(Component content, int width, int normal, int inline, int sticker) {}
     public record RichLine(List<Part> parts, int height) {
         public int width() {
             return parts.stream().mapToInt(p -> p.x() + p.width()).max().orElse(0);

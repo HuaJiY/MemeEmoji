@@ -24,20 +24,39 @@ public final class EmojiDecoder {
 
     private EmojiDecoder() {}
 
-    public record Frame(int[] argb, int durationMillis) {}
+    public record Frame(int[] rgba, int durationMillis) {
+        public int argb(int index) { return swapRedBlue(rgba[index]); }
+    }
 
-    public record Decoded(int width, int height, List<Frame> frames, int loops) {
+    public static final class Decoded {
+        private final int width, height, loops;
+        private final List<Frame> frames;
+        private final long[] frameEnds;
+        private final long duration;
+
+        public Decoded(int width, int height, List<Frame> frames, int loops) {
+            this.width = width;
+            this.height = height;
+            this.frames = List.copyOf(frames);
+            this.loops = loops;
+            frameEnds = new long[frames.size()];
+            long total = 0;
+            for (int i = 0; i < frames.size(); i++) frameEnds[i] = total += frames.get(i).durationMillis();
+            duration = total;
+        }
+
+        public int width() { return width; }
+        public int height() { return height; }
+        public int loops() { return loops; }
+        public List<Frame> frames() { return frames; }
         public long pixels() { return (long) width * height * frames.size(); }
 
         public int frameAt(long elapsedMillis) {
-            long duration = frames.stream().mapToLong(Frame::durationMillis).sum();
+            if (frames.size() == 1) return 0;
             if (loops > 0 && elapsedMillis / duration >= loops) return frames.size() - 1;
             long position = Math.max(0, elapsedMillis) % duration;
-            for (int i = 0; i < frames.size(); i++) {
-                position -= frames.get(i).durationMillis();
-                if (position < 0) return i;
-            }
-            return frames.size() - 1;
+            int found = Arrays.binarySearch(frameEnds, position + 1);
+            return found >= 0 ? found : -found - 1;
         }
     }
 
@@ -309,7 +328,15 @@ public final class EmojiDecoder {
 
     private static MemoryCacheImageInputStream input(byte[] bytes) { return new MemoryCacheImageInputStream(new ByteArrayInputStream(bytes)); }
     private static BufferedImage canvas(int w, int h) { return new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB); }
-    private static Frame frame(BufferedImage image, int duration) { return new Frame(image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth()), duration); }
+    private static Frame frame(BufferedImage image, int duration) {
+        int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
+        for (int i = 0; i < pixels.length; i++) pixels[i] = swapRedBlue(pixels[i]);
+        return new Frame(pixels, duration);
+    }
+
+    private static int swapRedBlue(int value) {
+        return value & 0xff00ff00 | (value & 255) << 16 | value >>> 16 & 255;
+    }
     private static BufferedImage copy(BufferedImage source) { BufferedImage copy = canvas(source.getWidth(), source.getHeight()); draw(copy, source, 0, 0, true); return copy; }
 
     private static void draw(BufferedImage target, BufferedImage source, int x, int y, boolean replace) {

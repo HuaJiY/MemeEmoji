@@ -80,14 +80,6 @@ final class EmojiPackets {
         }
     }
 
-    static void chunks(UUID ticket, EmojiAsset asset, byte[] bytes, java.util.function.Consumer<CustomPacketPayload> send) {
-        send.accept(new Start(ticket, asset, bytes.length));
-        for (int offset = 0; offset < bytes.length; offset += PART_BYTES) {
-            send.accept(new Chunk(ticket, asset.id(), offset,
-                    java.util.Arrays.copyOfRange(bytes, offset, Math.min(bytes.length, offset + PART_BYTES))));
-        }
-    }
-
     private static EmojiAsset readAsset(RegistryFriendlyByteBuf b) {
         return new EmojiAsset(b.readUUID(), b.readUtf(128), b.readVarInt(), b.readVarInt(), b.readBoolean());
     }

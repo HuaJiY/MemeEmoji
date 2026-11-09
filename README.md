@@ -13,6 +13,7 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 | 行内表情与独立大图 | 小表情跟着文字走，大图单独占行；纯文字保持原版行高 |
 | 动图播放 | GIF、动态 WebP 在聊天、表情面板和图片预览中播放 |
 | 个人表情库 | 搜索、收藏、最近使用，支持文件选择导入与拖拽导入 |
+| 管理与删除 | 多选、跨搜索选择、批量永久删除，已发送图片保留显示 |
 | 收藏朋友的表情 | 右键聊天图片快速收藏，或在大图预览中收藏；保留原文件和动画 |
 | 毛玻璃界面 | 表情库、预览和设置统一半透明设计，背景真实模糊，支持深浅主题和自定义颜色 |
 | 游戏内设置 | 大小预设、尺寸和外观即时预览，点击保存生效，取消不改变原设置 |
@@ -57,9 +58,17 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 
 打开聊天框，右键想收藏的图片；也可以左键打开预览，再点击“收藏到表情库”。图片会下载并另存进自己的 `emoji/` 文件夹，同时加入“收藏”。原始像素和 GIF、WebP 动画都会保留，同名自动添加后缀，重复收藏不会生成多份副本。
 
-收藏后即可从自己的图库发送，原发送者离线也不影响使用。手动删除收藏副本后，再收藏会重新保存。
+收藏后即可从自己的图库发送，原发送者离线也不影响使用。删除收藏副本后，再收藏会重新保存。
 
 ![图片预览中的收藏按钮](docs/images/collection.png)
+
+## 删除自己的表情
+
+点击表情库右上角的管理按钮，勾选图片，再点击垃圾桶。可以单张删除，也可以用“全选”批量删除当前搜索结果；更换搜索词不会清除已选图片。确认页点击“永久删除”后，个人库原文件会被永久删除，同时清理收藏与最近使用，无法撤销。点击“取消”不改动文件。
+
+删除前会将原始图片留在聊天缓存中，因此已经发送的图片仍能显示，GIF 和 WebP 动画也会保留；删除个人库文件不等于清除聊天缓存。仍可从聊天图片重新收藏。
+
+![管理模式中的表情选择和删除入口](docs/images/management.png)
 
 ## TalkBubbles 头顶气泡
 
@@ -80,6 +89,8 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 发送消息时，客户端只上传本条消息引用且服务器尚未缓存的图片。其他玩家收到图片信息后，在图片需要显示时向服务器请求文件，并缓存到本地。
 
 不会在加入服务器时上传或下发整套表情库。同名图片通过 UUID 区分，不会替换其他玩家的图片。修改本地图片后会获得新 UUID，未修改的图片保持标识和缓存。
+
+上传和下载按连接轮转分批发送，每个游戏刻最多发送 4 个 24 KiB 分片，避免一次塞入整个文件。排队下载不消耗传输超时；开始处理后，连续 45 秒没有进度才判定超时。服务器复用最近使用的原文件内存缓存，上限为 32 MiB、64 个文件，不改变图片质量。
 
 聊天显示尺寸与源文件像素独立：不会为了显示成小表情而把文件压缩成低分辨率图片。图片按比例显示，不裁切；预览可使用保留下来的完整像素。
 
@@ -122,7 +133,7 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 | `config/memeemoji/emoji/` | 自己的原始图片，可使用子目录 |
 | `config/memeemoji/library-index.json` | 文件与 UUID 的索引、已收藏图片的副本关联 |
 | `config/memeemoji/library-ui.json` | 收藏和最近使用 |
-| `config/memeemoji/received/` | 接收图片的独立缓存，不加入个人表情库 |
+| `config/memeemoji/received/` | 接收图片及删除前保留的聊天缓存，不加入个人表情库 |
 | `<世界目录>/memeemoji/assets/` | 此世界的服务器图片缓存 |
 
 ## 构建与检查
@@ -131,7 +142,7 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 .\gradlew.bat build
 ```
 
-产物：`build/libs/memeemoji-0.3.0.jar`。`build` 包含图片解码、真实目录监听、聊天几何和协议分片检查。
+产物：`build/libs/memeemoji-0.4.0.jar`。`build` 包含图片解码、真实目录监听、聊天几何、协议分片及传输队列检查。
 
 游戏检查使用独立的 `src/qa` 模组，不打包进正式 jar。三个终端依次启动服务器、接收方、发送方：
 
@@ -146,6 +157,8 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 检查 TalkBubbles 时，在 QA 服务器运行期间执行 `./gradlew.bat runQaBubbles -PwithTalkBubbles`。此参数仅向开发客户端添加 TalkBubbles 和 Cloth Config，不打包进正式产物。检查文字、行内图片、大图、再次发送文字、隐藏自己的气泡和到期消失，结果为 `build/qa-evidence/talkbubbles-result.txt`。
 
 完整双客户端检查后，可保留专用服务器缓存，用 `./gradlew.bat runQaSender -PqaFocus=settings` 单独检查设置草稿、保存、取消、深浅主题、真实模糊、小窗口滚动、排队下载及离线缓存收藏。`./gradlew.bat runQaVanilla` 在不安装 ModernUI 的独立目录执行同一检查。服务器需保持运行，结果分别为 `sender-focus-result.txt` 和 `vanilla-focus-result.txt`。
+
+删除流程用 `./gradlew.bat runQaSender -PqaFocus=maintenance` 和 `./gradlew.bat runQaVanilla -PqaFocus=maintenance` 检查：实际点击管理、取消、单张与批量永久删除、偏好清理、重载、历史图片缓存和重新收藏。服务器需保持运行，结果为 `sender-maintenance-result.txt`、`vanilla-maintenance-result.txt`，截图使用 `modernui-` / `vanilla-` 前缀。
 
 ## 实现与参考
 

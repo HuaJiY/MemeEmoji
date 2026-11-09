@@ -42,7 +42,10 @@ public final class EmojiPacketsTest {
         byte[] original = new byte[PART_BYTES + 7];
         for (int i = 0; i < original.length; i++) original[i] = (byte) i;
         List<net.minecraft.network.protocol.common.custom.CustomPacketPayload> packets = new ArrayList<>();
-        chunks(ticket, asset, original, packets::add);
+        EmojiTransferQueue queue = new EmojiTransferQueue();
+        queue.add(ticket, asset, original, () -> {}, () -> {});
+        check(packets.isEmpty(), "Enqueue must not send on the calling frame");
+        queue.pump(packets::add);
         check(packets.size() == 3, "Boundary split should have a start and two chunks");
         Assembly assembly = new Assembly(asset, original.length);
         check(!assembly.append((Chunk) packets.get(1)), "Partial transfer marked complete");
@@ -56,6 +59,7 @@ public final class EmojiPacketsTest {
         rejects(() -> new Assembly(asset, PART_BYTES + 1).append(new Chunk(ticket, asset.id(), 0, new byte[PART_BYTES + 1])), "Oversized assembly chunk accepted");
         rejects(() -> new Assembly(asset, 0), "Empty file accepted");
         rejects(() -> new Assembly(asset, EmojiAsset.MAX_FILE_BYTES + 1), "File above 8 MB accepted");
+        transferScheduling();
 
         List<EmojiAsset> maximum = new ArrayList<>();
         for (int i = 0; i < MAX_ASSETS; i++) maximum.add(new EmojiAsset(UUID.randomUUID(), "item" + i, 16, 16, false));
@@ -66,6 +70,42 @@ public final class EmojiPacketsTest {
         rejects(() -> roundTrip(Message.CODEC, new Message(ticket, "a".repeat(MAX_TEXT + 1), List.of(asset))), "Oversized text accepted");
         rejects(() -> new EmojiAsset(UUID.randomUUID(), "large", EmojiAsset.MAX_DIMENSION + 1, 1, false), "Oversized dimensions accepted");
         System.out.println("EmojiPacketsTest passed");
+    }
+
+    private static void transferScheduling() {
+        EmojiTransferQueue queue = new EmojiTransferQueue();
+        byte[] bytes = new byte[EmojiAsset.MAX_FILE_BYTES];
+        for (int i = 0; i < bytes.length; i++) bytes[i] = (byte) i;
+        var assemblies = new java.util.HashMap<UUID, Assembly>();
+        var tickets = new ArrayList<UUID>();
+        int[] completed = {0}, progress = {0};
+        for (int i = 0; i < 4; i++) {
+            UUID ticket = UUID.randomUUID(); tickets.add(ticket);
+            EmojiAsset asset = new EmojiAsset(UUID.randomUUID(), "large" + i, 100, 100, false);
+            queue.add(ticket, asset, bytes, () -> progress[0]++, () -> completed[0]++);
+        }
+        int ticks = 0;
+        while (!queue.isEmpty()) {
+            List<net.minecraft.network.protocol.common.custom.CustomPacketPayload> sent = new ArrayList<>();
+            queue.pump(sent::add);
+            check(sent.stream().filter(Chunk.class::isInstance).count() <= EmojiTransferQueue.CHUNKS_PER_TICK,
+                    "Transfer exceeded tick budget");
+            for (var packet : sent) {
+                if (packet instanceof Start start) assemblies.put(start.ticket(), new Assembly(start.asset(), start.size()));
+                else if (packet instanceof Chunk chunk) assemblies.get(chunk.ticket()).append(chunk);
+            }
+            if (++ticks == 1) check(assemblies.size() == 4, "Concurrent transfers must take turns without starving");
+            check(ticks < 400, "Transfer queue did not drain");
+        }
+        check(ticks == 342 && completed[0] == 4 && progress[0] == 1368, "Four 8 MB transfers have bounded work and completion");
+        for (Assembly assembly : assemblies.values()) check(Arrays.equals(assembly.bytes, bytes), "Scheduled bytes changed");
+        UUID cancelled = UUID.randomUUID();
+        queue.add(cancelled, new EmojiAsset(UUID.randomUUID(), "cancel", 1, 1, false), bytes, () -> {}, () -> { throw new AssertionError("Cancelled transfer completed"); });
+        queue.remove(cancelled);
+        queue.pump(packet -> { throw new AssertionError("Cancelled transfer sent data"); });
+        queue.add(cancelled, new EmojiAsset(UUID.randomUUID(), "reset", 1, 1, false), bytes, () -> {}, () -> {});
+        queue.clear(); check(queue.isEmpty(), "Disconnect must release queued files");
+        System.out.println("Transfer scheduling: 4 x 8 MB, 342 ticks, <=96 KB/tick, round-robin, exact bytes and cancellation passed");
     }
 
     private static RegistryFriendlyByteBuf buffer() { return new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.EMPTY); }

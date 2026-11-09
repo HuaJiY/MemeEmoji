@@ -54,6 +54,8 @@ public final class EmojiGameChecks implements ClientModInitializer {
     private boolean reloaded;
     private SettingsGameChecks settings;
     private CollectionGameChecks collection;
+    private MaintenanceGameChecks maintenance;
+    private final boolean maintenanceOnly = System.getProperty("memeemoji.qa.focus", "full").equals("maintenance");
     private final boolean settingsOnly = System.getProperty("memeemoji.qa.focus", "full").equals("settings");
 
     @Override
@@ -62,7 +64,7 @@ public final class EmojiGameChecks implements ClientModInitializer {
             Files.createDirectories(evidence);
             if (role.equals("sender") || role.equals("bubbles") || role.equals("vanilla")) fixtures();
         } catch (Exception e) { throw new RuntimeException(e); }
-        if (role.equals("bubbles") && !settingsOnly) {
+        if (role.equals("bubbles") && !settingsOnly && !maintenanceOnly) {
             new TalkBubblesGameChecks(evidence).start();
             return;
         }
@@ -82,6 +84,10 @@ public final class EmojiGameChecks implements ClientModInitializer {
             if (settings.tick(mc)) finish(mc, "PASS: settings draft/cancel/save, themes, verified shader blur, responsive layout and queued/offline collection");
             return;
         }
+        if (maintenance != null) {
+            if (maintenance.tick(mc)) finish(mc, "PASS: management UI, cancel, permanent single/batch deletion, preferences, cached history and recollection");
+            return;
+        }
         if (mc.player == null || mc.getConnection() == null) return;
         connected++;
         if (connected == 1) {
@@ -93,6 +99,13 @@ public final class EmojiGameChecks implements ClientModInitializer {
             mc.resizeDisplay();
         }
         observeAnimation();
+        if (maintenanceOnly) {
+            if (connected > 80 && !EmojiLibrary.local().isEmpty()) {
+                maintenance = new MaintenanceGameChecks(evidence);
+                maintenance.start(mc);
+            }
+            return;
+        }
         if (settingsOnly) {
             if (connected > 80 && !EmojiLibrary.local().isEmpty()) {
                 settings = new SettingsGameChecks(evidence);
@@ -120,6 +133,9 @@ public final class EmojiGameChecks implements ClientModInitializer {
             mc.gui.getChat().scrollChat(1);
             if (ids.stream().anyMatch(id -> !EmojiLibrary.hasFile(id))) return;
             check(EmojiLibrary.local().isEmpty(), "Receiver's personal library must stay empty");
+            EmojiAsset large = ids.stream().map(EmojiLibrary::find).filter(a -> a.name().equals("表情大图")).findFirst().orElseThrow();
+            check(java.util.Arrays.equals(EmojiLibrary.read(large.id()), Files.readAllBytes(root.resolve("build/qa-sender/config/memeemoji/emoji/表情大图.png"))),
+                    "Multi-megabyte image must preserve original bytes across scheduled upload/download");
             check(ids.stream().noneMatch(id -> EmojiTextures.failure(id) != null), "Received image decode failure");
             mc.gui.getChat().resetChatScroll();
             capture(mc, "chat");
@@ -167,7 +183,7 @@ public final class EmojiGameChecks implements ClientModInitializer {
             chat.handleChatInput("普通文字：这条消息保持正常高度。", true);
             chat.handleChatInput("行内图片 " + String.join(" ", EmojiLibrary.local().stream().filter(EmojiGameChecks::sentFixture).map(a -> ":" + a.name() + ":").toList()), true);
             stage = 1; since = connected;
-        } else if (stage == 1 && connected - since > 100) {
+        } else if (stage == 1 && connected - since > 100 && !outgoing()) {
             chat.handleChatInput(EmojiTokens.reference(EmojiLibrary.findName("清晰测试").id(), true), true);
             stage = 2; since = connected;
         } else if (stage == 2 && connected - since > 60) {
@@ -239,7 +255,7 @@ public final class EmojiGameChecks implements ClientModInitializer {
 
     private void finish(Minecraft mc, String result) {
         finished = true;
-        try { Files.writeString(evidence.resolve(role + (settingsOnly ? "-focus" : "") + "-result.txt"), result); }
+        try { Files.writeString(evidence.resolve(role + (maintenanceOnly ? "-maintenance" : settingsOnly ? "-focus" : "") + "-result.txt"), result); }
         catch (Exception e) { e.printStackTrace(); }
         System.out.println("MEMEEMOJI_QA " + role + " " + result);
         mc.stop();
@@ -252,11 +268,26 @@ public final class EmojiGameChecks implements ClientModInitializer {
         if (!Files.exists(dir.resolve("未发送.png"))) ImageIO.write(picture(200, 200, 7), "png", dir.resolve("未发送.png").toFile());
         if (!Files.exists(dir.resolve("动图.gif"))) Files.write(dir.resolve("动图.gif"), gif());
         if (!Files.exists(dir.resolve("WebP动画.webp"))) Files.write(dir.resolve("WebP动画.webp"), Base64.getDecoder().decode("UklGRrQAAABXRUJQVlA4WAoAAAACAAAAAwAAAwAAQU5JTQYAAAAAAAAAAABBTk1GKAAAAAAAAAAAAAMAAAMAAFAAAANWUDhMDwAAAC8DwAAABxD9j/4HIqL/AQBBTk1GKAAAAAEAAAEAAAAAAAAAAHgAAABWUDhMDwAAAC8AAAAAB9D/iP4HIqL/AQBBTk1GKAAAAAAAAAAAAAMAAAMAAMgAAABWUDhMDwAAAC8DwAAABxDR//4HIqL/AQA="));
+        if (role.equals("sender") && !settingsOnly && !maintenanceOnly && !Files.exists(dir.resolve("表情大图.png"))) {
+            BufferedImage large = new BufferedImage(1536, 1024, BufferedImage.TYPE_INT_ARGB);
+            java.util.Random random = new java.util.Random(73);
+            int[] pixels = new int[1536 * 1024];
+            for (int i = 0; i < pixels.length; i++) pixels[i] = random.nextInt();
+            large.setRGB(0, 0, 1536, 1024, pixels, 0, 1536);
+            ImageIO.write(large, "png", dir.resolve("表情大图.png").toFile());
+            check(Files.size(dir.resolve("表情大图.png")) > 5 * 1024 * 1024, "Large transfer fixture");
+        }
         EmojiLibrary.reload();
     }
 
     private static boolean sentFixture(EmojiAsset asset) {
         return asset.name().startsWith("表情") || List.of("清晰测试", "动图", "WebP动画").contains(asset.name());
+    }
+
+    private static boolean outgoing() throws Exception {
+        Field field = com.memeemoji.net.EmojiNetworkClient.class.getDeclaredField("OUTGOING");
+        field.setAccessible(true);
+        return !((Map<?, ?>) field.get(null)).isEmpty();
     }
 
     private void observeAnimation() throws Exception {

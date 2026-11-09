@@ -16,6 +16,8 @@ final class PickerButton extends AbstractButton {
     static final int REFRESH = 2;
     static final int CLOSE = 3;
     static final int SETTINGS = 4;
+    static final int MANAGE = 5;
+    static final int DELETE = 6;
     private final int icon;
     private final BooleanSupplier selected;
     private final Runnable action;
@@ -65,6 +67,15 @@ final class PickerButton extends AbstractButton {
                 graphics.fill(x, y + 4, x + 3, y + 6, color);
                 graphics.fill(x + 7, y + 4, x + 10, y + 6, color);
                 graphics.fill(x + 4, y + 4, x + 6, y + 6, color);
+            } else if (icon == MANAGE) {
+                graphics.renderOutline(x, y, 10, 10, color);
+                graphics.fill(x + 2, y + 4, x + 4, y + 6, color);
+                graphics.fill(x + 4, y + 6, x + 6, y + 8, color);
+                graphics.fill(x + 6, y + 2, x + 8, y + 6, color);
+            } else if (icon == DELETE) {
+                graphics.fill(x + 3, y, x + 7, y + 1, color);
+                graphics.fill(x, y + 2, x + 10, y + 3, color);
+                graphics.renderOutline(x + 2, y + 4, 6, 6, color);
             } else {
                 for (int i = 0; i < 9; i++) {
                     graphics.fill(x + i, y + i, x + i + 1, y + i + 1, color);

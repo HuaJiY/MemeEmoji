@@ -71,6 +71,7 @@ public final class EmojiNetwork {
             World world = WORLDS.get(server);
             if (world == null) return;
             for (Connection c : world.connections.values()) {
+                c.transfers.pump(packet -> ServerPlayNetworking.send(c.player, packet));
                 if (c.pending != null && System.currentTimeMillis() > c.pending.deadline) {
                     fail(c, c.pending.message.ticket(), c.pending.message.assets().getFirst().id(), "图片发送超时，请重试");
                 }
@@ -85,6 +86,7 @@ public final class EmojiNetwork {
                 World world = WORLDS.get(context.player().server);
                 Connection c = connection(world, context.player());
                 if (c != null && c.pending != null && c.pending.message.ticket().equals(packet.ticket())) c.pending = null;
+                if (c != null) { c.transfers.remove(packet.ticket()); c.downloads.remove(packet.ticket()); }
             }
         });
     }
@@ -176,7 +178,9 @@ public final class EmojiNetwork {
         Pending p = c.pending;
         try {
             if (p.processing || p.assembly == null) throw new IllegalArgumentException();
-            if (!p.assembly.append(chunk)) return;
+            boolean complete = p.assembly.append(chunk);
+            p.deadline = System.currentTimeMillis() + TIMEOUT;
+            if (!complete) return;
         } catch (RuntimeException e) { fail(c, chunk.ticket(), chunk.id(), "图片分片损坏，请重试"); return; }
         p.processing = true;
         Assembly assembly = p.assembly;
@@ -197,19 +201,16 @@ public final class EmojiNetwork {
         Connection c = connection(world, player);
         if (c == null) return;
         if (!MemeEmoji.config().enabled) { error(player, request.ticket(), request.id(), "服务器已关闭表情功能"); return; }
-        if (c.downloads >= 4) { error(player, request.ticket(), request.id(), "正在下载的图片太多，请稍后重试"); return; }
-        c.downloads++;
-        world.work(() -> {
-            Cached cached = world.load(request.id());
-            if (cached == null) throw new IOException("图片不存在");
-            byte[] bytes = Files.readAllBytes(world.path.resolve(request.id() + ".bin"));
-            if (bytes.length < 1 || bytes.length > EmojiAsset.MAX_FILE_BYTES) throw new IOException("Invalid cache size");
-            return new Download(cached.asset, bytes);
-        }).whenComplete((data, failure) -> player.server.execute(() -> {
-            if (connection(world, player) != c) return;
-            c.downloads--;
-            if (failure != null) { error(player, request.ticket(), request.id(), "服务器中找不到这张图片，请让发送者重发"); return; }
-            chunks(request.ticket(), data.asset, data.bytes, packet -> ServerPlayNetworking.send(player, packet));
+        if (c.downloads.contains(request.ticket())) return;
+        if (c.downloads.size() >= 4) { error(player, request.ticket(), request.id(), "正在下载的图片太多，请稍后重试"); return; }
+        c.downloads.add(request.ticket());
+        world.work(() -> world.download(request.id())).whenComplete((data, failure) -> player.server.execute(() -> {
+            if (connection(world, player) != c || !c.downloads.contains(request.ticket())) return;
+            if (failure != null) {
+                c.downloads.remove(request.ticket());
+                error(player, request.ticket(), request.id(), "服务器中找不到这张图片，请让发送者重发"); return;
+            }
+            c.transfers.add(request.ticket(), data.asset, data.bytes, () -> {}, () -> c.downloads.remove(request.ticket()));
         }));
     }
 
@@ -237,7 +238,8 @@ public final class EmojiNetwork {
     private static final class Connection {
         final ServerPlayer player;
         Pending pending;
-        int downloads;
+        final Set<UUID> downloads = new LinkedHashSet<>();
+        final EmojiTransferQueue transfers = new EmojiTransferQueue();
         Connection(ServerPlayer player) { this.player = player; }
     }
     private static final class Pending {
@@ -257,6 +259,9 @@ public final class EmojiNetwork {
             Thread thread = new Thread(r, "MemeEmoji-server-cache"); thread.setDaemon(true); return thread;
         });
         final Map<UUID, Connection> connections = new HashMap<>();
+        final Map<UUID, Cached> metadata = new LinkedHashMap<>(16, .75f, true);
+        final Map<UUID, Download> hot = new LinkedHashMap<>(16, .75f, true);
+        long hotBytes;
         World(MinecraftServer server) { this.server = server; path = server.getWorldPath(LevelResource.ROOT).resolve("memeemoji/assets"); }
 
         <T> CompletableFuture<T> work(IOWork<T> action) {
@@ -267,12 +272,44 @@ public final class EmojiNetwork {
         }
 
         Cached load(UUID id) throws IOException {
+            Cached known = metadata.get(id);
+            if (known != null) return known;
             Path metadata = path.resolve(id + ".json");
             if (!Files.exists(metadata)) return null;
             Cached cached = GSON.fromJson(Files.readString(metadata, StandardCharsets.UTF_8), Cached.class);
             if (cached == null || cached.owner == null || cached.asset == null || !cached.asset.id().equals(id)) throw new IOException("Invalid metadata");
             if (!Files.isRegularFile(path.resolve(id + ".bin"))) return null;
+            remember(cached);
             return cached;
+        }
+
+        private void remember(Cached cached) {
+            metadata.put(cached.asset.id(), cached);
+            if (metadata.size() > 1024) metadata.remove(metadata.keySet().iterator().next());
+        }
+
+        Download download(UUID id) throws IOException {
+            Download known = hot.get(id);
+            if (known != null) return known;
+            Cached cached = load(id);
+            if (cached == null) throw new IOException("图片不存在");
+            byte[] bytes;
+            try (var in = Files.newInputStream(path.resolve(id + ".bin"))) {
+                bytes = in.readNBytes(EmojiAsset.MAX_FILE_BYTES + 1);
+            }
+            if (bytes.length < 1 || bytes.length > EmojiAsset.MAX_FILE_BYTES) throw new IOException("Invalid cache size");
+            Download data = new Download(cached.asset, bytes);
+            remember(data);
+            return data;
+        }
+
+        private void remember(Download data) {
+            Download old = hot.put(data.asset.id(), data);
+            hotBytes += data.bytes.length - (old == null ? 0 : old.bytes.length);
+            while (hotBytes > 32L * 1024 * 1024 || hot.size() > 64) {
+                UUID first = hot.keySet().iterator().next();
+                hotBytes -= hot.remove(first).bytes.length;
+            }
         }
 
         Cached save(UUID owner, EmojiAsset asset, byte[] bytes) throws IOException {
@@ -301,6 +338,8 @@ public final class EmojiNetwork {
                 Files.deleteIfExists(dataTemp);
                 Files.deleteIfExists(metaTemp);
             }
+            remember(value);
+            remember(new Download(asset, bytes));
             return value;
         }
     }

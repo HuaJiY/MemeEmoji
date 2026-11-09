@@ -51,6 +51,7 @@ final class PickerPreferences {
     List<UUID> recent() { return List.copyOf(recent); }
     void toggleFavorite(UUID id) { if (!favorites.remove(id)) favorites.add(id); }
     void favorite(UUID id) { favorites.add(id); }
+    void remove(Set<UUID> ids) { favorites.removeAll(ids); recent.removeAll(ids); }
     void use(UUID id) {
         recent.remove(id);
         recent.addFirst(id);

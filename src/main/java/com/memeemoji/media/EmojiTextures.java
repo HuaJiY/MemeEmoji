@@ -1,6 +1,7 @@
 package com.memeemoji.media;
 
 import com.memeemoji.net.EmojiNetworkClient;
+import com.memeemoji.mixin.NativeImageAccessor;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -9,6 +10,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.lwjgl.system.MemoryUtil;
 
 import java.nio.file.NoSuchFileException;
 import java.util.Iterator;
@@ -61,13 +63,8 @@ public final class EmojiTextures {
         if (entry.frame != frame) {
             graphics.flush();
             NativeImage image = entry.texture.getPixels();
-            int[] pixels = decoded.frames().get(frame).argb();
-            for (int yy = 0; yy < decoded.height(); yy++) {
-                for (int xx = 0; xx < decoded.width(); xx++) {
-                    int argb = pixels[yy * decoded.width() + xx];
-                    image.setPixelRGBA(xx, yy, argb & 0xff00ff00 | (argb & 255) << 16 | argb >>> 16 & 255);
-                }
-            }
+            int[] pixels = decoded.frames().get(frame).rgba();
+            MemoryUtil.memIntBuffer(((NativeImageAccessor) (Object) image).memeemoji$pixels(), pixels.length).put(pixels);
             entry.texture.upload();
             // NativeImage.upload resets filtering to nearest-neighbor on every frame.
             entry.texture.setFilter(true, false);

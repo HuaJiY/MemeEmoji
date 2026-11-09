@@ -93,7 +93,7 @@ public final class TalkBubblesCompat {
                         EmojiTextures.render(graphics, part.asset(), x + part.x(), bottom - part.height() - 2,
                                 part.width(), part.height(), 255);
                     } else {
-                        font.drawInBatch(Component.literal(part.text()).withStyle(part.style()), x + part.x(), bottom - 9,
+                        font.drawInBatch(part.content(), x + part.x(), bottom - 9,
                                 config.chatColor, false, pose.last().pose(), buffers, Font.DisplayMode.NORMAL, 0, light);
                     }
                 }

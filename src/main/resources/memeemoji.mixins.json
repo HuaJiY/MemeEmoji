@@ -4,6 +4,7 @@
   "package": "com.memeemoji.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "NativeImageAccessor",
     "ChatScreenMixin",
     "ChatComponentMixin",
     "TalkBubblesRenderMixin"

@@ -43,6 +43,7 @@ public final class EmojiLibrary {
     private static volatile Snapshot snapshot = new Snapshot(List.of(), Map.of(), Map.of(), Map.of(), Map.of());
     private static volatile Map<String, String> problems = Map.of();
     private static volatile Consumer<UUID> availableListener = id -> {};
+    private static boolean receivedLoaded;
 
     private EmojiLibrary() {}
 
@@ -98,6 +99,35 @@ public final class EmojiLibrary {
     }
 
     public static void initialize() { reload(); }
+
+    public record DeleteResult(Set<UUID> deleted, Map<String, String> failures) {}
+
+    public static CompletableFuture<DeleteResult> delete(Set<UUID> ids) {
+        Set<UUID> requested = Set.copyOf(ids);
+        return CompletableFuture.supplyAsync(() -> {
+            Set<UUID> deleted = new HashSet<>();
+            Map<String, String> failures = new LinkedHashMap<>();
+            for (UUID id : requested) {
+                Source source = snapshot.ids.get(id);
+                if (source == null) continue;
+                try {
+                    // Chat references outlive personal-library files, including while offline.
+                    byte[] bytes = read(id);
+                    Files.createDirectories(received());
+                    writeAtomic(received().resolve(id.toString()), bytes);
+                    writeAtomic(received().resolve(id + ".json"), GSON.toJson(source.asset).getBytes(StandardCharsets.UTF_8));
+                    acceptMetadata(source.asset);
+                    Files.delete(personal().resolve(source.path));
+                    deleted.add(id);
+                } catch (IOException e) {
+                    failures.put(source.asset.name(), e.getMessage());
+                }
+            }
+            try { scan(); }
+            catch (IOException e) { failures.put("刷新表情库", e.getMessage()); }
+            return new DeleteResult(Set.copyOf(deleted), Map.copyOf(failures));
+        }, IO);
+    }
 
     public static CompletableFuture<List<EmojiAsset>> reload() {
         return CompletableFuture.supplyAsync(() -> {
@@ -232,13 +262,14 @@ public final class EmojiLibrary {
             if (!ids.containsKey(id)) availableListener.accept(id);
         }
         writeIndex();
-        try (var stream = Files.list(received())) {
+        if (!receivedLoaded) try (var stream = Files.list(received())) {
             for (Path path : stream.filter(p -> p.getFileName().toString().endsWith(".json")).toList()) {
                 try {
                     EmojiAsset asset = GSON.fromJson(Files.readString(path, StandardCharsets.UTF_8), EmojiAsset.class);
                     if (asset != null && path.getFileName().toString().equals(asset.id() + ".json")) acceptMetadata(asset);
                 } catch (RuntimeException | IOException e) { LOGGER.warn("缓存表情描述无法读取 {}：{}", path.getFileName(), e.getMessage()); }
             }
+            receivedLoaded = true;
         }
         return local;
     }

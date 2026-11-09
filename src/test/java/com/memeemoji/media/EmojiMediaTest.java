@@ -31,6 +31,7 @@ public final class EmojiMediaTest {
     public static void main(String[] args) throws Exception {
         pngPreservesPixels();
         transparentGif();
+        indexedTimeline();
         staticAndAnimatedWebp();
         webpBlendAndDisposal();
         webpRawAlpha();
@@ -38,6 +39,19 @@ public final class EmojiMediaTest {
         collectionIndexCompatibility();
         recursiveWatcher();
         System.out.println("Media tests passed: image format retention, PNG pixels, transparent GIF disposal/timing, static/animated WebP, WebP blend/disposal/raw alpha, decode limits, collection index compatibility, recursive watcher/debounce/config order.");
+    }
+
+    private static void indexedTimeline() {
+        var frames = new java.util.ArrayList<EmojiDecoder.Frame>();
+        for (int i = 0; i < 1000; i++) frames.add(new EmojiDecoder.Frame(new int[]{0}, 10 + i));
+        var decoded = new EmojiDecoder.Decoded(1, 1, frames, 2);
+        long elapsed = 0;
+        for (int loop = 0; loop < 2; loop++) for (int i = 0; i < frames.size(); i++) {
+            check(decoded.frameAt(elapsed) == i, "Indexed frame start");
+            elapsed += frames.get(i).durationMillis();
+            check(decoded.frameAt(elapsed - 1) == i, "Indexed frame end");
+        }
+        check(decoded.frameAt(elapsed) == 999 && decoded.frameAt(-10) == 0, "Finite loops and negative elapsed");
     }
 
     private static void collectionIndexCompatibility() {
@@ -134,7 +148,7 @@ public final class EmojiMediaTest {
             chunks.write(LOSSY_WEBP, 12, LOSSY_WEBP.length - 12);
             byte[] bytes = riff(chunks.toByteArray());
             EmojiDecoder.Decoded decoded = EmojiDecoder.decode(bytes);
-            for (int i = 0; i < alpha.length; i++) check(decoded.frames().getFirst().argb()[i] >>> 24 == alpha[i], "WebP raw alpha filter " + filter);
+            for (int i = 0; i < alpha.length; i++) check(decoded.frames().getFirst().argb(i) >>> 24 == alpha[i], "WebP raw alpha filter " + filter);
         }
     }
 
@@ -240,7 +254,7 @@ public final class EmojiMediaTest {
         out.write("WEBP".getBytes(StandardCharsets.US_ASCII)); out.write(chunks); return out.toByteArray();
     }
     private static void little(ByteArrayOutputStream out, int value, int size) { for (int i = 0; i < size; i++) out.write(value >>> (i * 8) & 255); }
-    private static int pixel(EmojiDecoder.Decoded image, int frame, int x, int y) { return image.frames().get(frame).argb()[y * image.width() + x]; }
+    private static int pixel(EmojiDecoder.Decoded image, int frame, int x, int y) { return image.frames().get(frame).argb(y * image.width() + x); }
     private static void check(boolean condition, String message) { if (!condition) throw new AssertionError(message); }
     private static void rejects(Checked action, String message) throws Exception {
         try { action.run(); } catch (IOException expected) { return; }

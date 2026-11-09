@@ -19,6 +19,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BooleanSupplier;
@@ -46,6 +50,11 @@ public final class EmojiPickerScreen extends Screen {
     private boolean draggingScrollbar;
     private PickerButton importButton;
     private PickerButton reloadButton;
+    private PickerButton manageButton;
+    private PickerButton deleteButton;
+    private PickerButton selectAllButton;
+    private boolean managing;
+    private final Set<UUID> marked = new LinkedHashSet<>();
 
     public EmojiPickerScreen(Screen parent, Consumer<String> callback) {
         super(Component.literal("表情库"));
@@ -63,6 +72,11 @@ public final class EmojiPickerScreen extends Screen {
         int left = layout.x() + 10;
         int right = layout.x() + layout.width() - 10;
         int top = layout.y();
+        manageButton = button(right - 116, top + 8, 20, "管理", PickerButton.MANAGE, () -> managing, () -> {
+            managing = !managing;
+            marked.clear();
+            rebuildWidgets();
+        });
         importButton = button(right - 92, top + 8, 20, "导入图片", PickerButton.IMPORT, () -> false, this::chooseFiles);
         button(right - 68, top + 8, 20, "设置", PickerButton.SETTINGS, () -> false,
                 () -> Minecraft.getInstance().setScreen(new EmojiSettingsScreen(this)));
@@ -80,8 +94,20 @@ public final class EmojiPickerScreen extends Screen {
             button(left + value.ordinal() * tabWidth, top + 60, tabWidth, value.label, PickerButton.TEXT,
                     () -> category == value, () -> { category = value; scroll = 0; selected = -1; filter(); });
         }
-        button(right - 78, top + 60, 38, "行内", PickerButton.TEXT, () -> !sticker, () -> sticker = false);
-        button(right - 38, top + 60, 38, "大图", PickerButton.TEXT, () -> sticker, () -> sticker = true);
+        deleteButton = null;
+        selectAllButton = null;
+        if (managing) {
+            selectAllButton = button(right - 78, top + 60, 54, "全选", PickerButton.TEXT, () -> false, () -> {
+                if (!visible.isEmpty() && visible.stream().allMatch(a -> marked.contains(a.id())))
+                    visible.forEach(a -> marked.remove(a.id()));
+                else visible.forEach(a -> marked.add(a.id()));
+                updateBusyButtons();
+            });
+            deleteButton = button(right - 20, top + 60, 20, "删除所选", PickerButton.DELETE, () -> false, this::confirmDelete);
+        } else {
+            button(right - 78, top + 60, 38, "行内", PickerButton.TEXT, () -> !sticker, () -> sticker = false);
+            button(right - 38, top + 60, 38, "大图", PickerButton.TEXT, () -> sticker, () -> sticker = true);
+        }
         filter();
         updateBusyButtons();
         setInitialFocus(search);
@@ -99,8 +125,9 @@ public final class EmojiPickerScreen extends Screen {
         String query = search == null ? "" : search.getValue().strip().toLowerCase(Locale.ROOT);
         List<EmojiAsset> source = assets;
         if (category == Category.RECENT) {
-            source = preferences.recent().stream().map(id -> assets.stream()
-                    .filter(asset -> asset.id().equals(id)).findFirst().orElse(null)).filter(a -> a != null).toList();
+            Map<UUID, EmojiAsset> byId = new HashMap<>();
+            assets.forEach(asset -> byId.put(asset.id(), asset));
+            source = preferences.recent().stream().map(byId::get).filter(a -> a != null).toList();
         }
         visible = source.stream()
                 .filter(asset -> category != Category.FAVORITES || preferences.isFavorite(asset.id()))
@@ -115,7 +142,9 @@ public final class EmojiPickerScreen extends Screen {
         if (!assets.equals(current)) {
             preferences = PickerPreferences.load();
             assets = List.copyOf(current);
+            marked.retainAll(assets.stream().map(EmojiAsset::id).toList());
             filter();
+            updateBusyButtons();
         }
     }
 
@@ -143,9 +172,9 @@ public final class EmojiPickerScreen extends Screen {
             int y = cellY(i);
             int size = layout.cell() - 4;
             boolean focused = gridFocused && selected == i;
-            if (hovered == i || focused) {
+            if (hovered == i || focused || marked.contains(asset.id())) {
                 GlassStyle.rounded(graphics, x, y, size, size, 5, GlassStyle.alpha(theme.hover, 200));
-                if (focused) graphics.renderOutline(x, y, size, size, theme.accent);
+                if (focused || marked.contains(asset.id())) graphics.renderOutline(x, y, size, size, theme.accent);
             }
             int box = Math.max(8, size - 19);
             double scale = Math.min((double) box / asset.width(), (double) box / asset.height());
@@ -155,7 +184,11 @@ public final class EmojiPickerScreen extends Screen {
                     y + 3 + (box - imageHeight) / 2, imageWidth, imageHeight, 255);
             String label = font.plainSubstrByWidth(asset.name(), size - 8);
             graphics.drawString(font, label, x + (size - font.width(label)) / 2, y + size - 12, theme.muted, false);
-            if (hovered == i || preferences.isFavorite(asset.id())) {
+            if (managing) {
+                int color = marked.contains(asset.id()) ? theme.accent : theme.muted;
+                graphics.renderOutline(x + size - 13, y + 3, 10, 10, color);
+                if (marked.contains(asset.id())) graphics.fill(x + size - 11, y + 5, x + size - 5, y + 11, color);
+            } else if (hovered == i || preferences.isFavorite(asset.id())) {
                 int color = preferences.isFavorite(asset.id()) ? 0xFFFFD57B : 0xFFB6C5BF;
                 GlassStyle.rounded(graphics, x + size - 15, y + 1, 14, 14, 3, GlassStyle.alpha(theme.surface, 220));
                 drawStar(graphics, x + size - 13, y + 4, color);
@@ -171,13 +204,14 @@ public final class EmojiPickerScreen extends Screen {
         graphics.disableScissor();
         drawScrollbar(graphics);
         int problems = EmojiLibrary.problems().size();
-        String footer = status.isBlank() ? visible.size() + " 个表情" + (problems == 0 ? "" : " · " + problems + " 个无法载入") : status;
+        String footer = status.isBlank() ? managing ? "已选 " + marked.size() + " 个 · " + visible.size() + " 个表情"
+                : visible.size() + " 个表情" + (problems == 0 ? "" : " · " + problems + " 个无法载入") : status;
         graphics.drawString(font, font.plainSubstrByWidth(footer, layout.width() - 22),
                 layout.x() + 11, layout.y() + layout.height() - 14, error || problems > 0 ? 0xFFFFA7A7 : theme.muted, false);
         super.render(graphics, mouseX, mouseY, delta);
         if (hovered >= 0) {
             EmojiAsset asset = visible.get(hovered);
-            boolean star = isStar(mouseX, mouseY, hovered);
+            boolean star = !managing && isStar(mouseX, mouseY, hovered);
             String failure = EmojiTextures.failure(asset.id());
             String tooltip = star ? (preferences.isFavorite(asset.id()) ? "取消收藏" : "收藏") : failure != null ? failure
                     : asset.name() + " · " + asset.width() + " × " + asset.height() + (asset.animated() ? " · 动图" : "");
@@ -268,10 +302,12 @@ public final class EmojiPickerScreen extends Screen {
         }
         int index = indexAt(x, y);
         if (index >= 0 && (button == 0 || button == 1)) {
+            if (busy) return true;
             selected = index;
             gridFocused = true;
             setFocused(null);
-            if (button == 1 || isStar(x, y, index)) toggleFavorite(visible.get(index).id());
+            if (managing) toggleMarked(visible.get(index).id());
+            else if (button == 1 || isStar(x, y, index)) toggleFavorite(visible.get(index).id());
             else choose(index);
             return true;
         }
@@ -309,7 +345,11 @@ public final class EmojiPickerScreen extends Screen {
 
     @Override
     public boolean keyPressed(int key, int scan, int modifiers) {
+        if (key == GLFW.GLFW_KEY_ESCAPE && managing && !busy) {
+            managing = false; marked.clear(); rebuildWidgets(); return true;
+        }
         if (key == GLFW.GLFW_KEY_ESCAPE) { onClose(); return true; }
+        if (managing && key == GLFW.GLFW_KEY_DELETE) { confirmDelete(); return true; }
         if (hasControlDown() && key == GLFW.GLFW_KEY_F) { gridFocused = false; setFocused(search); return true; }
         if ((search.isFocused() && key == GLFW.GLFW_KEY_DOWN) || gridFocused) {
             if (visible.isEmpty()) {
@@ -318,7 +358,13 @@ public final class EmojiPickerScreen extends Screen {
                 return super.keyPressed(key, scan, modifiers);
             }
             if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) { choose(Math.max(0, selected)); return true; }
-            if (key == GLFW.GLFW_KEY_SPACE && gridFocused) { toggleFavorite(visible.get(Math.max(0, selected)).id()); return true; }
+            if (key == GLFW.GLFW_KEY_SPACE && gridFocused) {
+                if (!busy) {
+                    UUID id = visible.get(Math.max(0, selected)).id();
+                    if (managing) toggleMarked(id); else toggleFavorite(id);
+                }
+                return true;
+            }
             int move = switch (key) {
                 case GLFW.GLFW_KEY_LEFT -> -1;
                 case GLFW.GLFW_KEY_RIGHT -> 1;
@@ -357,8 +403,9 @@ public final class EmojiPickerScreen extends Screen {
     }
 
     private void choose(int index) {
-        if (index < 0 || index >= visible.size()) return;
+        if (busy || index < 0 || index >= visible.size()) return;
         EmojiAsset asset = visible.get(index);
+        if (managing) { toggleMarked(asset.id()); return; }
         preferences = PickerPreferences.load();
         preferences.use(asset.id());
         savePreferences();
@@ -429,6 +476,47 @@ public final class EmojiPickerScreen extends Screen {
     private void updateBusyButtons() {
         if (importButton != null) importButton.active = !busy;
         if (reloadButton != null) reloadButton.active = !busy;
+        if (manageButton != null) manageButton.active = !busy;
+        if (deleteButton != null) deleteButton.active = !busy && !marked.isEmpty();
+        if (selectAllButton != null) selectAllButton.active = !busy && !visible.isEmpty();
+    }
+
+    private void toggleMarked(UUID id) {
+        if (!marked.remove(id)) marked.add(id);
+        status = "";
+        updateBusyButtons();
+    }
+
+    private void confirmDelete() {
+        if (busy || marked.isEmpty()) return;
+        Set<UUID> ids = Set.copyOf(marked);
+        Minecraft.getInstance().setScreen(new EmojiDeleteScreen(this, ids.size(), () -> delete(ids)));
+    }
+
+    private void delete(Set<UUID> ids) {
+        begin("正在删除…");
+        EmojiLibrary.delete(ids).whenComplete((result, exception) -> Minecraft.getInstance().execute(() -> {
+            if (exception == null) {
+                preferences = PickerPreferences.load();
+                preferences.remove(result.deleted());
+                marked.removeAll(result.deleted());
+                assets = List.copyOf(EmojiLibrary.local());
+                filter();
+                if (result.failures().isEmpty()) status = "已删除 " + result.deleted().size() + " 个表情";
+                else {
+                    error = true;
+                    status = "已删除 " + result.deleted().size() + " 个；" + result.failures().entrySet().stream()
+                            .map(e -> e.getKey() + "：" + e.getValue()).reduce((a, b) -> a + "；" + b).orElse("");
+                }
+                try { preferences.save(); }
+                catch (Exception failure) {
+                    String deletionStatus = status;
+                    failure("无法保存收藏与最近使用", failure);
+                    status = deletionStatus + "；" + status;
+                }
+            } else failure("删除失败", exception);
+            finish();
+        }));
     }
 
     private void failure(String message, Throwable exception) {
