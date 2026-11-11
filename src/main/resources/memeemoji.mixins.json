@@ -6,6 +6,7 @@
   "client": [
     "NativeImageAccessor",
     "ChatScreenMixin",
+    "ModernUIShortcodeMixin",
     "ChatComponentMixin",
     "TalkBubblesRenderMixin"
   ],

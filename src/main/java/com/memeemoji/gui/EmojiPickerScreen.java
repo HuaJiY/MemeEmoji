@@ -52,6 +52,7 @@ public final class EmojiPickerScreen extends Screen {
     private PickerButton reloadButton;
     private PickerButton manageButton;
     private PickerButton deleteButton;
+    private PickerButton renameButton;
     private PickerButton selectAllButton;
     private boolean managing;
     private final Set<UUID> marked = new LinkedHashSet<>();
@@ -95,8 +96,10 @@ public final class EmojiPickerScreen extends Screen {
                     () -> category == value, () -> { category = value; scroll = 0; selected = -1; filter(); });
         }
         deleteButton = null;
+        renameButton = null;
         selectAllButton = null;
         if (managing) {
+            renameButton = button(right - 102, top + 60, 20, "修改名称", PickerButton.RENAME, () -> false, this::rename);
             selectAllButton = button(right - 78, top + 60, 54, "全选", PickerButton.TEXT, () -> false, () -> {
                 if (!visible.isEmpty() && visible.stream().allMatch(a -> marked.contains(a.id())))
                     visible.forEach(a -> marked.remove(a.id()));
@@ -350,6 +353,7 @@ public final class EmojiPickerScreen extends Screen {
         }
         if (key == GLFW.GLFW_KEY_ESCAPE) { onClose(); return true; }
         if (managing && key == GLFW.GLFW_KEY_DELETE) { confirmDelete(); return true; }
+        if (managing && key == GLFW.GLFW_KEY_F2) { rename(); return true; }
         if (hasControlDown() && key == GLFW.GLFW_KEY_F) { gridFocused = false; setFocused(search); return true; }
         if ((search.isFocused() && key == GLFW.GLFW_KEY_DOWN) || gridFocused) {
             if (visible.isEmpty()) {
@@ -478,6 +482,7 @@ public final class EmojiPickerScreen extends Screen {
         if (reloadButton != null) reloadButton.active = !busy;
         if (manageButton != null) manageButton.active = !busy;
         if (deleteButton != null) deleteButton.active = !busy && !marked.isEmpty();
+        if (renameButton != null) renameButton.active = !busy && marked.size() == 1;
         if (selectAllButton != null) selectAllButton.active = !busy && !visible.isEmpty();
     }
 
@@ -485,6 +490,19 @@ public final class EmojiPickerScreen extends Screen {
         if (!marked.remove(id)) marked.add(id);
         status = "";
         updateBusyButtons();
+    }
+
+    private void rename() {
+        if (busy || marked.size() != 1) return;
+        EmojiAsset asset = assets.stream().filter(a -> marked.contains(a.id())).findFirst().orElse(null);
+        if (asset != null) Minecraft.getInstance().setScreen(new EmojiRenameScreen(this, asset, saved -> {
+            assets = List.copyOf(EmojiLibrary.local());
+            if (search != null) search.setValue("");
+            filter();
+            error = false;
+            status = "已改名为 " + saved.name();
+            updateBusyButtons();
+        }));
     }
 
     private void confirmDelete() {

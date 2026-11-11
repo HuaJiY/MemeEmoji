@@ -1,5 +1,6 @@
 package com.memeemoji.media;
 
+import com.memeemoji.EmojiNames;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
@@ -37,6 +38,7 @@ public final class EmojiMediaTest {
         webpRawAlpha();
         rejectOversizedImages();
         collectionIndexCompatibility();
+        defaultNames();
         recursiveWatcher();
         System.out.println("Media tests passed: image format retention, PNG pixels, transparent GIF disposal/timing, static/animated WebP, WebP blend/disposal/raw alpha, decode limits, collection index compatibility, recursive watcher/debounce/config order.");
     }
@@ -52,6 +54,17 @@ public final class EmojiMediaTest {
             check(decoded.frameAt(elapsed - 1) == i, "Indexed frame end");
         }
         check(decoded.frameAt(elapsed) == 999 && decoded.frameAt(-10) == 0, "Finite loops and negative elapsed");
+    }
+
+    private static void defaultNames() {
+        check(EmojiNames.defaultName("开心", 32).equals("开心"), "Keep usable source names");
+        check(EmojiNames.defaultName("my meme:今天", 32).equals("my_meme_今天"), "Clean spaces and punctuation");
+        check(EmojiNames.defaultName("\u00a0\t", 32).equals("表情"), "Blank names get a default");
+        check(EmojiNames.defaultName("CON", 32).equals("_CON"), "Windows reserved filenames");
+        check(EmojiNames.defaultName("abcdef", 3).equals("abc"), "Truncate long names");
+        check(EmojiNames.defaultName("a\ud83d\ude00", 2).equals("a"), "Do not split surrogate pairs");
+        check(EmojiNames.defaultName("\ud83d\ude00", 1).equals("表"), "Tiny limit still gets a usable name");
+        check(!EmojiNames.isUsable("a\u00a0b", 32) && !EmojiNames.isUsable("a\u0000b", 32), "Reject invisible separators and controls");
     }
 
     private static void collectionIndexCompatibility() {

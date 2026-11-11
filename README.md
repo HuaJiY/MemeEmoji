@@ -13,7 +13,7 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 | 行内表情与独立大图 | 小表情跟着文字走，大图单独占行；纯文字保持原版行高 |
 | 动图播放 | GIF、动态 WebP 在聊天、表情面板和图片预览中播放 |
 | 个人表情库 | 搜索、收藏、最近使用，支持文件选择导入与拖拽导入 |
-| 管理与删除 | 多选、跨搜索选择、批量永久删除，已发送图片保留显示 |
+| 管理与删除 | 修改名称、多选、跨搜索选择、批量永久删除，已发送图片保留显示 |
 | 收藏朋友的表情 | 右键聊天图片快速收藏，或在大图预览中收藏；保留原文件和动画 |
 | 毛玻璃界面 | 表情库、预览和设置统一半透明设计，背景真实模糊，支持深浅主题和自定义颜色 |
 | 游戏内设置 | 大小预设、尺寸和外观即时预览，点击保存生效，取消不改变原设置 |
@@ -44,13 +44,17 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 
 表情库中的星标或右键用于切换收藏。点击聊天里的图片可放大查看，按 `ESC` 返回时保留聊天草稿和光标位置。
 
-也可以把图片放进 `config/memeemoji/emoji/`，用 `:文件名:` 发送。例如文件 `开心.gif` 对应：
+也可以把图片放进 `config/memeemoji/emoji/`，初始名称为不含扩展名的文件名，用 `:名称:` 发送。例如文件 `开心.gif` 对应：
 
 ```text
 今天心情不错 :开心:
 ```
 
-支持 **PNG、JPG、JPEG、GIF、WebP、BMP**。表情名称取不含扩展名的文件名，不区分大小写，不能包含空格或冒号。同名导入会自动添加后缀；手动放入的重名文件会在面板底部提示。
+支持 **PNG、JPG、JPEG、GIF、WebP、BMP**。通过选择文件或拖拽导入时，自动用文件名生成默认名称：空格和无效字符替换为下划线、超长截短，没有可用名称时使用“表情”，重名自动编号。手动放入文件夹的图片仍需使用有效且不重复的文件名。
+
+名称不区分大小写，不能包含空格或冒号，长度由 `maxNameLength` 控制。在表情库点击“管理”，只勾选一张图片，再点击铅笔按钮“修改名称”；填写后保存，取消不生效。名称用于面板显示、搜索和 `:名称:` 发送，改名不改变原文件或图片 UUID，收藏、最近使用和已发送图片不受影响。
+
+与 ModernUI 内置 emoji 名称相同时，优先使用个人库的自定义表情；其他内置 emoji 仍正常转换。
 
 表情文件与配置修改后约 500ms 自动刷新，无需重启游戏。也可以点击面板刷新按钮，或执行 `/memeemoji reload`。
 
@@ -131,7 +135,7 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 | 路径 | 内容 |
 |---|---|
 | `config/memeemoji/emoji/` | 自己的原始图片，可使用子目录 |
-| `config/memeemoji/library-index.json` | 文件与 UUID 的索引、已收藏图片的副本关联 |
+| `config/memeemoji/library-index.json` | 文件与 UUID 的索引、本地自定义名称、已收藏图片的副本关联 |
 | `config/memeemoji/library-ui.json` | 收藏和最近使用 |
 | `config/memeemoji/received/` | 接收图片及删除前保留的聊天缓存，不加入个人表情库 |
 | `<世界目录>/memeemoji/assets/` | 此世界的服务器图片缓存 |
@@ -159,6 +163,8 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 完整双客户端检查后，可保留专用服务器缓存，用 `./gradlew.bat runQaSender -PqaFocus=settings` 单独检查设置草稿、保存、取消、深浅主题、真实模糊、小窗口滚动、排队下载及离线缓存收藏。`./gradlew.bat runQaVanilla` 在不安装 ModernUI 的独立目录执行同一检查。服务器需保持运行，结果分别为 `sender-focus-result.txt` 和 `vanilla-focus-result.txt`。
 
 删除流程用 `./gradlew.bat runQaSender -PqaFocus=maintenance` 和 `./gradlew.bat runQaVanilla -PqaFocus=maintenance` 检查：实际点击管理、取消、单张与批量永久删除、偏好清理、重载、历史图片缓存和重新收藏。服务器需保持运行，结果为 `sender-maintenance-result.txt`、`vanilla-maintenance-result.txt`，截图使用 `modernui-` / `vanilla-` 前缀。
+
+名称流程用 `./gradlew.bat runQaSender -PqaFocus=naming` 和 `./gradlew.bat runQaVanilla -PqaFocus=naming` 检查：拖拽导入自动命名、界面改名与取消、无效和重名提示、冷读索引、UUID 与原文件保留、同名 emoji 优先和改名后发送。使用新的隔离 QA 目录及运行中的 QA 服务器，结果为 `sender-naming-result.txt`、`vanilla-naming-result.txt`。
 
 ## 实现与参考
 

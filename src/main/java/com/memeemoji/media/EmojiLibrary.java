@@ -3,6 +3,7 @@ package com.memeemoji.media;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.memeemoji.MemeEmoji;
+import com.memeemoji.EmojiNames;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,7 @@ public final class EmojiLibrary {
     public static EmojiAsset personalCopy(UUID id) {
         Snapshot current = snapshot;
         Source source = current.ids.get(current.collected.getOrDefault(id, id));
-        return source == null ? null : source.asset;
+        return source == null ? null : source.displayAsset();
     }
 
     public static CompletableFuture<EmojiAsset> collect(UUID id) {
@@ -78,12 +79,7 @@ public final class EmojiLibrary {
                 EmojiDecoder.inspect(bytes);
                 String extension = EmojiDecoder.extension(bytes);
                 if (!EXTENSIONS.contains(extension)) throw new IOException("不支持的图片格式");
-                String name = asset.name().replaceAll("[\\s\\p{Cntrl}<>:\"/\\\\|?*.]", "_");
-                if (name.isBlank()) name = "表情";
-                if (name.matches("(?i)CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]")) name = "_" + name;
-                name = truncate(name, MemeEmoji.config().maxNameLength);
-                if (name.isBlank()) name = truncate("表情", MemeEmoji.config().maxNameLength);
-                if (name.isBlank()) throw new IOException("名称长度上限过小，无法保存图片");
+                String name = EmojiNames.defaultName(asset.name(), MemeEmoji.config().maxNameLength);
                 Set<String> reserved = new HashSet<>(snapshot.names.keySet());
                 Path target = availableName(name + "." + extension, reserved);
                 writeAtomic(target, bytes);
@@ -101,6 +97,29 @@ public final class EmojiLibrary {
     public static void initialize() { reload(); }
 
     public record DeleteResult(Set<UUID> deleted, Map<String, String> failures) {}
+
+    public static CompletableFuture<EmojiAsset> rename(UUID id, String name) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                validateName(name);
+                Snapshot current = snapshot;
+                Source source = current.ids.get(id);
+                if (source == null) throw new IOException("表情已不在个人库中");
+                read(id);
+                EmojiAsset duplicate = current.names.get(EmojiNames.key(name));
+                if (duplicate != null && !duplicate.id().equals(id)) throw new IOException("名称已被其他表情使用");
+                if (source.displayAsset().name().equals(name)) return source.displayAsset();
+                Map<String, Source> paths = new LinkedHashMap<>(current.paths);
+                Source renamed = new Source(source.path, source.size, source.modified, source.asset, name);
+                paths.put(source.path, renamed);
+                // Shared metadata stays immutable for a UUID; names belong only to the personal index.
+                writeAtomic(directory().resolve("library-index.json"),
+                        GSON.toJson(new Index(1, new ArrayList<>(paths.values()), current.collected)).getBytes(StandardCharsets.UTF_8));
+                publish(paths, current.collected);
+                return renamed.displayAsset();
+            } catch (IOException e) { throw new CompletionException(e); }
+        }, IO);
+    }
 
     public static CompletableFuture<DeleteResult> delete(Set<UUID> ids) {
         Set<UUID> requested = Set.copyOf(ids);
@@ -120,7 +139,7 @@ public final class EmojiLibrary {
                     Files.delete(personal().resolve(source.path));
                     deleted.add(id);
                 } catch (IOException e) {
-                    failures.put(source.asset.name(), e.getMessage());
+                    failures.put(source.displayAsset().name(), e.getMessage());
                 }
             }
             try { scan(); }
@@ -143,7 +162,7 @@ public final class EmojiLibrary {
                 Files.createDirectories(personal());
                 List<Path> copied = new ArrayList<>();
                 List<String> rejected = new ArrayList<>();
-                Set<String> reserved = new HashSet<>();
+                Set<String> reserved = new HashSet<>(snapshot.names.keySet());
                 try (var stream = Files.walk(personal())) {
                     stream.filter(Files::isRegularFile).filter(EmojiLibrary::isImage)
                             .forEach(path -> reserved.add(baseName(path.getFileName().toString()).toLowerCase(Locale.ROOT)));
@@ -151,10 +170,11 @@ public final class EmojiLibrary {
                 for (Path input : inputs) {
                     try {
                         if (!isImage(input)) throw new IOException("不支持的图片格式");
-                        validateName(baseName(input.getFileName().toString()));
+                        String filename = input.getFileName().toString();
+                        String name = EmojiNames.defaultName(baseName(filename), MemeEmoji.config().maxNameLength);
                         byte[] bytes = readLimited(input);
                         EmojiDecoder.inspect(bytes);
-                        Path target = availableName(input.getFileName().toString(), reserved);
+                        Path target = availableName(name + filename.substring(filename.lastIndexOf('.')), reserved);
                         Files.write(target, bytes);
                         reserved.add(baseName(target.getFileName().toString()).toLowerCase(Locale.ROOT));
                         copied.add(target);
@@ -235,26 +255,28 @@ public final class EmojiLibrary {
                     .sorted(Comparator.comparing(EmojiLibrary::relative)).toList()) {
                 String relative = relative(path);
                 try {
-                    String name = baseName(path.getFileName().toString());
-                    validateName(name);
-                    String key = name.toLowerCase(Locale.ROOT);
-                    if (names.containsKey(key)) throw new IOException("名称重复，请重命名此图片");
                     long size = Files.size(path), modified = Files.getLastModifiedTime(path).toMillis();
                     Source source = old.get(relative);
                     if (source == null || source.size != size || source.modified != modified) {
+                        String name = source == null ? baseName(path.getFileName().toString()) : source.displayAsset().name();
+                        validateName(name);
                         EmojiDecoder.Info info = EmojiDecoder.inspect(readLimited(path));
-                        source = new Source(relative, size, modified, new EmojiAsset(UUID.randomUUID(), name, info.width(), info.height(), info.animated()));
+                        source = new Source(relative, size, modified, new EmojiAsset(UUID.randomUUID(), name, info.width(), info.height(), info.animated()), null);
                     }
+                    String name = source.displayAsset().name();
+                    validateName(name);
+                    String key = EmojiNames.key(name);
+                    if (names.containsKey(key)) throw new IOException("名称重复，请在表情库中改名或重命名此图片");
                     ids.put(source.asset.id(), source);
                     paths.put(relative, source);
-                    names.put(key, source.asset);
+                    names.put(key, source.displayAsset());
                 } catch (IOException | RuntimeException e) {
                     errors.put(relative, e.getMessage() == null ? "图片读取失败" : e.getMessage());
                     LOGGER.warn("无法载入表情 {}：{}", relative, e.getMessage());
                 }
             }
         }
-        List<EmojiAsset> local = ids.values().stream().map(Source::asset).toList();
+        List<EmojiAsset> local = ids.values().stream().map(Source::displayAsset).toList();
         collected.values().removeIf(id -> !ids.containsKey(id));
         snapshot = new Snapshot(local, Map.copyOf(ids), Map.copyOf(names), Map.copyOf(paths), Map.copyOf(collected));
         problems = Map.copyOf(errors);
@@ -283,16 +305,21 @@ public final class EmojiLibrary {
             String suffix = "_" + i;
             if (suffix.length() >= limit) suffix = Integer.toString(i, 36);
             if (suffix.length() > limit) throw new IOException("名称长度上限过小，无法为同名图片分配名称");
-            target = personal().resolve(truncate(stem, limit - suffix.length()) + suffix + extension);
+            target = personal().resolve(EmojiNames.truncate(stem, limit - suffix.length()) + suffix + extension);
         }
         validateName(baseName(target.getFileName().toString()));
         return target;
     }
 
-    private static String truncate(String name, int limit) {
-        int end = Math.min(name.length(), limit);
-        if (end > 0 && Character.isHighSurrogate(name.charAt(end - 1))) end--;
-        return name.substring(0, end);
+    private static void publish(Map<String, Source> paths, Map<UUID, UUID> collected) {
+        Map<UUID, Source> ids = new LinkedHashMap<>();
+        Map<String, EmojiAsset> names = new LinkedHashMap<>();
+        paths.values().forEach(source -> {
+            ids.put(source.asset.id(), source);
+            names.put(EmojiNames.key(source.displayAsset().name()), source.displayAsset());
+        });
+        snapshot = new Snapshot(paths.values().stream().sorted(Comparator.comparing(Source::path)).map(Source::displayAsset).toList(),
+                Map.copyOf(ids), Map.copyOf(names), Map.copyOf(paths), collected);
     }
 
     private static void writeIndex() throws IOException {
@@ -307,8 +334,10 @@ public final class EmojiLibrary {
 
     private static void validateName(String name) throws IOException {
         int limit = MemeEmoji.config().maxNameLength;
-        if (name.isBlank() || name.length() > limit || name.indexOf(':') >= 0 || name.chars().anyMatch(Character::isWhitespace))
+        if (!EmojiNames.isUsable(name, limit))
             throw new IOException("名称不能含空格、冒号，且须在 " + limit + " 字以内");
+        if (com.memeemoji.EmojiTokens.REFERENCE.matcher(":" + name + ":").matches())
+            throw new IOException("此名称是内部图片标记，请使用其他名称");
     }
 
     private static byte[] readLimited(Path path) throws IOException {
@@ -338,7 +367,11 @@ public final class EmojiLibrary {
 
     private static String baseName(String name) { return name.substring(0, name.lastIndexOf('.')); }
     private static String relative(Path path) { return personal().relativize(path).toString().replace('\\', '/'); }
-    private record Source(String path, long size, long modified, EmojiAsset asset) {}
+    private record Source(String path, long size, long modified, EmojiAsset asset, String name) {
+        EmojiAsset displayAsset() {
+            return name == null ? asset : new EmojiAsset(asset.id(), name, asset.width(), asset.height(), asset.animated());
+        }
+    }
     private record Index(int version, List<Source> sources, Map<UUID, UUID> collected) {}
     private record Snapshot(List<EmojiAsset> local, Map<UUID, Source> ids, Map<String, EmojiAsset> names,
                             Map<String, Source> paths, Map<UUID, UUID> collected) {}

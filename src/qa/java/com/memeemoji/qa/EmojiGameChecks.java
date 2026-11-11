@@ -55,6 +55,8 @@ public final class EmojiGameChecks implements ClientModInitializer {
     private SettingsGameChecks settings;
     private CollectionGameChecks collection;
     private MaintenanceGameChecks maintenance;
+    private NamingGameChecks naming;
+    private final boolean namingOnly = System.getProperty("memeemoji.qa.focus", "full").equals("naming");
     private final boolean maintenanceOnly = System.getProperty("memeemoji.qa.focus", "full").equals("maintenance");
     private final boolean settingsOnly = System.getProperty("memeemoji.qa.focus", "full").equals("settings");
 
@@ -64,7 +66,7 @@ public final class EmojiGameChecks implements ClientModInitializer {
             Files.createDirectories(evidence);
             if (role.equals("sender") || role.equals("bubbles") || role.equals("vanilla")) fixtures();
         } catch (Exception e) { throw new RuntimeException(e); }
-        if (role.equals("bubbles") && !settingsOnly && !maintenanceOnly) {
+        if (role.equals("bubbles") && !settingsOnly && !maintenanceOnly && !namingOnly) {
             new TalkBubblesGameChecks(evidence).start();
             return;
         }
@@ -88,6 +90,10 @@ public final class EmojiGameChecks implements ClientModInitializer {
             if (maintenance.tick(mc)) finish(mc, "PASS: management UI, cancel, permanent single/batch deletion, preferences, cached history and recollection");
             return;
         }
+        if (naming != null) {
+            if (naming.tick(mc)) finish(mc, "PASS: automatic import names, UI rename/cancel/validation, persistence, UUID/metadata retention, custom shortcode priority and resend");
+            return;
+        }
         if (mc.player == null || mc.getConnection() == null) return;
         connected++;
         if (connected == 1) {
@@ -99,6 +105,13 @@ public final class EmojiGameChecks implements ClientModInitializer {
             mc.resizeDisplay();
         }
         observeAnimation();
+        if (namingOnly) {
+            if (connected > 80 && !EmojiLibrary.local().isEmpty()) {
+                naming = new NamingGameChecks(root, evidence);
+                naming.start(mc);
+            }
+            return;
+        }
         if (maintenanceOnly) {
             if (connected > 80 && !EmojiLibrary.local().isEmpty()) {
                 maintenance = new MaintenanceGameChecks(evidence);
@@ -255,7 +268,7 @@ public final class EmojiGameChecks implements ClientModInitializer {
 
     private void finish(Minecraft mc, String result) {
         finished = true;
-        try { Files.writeString(evidence.resolve(role + (maintenanceOnly ? "-maintenance" : settingsOnly ? "-focus" : "") + "-result.txt"), result); }
+        try { Files.writeString(evidence.resolve(role + (namingOnly ? "-naming" : maintenanceOnly ? "-maintenance" : settingsOnly ? "-focus" : "") + "-result.txt"), result); }
         catch (Exception e) { e.printStackTrace(); }
         System.out.println("MEMEEMOJI_QA " + role + " " + result);
         mc.stop();
@@ -268,7 +281,7 @@ public final class EmojiGameChecks implements ClientModInitializer {
         if (!Files.exists(dir.resolve("未发送.png"))) ImageIO.write(picture(200, 200, 7), "png", dir.resolve("未发送.png").toFile());
         if (!Files.exists(dir.resolve("动图.gif"))) Files.write(dir.resolve("动图.gif"), gif());
         if (!Files.exists(dir.resolve("WebP动画.webp"))) Files.write(dir.resolve("WebP动画.webp"), Base64.getDecoder().decode("UklGRrQAAABXRUJQVlA4WAoAAAACAAAAAwAAAwAAQU5JTQYAAAAAAAAAAABBTk1GKAAAAAAAAAAAAAMAAAMAAFAAAANWUDhMDwAAAC8DwAAABxD9j/4HIqL/AQBBTk1GKAAAAAEAAAEAAAAAAAAAAHgAAABWUDhMDwAAAC8AAAAAB9D/iP4HIqL/AQBBTk1GKAAAAAAAAAAAAAMAAAMAAMgAAABWUDhMDwAAAC8DwAAABxDR//4HIqL/AQA="));
-        if (role.equals("sender") && !settingsOnly && !maintenanceOnly && !Files.exists(dir.resolve("表情大图.png"))) {
+        if (role.equals("sender") && !settingsOnly && !maintenanceOnly && !namingOnly && !Files.exists(dir.resolve("表情大图.png"))) {
             BufferedImage large = new BufferedImage(1536, 1024, BufferedImage.TYPE_INT_ARGB);
             java.util.Random random = new java.util.Random(73);
             int[] pixels = new int[1536 * 1024];
