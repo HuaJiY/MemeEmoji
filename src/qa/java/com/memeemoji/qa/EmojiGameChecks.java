@@ -7,8 +7,7 @@ import com.memeemoji.gui.EmojiPreviewScreen;
 import com.memeemoji.media.EmojiAsset;
 import com.memeemoji.media.EmojiLibrary;
 import com.memeemoji.media.EmojiTextures;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import com.memeemoji.platform.ClientPlatform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.components.EditBox;
@@ -37,8 +36,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-/** Runs only in the qa Loom source set, never in the distributed mod. */
-public final class EmojiGameChecks implements ClientModInitializer {
+/** Runs only in the isolated QA source set, never in the distributed mod. */
+public final class EmojiGameChecks {
     private final String role = System.getProperty("memeemoji.qa.role", "receiver");
     private final Path root = Path.of(System.getProperty("memeemoji.qa.root"));
     private final Path evidence = root.resolve("build/qa-evidence");
@@ -60,17 +59,16 @@ public final class EmojiGameChecks implements ClientModInitializer {
     private final boolean maintenanceOnly = System.getProperty("memeemoji.qa.focus", "full").equals("maintenance");
     private final boolean settingsOnly = System.getProperty("memeemoji.qa.focus", "full").equals("settings");
 
-    @Override
-    public void onInitializeClient() {
+    void prepare() {
         try {
             Files.createDirectories(evidence);
             if (role.equals("sender") || role.equals("bubbles") || role.equals("vanilla")) fixtures();
         } catch (Exception e) { throw new RuntimeException(e); }
-        if (role.equals("bubbles") && !settingsOnly && !maintenanceOnly && !namingOnly) {
-            new TalkBubblesGameChecks(evidence).start();
-            return;
-        }
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+    }
+
+    public void start() {
+        prepare();
+        ClientPlatform.onTick(client -> {
             if (finished) return;
             try { tick(client); }
             catch (Throwable failure) {

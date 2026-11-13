@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="All-Rights-Reserved"
+
+[[mods]]
+modId="memeemoji"
+version="${version}"
+displayName="MemeEmoji"
+description='''Personal emoji library, image chat and animated GIF/WebP with on-demand server transfers.'''
+
+[[dependencies.memeemoji]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.266,21.2)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.memeemoji]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1]"
+ordering="NONE"
+side="BOTH"
+
+[[mixins]]
+config="memeemoji.mixins.json"

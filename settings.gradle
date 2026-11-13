@@ -9,8 +9,10 @@ pluginManagement {
             url = 'https://maven.aliyun.com/repository/public/'
         }
         gradlePluginPortal()
+        maven { url = 'https://maven.neoforged.net/releases' }
         mavenCentral()
     }
 }
 
 rootProject.name = 'MemeEmoji'
+include 'neoforge'

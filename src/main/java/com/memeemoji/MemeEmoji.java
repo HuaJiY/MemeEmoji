@@ -1,20 +1,18 @@
 package com.memeemoji;
 
-import com.memeemoji.net.EmojiNetwork;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
+import com.memeemoji.platform.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 
-public final class MemeEmoji implements ModInitializer {
+public final class MemeEmoji {
     public static final String MOD_ID = "memeemoji";
     public static final Logger LOGGER = LoggerFactory.getLogger("MemeEmoji");
     private static volatile MemeEmojiConfig config;
 
     public static Path configDir() {
-        return FabricLoader.getInstance().getConfigDir().resolve(MOD_ID);
+        return Platform.configDir().resolve(MOD_ID);
     }
 
     public static Path emojiDir() {
@@ -50,10 +48,7 @@ public final class MemeEmoji implements ModInitializer {
         return current;
     }
 
-    @Override
-    public void onInitialize() {
+    public static void init() {
         config();
-        EmojiNetwork.initCommon();
-        EmojiNetwork.initServer();
     }
 }

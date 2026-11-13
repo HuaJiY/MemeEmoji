@@ -1,0 +1,7 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="All-Rights-Reserved"
+[[mods]]
+modId="memeemoji_qa"
+version="1.0.0"
+displayName="MemeEmoji Development Checks"

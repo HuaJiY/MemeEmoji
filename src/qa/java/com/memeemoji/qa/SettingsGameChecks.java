@@ -21,7 +21,7 @@ import com.memeemoji.gui.EmojiCollection;
 import com.memeemoji.media.EmojiAsset;
 import com.memeemoji.media.EmojiLibrary;
 import com.memeemoji.net.EmojiNetworkClient;
-import net.fabricmc.loader.api.FabricLoader;
+import com.memeemoji.platform.Platform;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -34,7 +34,7 @@ final class SettingsGameChecks {
     private String originalFile;
     private EmojiPickerScreen picker;
     private ChatScreen chat;
-    private final String prefix = FabricLoader.getInstance().isModLoaded("modernui") ? "modernui-" : "vanilla-";
+    private final String prefix = Platform.isModLoaded("modernui") ? "modernui-" : "vanilla-";
     private List<EmojiAsset> cached = List.of();
     private CompletableFuture<?> downloads;
     private CompletableFuture<?> offlineCollection;

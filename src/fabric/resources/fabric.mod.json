@@ -9,14 +9,15 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.memeemoji.MemeEmoji"
+      "com.memeemoji.platform.FabricEntrypoint"
     ],
     "client": [
-      "com.memeemoji.MemeEmojiClient"
+      "com.memeemoji.platform.ClientPlatform"
     ]
   },
   "mixins": [
-    "memeemoji.mixins.json"
+    "memeemoji.mixins.json",
+    "memeemoji-fabric.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.16.0",

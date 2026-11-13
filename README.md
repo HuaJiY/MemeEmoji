@@ -2,7 +2,7 @@
 
 把自己的表情包带进 Minecraft。
 
-MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组。文字里夹一张小表情，或单独发一张大图；GIF 和动态 WebP 也能直接播放。每个人管理自己的图库，发送时才通过服务器按需传图。看到喜欢的图片，直接收藏成自己的表情包。
+MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric / NeoForge** 的个人表情包模组。文字里夹一张小表情，或单独发一张大图；GIF 和动态 WebP 也能直接播放。每个人管理自己的图库，发送时才通过服务器按需传图。看到喜欢的图片，直接收藏成自己的表情包。
 
 ![聊天中的行内表情、独立大图与正常高度的纯文字消息](docs/images/chat.png)
 
@@ -19,19 +19,27 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 | 游戏内设置 | 大小预设、尺寸和外观即时预览，点击保存生效，取消不改变原设置 |
 | 高清预览 | 显示尺寸与源图像素分开，按比例显示、不裁切，点击聊天图片放大查看 |
 | 按需联机传图 | 只传当前消息用到的图片，不在加入服务器时同步整套图库 |
-| 模组兼容 | 可与 ModernUI 共用，也支持 TalkBubbles 头顶气泡 |
+| 模组兼容 | 两版均可与 ModernUI 共用；Fabric 版另支持 TalkBubbles 头顶气泡 |
 
 ## 安装
 
 | 环境 | 要求 |
 |---|---|
 | 游戏 | Minecraft 1.21.1 |
-| 加载器 | Fabric Loader 0.16.0 或更新版本 |
+| Fabric | Fabric Loader 0.16.0 或更新版本，需要 Fabric API |
+| NeoForge | NeoForge 21.1.266 或更新的 21.1.x 版本，不需要 Fabric API |
 | Java | Java 21 |
-| 必装模组 | MemeEmoji、Fabric API，服务器和每位玩家都需要安装 |
+| 必装模组 | 服务器和每位玩家安装对应加载器的 MemeEmoji |
 | 可选模组 | ModernUI；TalkBubbles 的安装见下方说明 |
 
-从 [GitHub Releases](https://github.com/HuaJiY/MemeEmoji/releases/latest) 下载模组 jar，放进对应游戏端与服务器的 `mods` 文件夹。也支持单人游戏。
+将对应加载器的 jar 放进游戏端与服务器的 `mods` 文件夹，不要同时安装两个版本。也支持单人游戏。两个版本功能和配置格式一致，联机使用同一加载器；不保证 Fabric / NeoForge 混合联机。
+
+| 加载器 | 本地构建产物 |
+|---|---|
+| Fabric | `build/libs/memeemoji-0.4.1.jar` |
+| NeoForge | `neoforge/build/libs/memeemoji-neoforge-0.4.1.jar` |
+
+已发布的 Fabric 版本也可从 [GitHub Releases](https://github.com/HuaJiY/MemeEmoji/releases/latest) 获取。NeoForge 使用上表的本地产物。
 
 ## 发出第一张表情
 
@@ -76,7 +84,7 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 
 ## TalkBubbles 头顶气泡
 
-可选支持 Minecraft 1.21.1 的 [TalkBubbles 1.0.8](https://modrinth.com/mod/talk-bubbles/version/MEHKQGEi)。需要显示头顶气泡的客户端安装 TalkBubbles 及其依赖 Cloth Config，服务器无需安装这两个模组。
+**仅 Fabric 版支持。** Minecraft 1.21.1 的 [TalkBubbles 1.0.8](https://modrinth.com/mod/talk-bubbles/version/MEHKQGEi) 没有原生 NeoForge 版本。需要显示头顶气泡的 Fabric 客户端安装 TalkBubbles 及其依赖 Cloth Config，服务器无需安装这两个模组。
 
 发送方式不变，行内表情、独立大图、GIF 和动态 WebP 都会显示在发送者头顶。图片气泡按实际内容计算大小，普通文字仍使用 TalkBubbles 原有实现；距离、显示时长、缩放、背景颜色和是否显示自己的气泡仍由 TalkBubbles 配置控制。可以与 ModernUI 同时使用。
 
@@ -146,9 +154,11 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 .\gradlew.bat build
 ```
 
-产物：`build/libs/memeemoji-0.4.1.jar`。`build` 包含图片解码、真实目录监听、聊天几何、协议分片及传输队列检查。
+此命令构建两个加载器版本，产物见安装表。只构建 Fabric 使用 `./gradlew.bat :build`，只构建 NeoForge 使用 `./gradlew.bat :neoforge:build`。两个版本的 `build` 都包含图片解码、真实目录监听、聊天几何、协议分片及传输队列检查。NeoForge 使用官方 ModDevGradle 构建；两端共用核心 Java 源码，不额外依赖跨加载器框架。
 
-游戏检查使用独立的 `src/qa` 模组，不打包进正式 jar。三个终端依次启动服务器、接收方、发送方：
+### Fabric 游戏检查
+
+游戏检查的共用逻辑位于 `src/qa`，Fabric 加载入口位于 `src/fabricQa`，不打包进正式 jar。三个终端依次启动服务器、接收方、发送方：
 
 ```powershell
 .\gradlew.bat runQaServer
@@ -165,6 +175,20 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 删除流程用 `./gradlew.bat runQaSender -PqaFocus=maintenance` 和 `./gradlew.bat runQaVanilla -PqaFocus=maintenance` 检查：实际点击管理、取消、单张与批量永久删除、偏好清理、重载、历史图片缓存和重新收藏。服务器需保持运行，结果为 `sender-maintenance-result.txt`、`vanilla-maintenance-result.txt`，截图使用 `modernui-` / `vanilla-` 前缀。
 
 名称流程用 `./gradlew.bat runQaSender -PqaFocus=naming` 和 `./gradlew.bat runQaVanilla -PqaFocus=naming` 检查：拖拽导入自动命名、界面改名与取消、无效和重名提示、冷读索引、UUID 与原文件保留、同名 emoji 优先和改名后发送。使用新的隔离 QA 目录及运行中的 QA 服务器，结果为 `sender-naming-result.txt`、`vanilla-naming-result.txt`。
+
+### NeoForge 游戏检查
+
+使用相同的游戏检查逻辑，三个终端依次运行：
+
+```powershell
+.\gradlew.bat :neoforge:runNeoQaServer
+.\gradlew.bat :neoforge:runNeoQaReceiver
+.\gradlew.bat :neoforge:runNeoQaSender
+```
+
+隔离目录和结果均位于 `neoforge/build/qa-*`，不使用 Fabric 的 QA 存档。服务器同样绑定 `127.0.0.1:25579`，因此不能与 Fabric QA 服务器同时运行。检查结束后输入 `stop` 关闭服务器。
+
+完整检查后保留此专用服务器缓存，使用 `:neoforge:runNeoQaSender -PqaFocus=settings`、`-PqaFocus=maintenance` 或 `-PqaFocus=naming` 分别验证设置、删除与改名。不带 ModernUI 的设置检查使用 `:neoforge:runNeoQaVanilla -PqaFocus=settings`，删除和改名同样通过 `qaFocus` 指定。可通过 `-PqaModsDir=<目录>` 向发送端与接收端复制 `ModernUI-NeoForge*.jar`；使用 [ModernUI 3.13.0.1 NeoForge](https://modrinth.com/mod/modern-ui/version/eMf1VSQd)，无需 Fabric 端的 ForgeConfigAPIPort。再次完整运行前清理 NeoForge 的专用 QA 目录。
 
 ## 实现与参考
 

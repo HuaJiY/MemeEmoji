@@ -2,17 +2,9 @@ package com.memeemoji.net;
 
 import com.memeemoji.EmojiTokens;
 import com.memeemoji.chat.EmojiChatRenderer;
-import com.memeemoji.compat.TalkBubblesCompat;
 import com.memeemoji.MemeEmoji;
 import com.memeemoji.media.EmojiAsset;
 import com.memeemoji.media.EmojiLibrary;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
@@ -30,10 +22,10 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
+import java.util.function.BiConsumer;
 
 import static com.memeemoji.net.EmojiPackets.*;
 
-@Environment(EnvType.CLIENT)
 public final class EmojiNetworkClient {
     private static final ExecutorService IO = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r, "MemeEmoji-client-transfer"); thread.setDaemon(true); return thread;
@@ -47,53 +39,50 @@ public final class EmojiNetworkClient {
     private static final Set<UUID> WAITING = new LinkedHashSet<>();
     private static final EmojiTransferQueue UPLOADS = new EmojiTransferQueue();
     private static long session;
+    private static BiConsumer<UUID, String> chatListener;
 
     private EmojiNetworkClient() { }
 
-    public static void init() {
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> reset());
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> reset());
-        ClientPlayNetworking.registerGlobalReceiver(Chat.TYPE, (packet, context) -> {
-            if (!MemeEmoji.config().enabled) {
-                context.client().gui.getChat().addMessage(Component.translatable("chat.type.text", Component.literal(packet.name()),
-                        Component.literal(EmojiTokens.REFERENCE.matcher(packet.text()).replaceAll("[图片]"))));
-                return;
-            }
-            for (EmojiAsset asset : packet.assets()) EmojiLibrary.acceptMetadata(asset);
+    public static void onChat(BiConsumer<UUID, String> listener) { chatListener = listener; }
+
+    static void receiveChat(Chat packet) {
+        if (!MemeEmoji.config().enabled) {
+            Minecraft.getInstance().gui.getChat().addMessage(Component.translatable("chat.type.text",
+                    Component.literal(packet.name()), Component.literal(EmojiTokens.REFERENCE.matcher(packet.text()).replaceAll("[图片]"))));
+            return;
+        }
+        for (EmojiAsset asset : packet.assets()) EmojiLibrary.acceptMetadata(asset);
+        EmojiChatRenderer.invalidate();
+        Minecraft.getInstance().gui.getChat().addMessage(Component.translatable("chat.type.text",
+                Component.literal(packet.name()), Component.literal(packet.text())));
+        if (chatListener != null) chatListener.accept(packet.sender(), packet.text());
+    }
+
+    public static void tick(Minecraft client) {
+        if (client.getConnection() != null) UPLOADS.pump(ClientNetworkPlatform::send);
+        long now = System.currentTimeMillis();
+        for (var entry : List.copyOf(OUTGOING.entrySet())) {
+            if (now > entry.getValue().deadline) cancel(entry.getKey(), "图片消息发送超时，请重试");
+        }
+        for (var entry : List.copyOf(FETCH_DEADLINES.entrySet()))
+            if (now > entry.getValue()) downloadFailed(entry.getKey(), "图片下载超时，请稍后重试");
+        pumpFetches(now);
+    }
+
+    public static int reloadLibrary() {
+        EmojiLibrary.reload().whenComplete((assets, failure) -> Minecraft.getInstance().execute(() -> {
             EmojiChatRenderer.invalidate();
-            context.client().gui.getChat().addMessage(Component.translatable("chat.type.text",
-                    Component.literal(packet.name()), Component.literal(packet.text())));
-            TalkBubblesCompat.received(packet.sender(), packet.text());
-        });
-        ClientPlayNetworking.registerGlobalReceiver(Control.TYPE, (packet, context) -> control(packet));
-        ClientPlayNetworking.registerGlobalReceiver(Start.TYPE, (packet, context) -> start(packet));
-        ClientPlayNetworking.registerGlobalReceiver(Chunk.TYPE, (packet, context) -> chunk(packet));
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.getConnection() != null) UPLOADS.pump(ClientPlayNetworking::send);
-            long now = System.currentTimeMillis();
-            for (var entry : List.copyOf(OUTGOING.entrySet())) {
-                if (now > entry.getValue().deadline) cancel(entry.getKey(), "图片消息发送超时，请重试");
+            if (failure != null) error("重新读取表情库失败：" + reason(failure));
+            else {
+                info("已重新读取 " + assets.size() + " 张个人表情");
+                if (!EmojiLibrary.problems().isEmpty()) error(String.join("；", EmojiLibrary.problems().values()));
             }
-            for (var entry : List.copyOf(FETCH_DEADLINES.entrySet()))
-                if (now > entry.getValue()) downloadFailed(entry.getKey(), "图片下载超时，请稍后重试");
-            pumpFetches(now);
-        });
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registry) -> dispatcher.register(
-                ClientCommandManager.literal("memeemoji").then(ClientCommandManager.literal("reload").executes(context -> {
-                    EmojiLibrary.reload().whenComplete((assets, failure) -> Minecraft.getInstance().execute(() -> {
-                        EmojiChatRenderer.invalidate();
-                        if (failure != null) error("重新读取表情库失败：" + reason(failure));
-                        else {
-                            info("已重新读取 " + assets.size() + " 张个人表情");
-                            if (!EmojiLibrary.problems().isEmpty()) error(String.join("；", EmojiLibrary.problems().values()));
-                        }
-                    }));
-                    return 1;
-                }))));
+        }));
+        return 1;
     }
 
     public static boolean send(String text) {
-        if (!MemeEmoji.config().enabled || text.startsWith("/") || !ClientPlayNetworking.canSend(Message.TYPE)) return false;
+        if (!MemeEmoji.config().enabled || text.startsWith("/") || !ClientNetworkPlatform.canSend(Message.TYPE)) return false;
         Matcher local = EmojiTokens.LOCAL.matcher(text);
         StringBuilder expanded = new StringBuilder();
         boolean found = false;
@@ -125,7 +114,7 @@ public final class EmojiNetworkClient {
         UUID ticket = UUID.randomUUID();
         List<EmojiAsset> list = List.copyOf(assets.values());
         OUTGOING.put(ticket, new Outgoing(list));
-        ClientPlayNetworking.send(new Message(ticket, expanded.toString(), list));
+        ClientNetworkPlatform.send(new Message(ticket, expanded.toString(), list));
         return true;
     }
 
@@ -188,12 +177,12 @@ public final class EmojiNetworkClient {
                 return;
             }
             if (!MemeEmoji.config().enabled || Minecraft.getInstance().getConnection() == null
-                    || !ClientPlayNetworking.canSend(Control.TYPE)) { downloadFailed(id, "连接已断开，无法下载图片"); return; }
+                    || !ClientNetworkPlatform.canSend(Control.TYPE)) { downloadFailed(id, "连接已断开，无法下载图片"); return; }
             EmojiAsset asset = EmojiLibrary.find(id);
             if (asset == null) { downloadFailed(id, "图片信息尚未载入，无法下载"); return; }
             UUID ticket = UUID.randomUUID();
             INCOMING.put(id, new Incoming(ticket, asset));
-            ClientPlayNetworking.send(new Control(REQUEST, ticket, id, ""));
+            ClientNetworkPlatform.send(new Control(REQUEST, ticket, id, ""));
             pumpFetches(System.currentTimeMillis());
         }));
     }
@@ -211,7 +200,7 @@ public final class EmojiNetworkClient {
         if (failure == null) future.complete(null); else future.completeExceptionally(failure);
     }
 
-    private static void control(Control packet) {
+    static void control(Control packet) {
         if (packet.action() == ERROR) {
             if (OUTGOING.remove(packet.ticket()) != null) { UPLOADS.remove(packet.ticket()); error(packet.error()); return; }
             Incoming incoming = INCOMING.get(packet.id());
@@ -241,7 +230,7 @@ public final class EmojiNetworkClient {
         }));
     }
 
-    private static void start(Start packet) {
+    static void start(Start packet) {
         Incoming incoming = INCOMING.get(packet.asset().id());
         if (incoming == null || !incoming.ticket.equals(packet.ticket())) return;
         if (!MemeEmoji.config().enabled) { downloadFailed(packet.asset().id(), "表情功能已关闭"); return; }
@@ -252,7 +241,7 @@ public final class EmojiNetworkClient {
         } catch (RuntimeException e) { downloadFailed(packet.asset().id(), "服务器返回的图片描述不正确"); }
     }
 
-    private static void chunk(Chunk packet) {
+    static void chunk(Chunk packet) {
         Incoming incoming = INCOMING.get(packet.id());
         if (incoming == null || !incoming.ticket.equals(packet.ticket()) || incoming.saving) return;
         if (!MemeEmoji.config().enabled) { downloadFailed(packet.id(), "表情功能已关闭"); return; }
@@ -277,14 +266,14 @@ public final class EmojiNetworkClient {
         Outgoing outgoing = OUTGOING.remove(ticket);
         if (outgoing == null) return;
         UPLOADS.remove(ticket);
-        if (ClientPlayNetworking.canSend(Control.TYPE)) ClientPlayNetworking.send(new Control(ERROR, ticket, outgoing.assets.getFirst().id(), ""));
+        if (ClientNetworkPlatform.canSend(Control.TYPE)) ClientNetworkPlatform.send(new Control(ERROR, ticket, outgoing.assets.getFirst().id(), ""));
         error(message);
     }
 
     private static void downloadFailed(UUID id, String message) {
         Incoming incoming = INCOMING.remove(id);
-        if (incoming != null && Minecraft.getInstance().getConnection() != null && ClientPlayNetworking.canSend(Control.TYPE))
-            ClientPlayNetworking.send(new Control(ERROR, incoming.ticket, id, ""));
+        if (incoming != null && Minecraft.getInstance().getConnection() != null && ClientNetworkPlatform.canSend(Control.TYPE))
+            ClientNetworkPlatform.send(new Control(ERROR, incoming.ticket, id, ""));
         CHECKING.remove(id);
         WAITING.remove(id);
         RETRY_AFTER.put(id, System.currentTimeMillis() + 15_000);
@@ -293,7 +282,7 @@ public final class EmojiNetworkClient {
         pumpFetches(System.currentTimeMillis());
     }
 
-    private static void reset() {
+    public static void reset() {
         session++;
         FETCHES.forEach((id, future) -> future.completeExceptionally(new IOException("服务器连接已断开")));
         FETCHES.clear(); FETCH_DEADLINES.clear(); WAITING.clear();

@@ -5,11 +5,6 @@ import com.memeemoji.EmojiTokens;
 import com.memeemoji.MemeEmoji;
 import com.memeemoji.media.EmojiAsset;
 import com.memeemoji.media.EmojiDecoder;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -42,56 +37,47 @@ public final class EmojiNetwork {
 
     private EmojiNetwork() { }
 
-    public static void initCommon() {
-        PayloadTypeRegistry.playC2S().register(Message.TYPE, Message.CODEC);
-        PayloadTypeRegistry.playC2S().register(Control.TYPE, Control.CODEC);
-        PayloadTypeRegistry.playC2S().register(Start.TYPE, Start.CODEC);
-        PayloadTypeRegistry.playC2S().register(Chunk.TYPE, Chunk.CODEC);
-        PayloadTypeRegistry.playS2C().register(Chat.TYPE, Chat.CODEC);
-        PayloadTypeRegistry.playS2C().register(Control.TYPE, Control.CODEC);
-        PayloadTypeRegistry.playS2C().register(Start.TYPE, Start.CODEC);
-        PayloadTypeRegistry.playS2C().register(Chunk.TYPE, Chunk.CODEC);
+    public static void serverStarted(MinecraftServer server) {
+        WORLDS.put(server, new World(server));
     }
 
-    public static void initServer() {
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> WORLDS.put(server, new World(server)));
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
-            World world = WORLDS.remove(server);
-            if (world != null) world.io.shutdownNow();
-        });
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            World world = WORLDS.get(server);
-            if (world != null) world.connections.put(handler.player.getUUID(), new Connection(handler.player));
-        });
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            World world = WORLDS.get(server);
-            if (world != null) world.connections.remove(handler.player.getUUID());
-        });
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-            World world = WORLDS.get(server);
-            if (world == null) return;
-            for (Connection c : world.connections.values()) {
-                c.transfers.pump(packet -> ServerPlayNetworking.send(c.player, packet));
-                if (c.pending != null && System.currentTimeMillis() > c.pending.deadline) {
-                    fail(c, c.pending.message.ticket(), c.pending.message.assets().getFirst().id(), "图片发送超时，请重试");
-                }
-            }
-        });
-        ServerPlayNetworking.registerGlobalReceiver(Message.TYPE, (packet, context) -> receiveMessage(context.player(), packet));
-        ServerPlayNetworking.registerGlobalReceiver(Start.TYPE, (packet, context) -> receiveStart(context.player(), packet));
-        ServerPlayNetworking.registerGlobalReceiver(Chunk.TYPE, (packet, context) -> receiveChunk(context.player(), packet));
-        ServerPlayNetworking.registerGlobalReceiver(Control.TYPE, (packet, context) -> {
-            if (packet.action() == REQUEST) download(context.player(), packet);
-            else if (packet.action() == ERROR) {
-                World world = WORLDS.get(context.player().server);
-                Connection c = connection(world, context.player());
-                if (c != null && c.pending != null && c.pending.message.ticket().equals(packet.ticket())) c.pending = null;
-                if (c != null) { c.transfers.remove(packet.ticket()); c.downloads.remove(packet.ticket()); }
-            }
-        });
+    public static void serverStopped(MinecraftServer server) {
+        World world = WORLDS.remove(server);
+        if (world != null) world.io.shutdownNow();
     }
 
-    private static void receiveMessage(ServerPlayer player, Message message) {
+    public static void joined(ServerPlayer player) {
+        World world = WORLDS.get(player.server);
+        if (world != null) world.connections.put(player.getUUID(), new Connection(player));
+    }
+
+    public static void disconnected(ServerPlayer player) {
+        World world = WORLDS.get(player.server);
+        if (world != null) world.connections.remove(player.getUUID());
+    }
+
+    public static void tick(MinecraftServer server) {
+        World world = WORLDS.get(server);
+        if (world == null) return;
+        for (Connection c : world.connections.values()) {
+            c.transfers.pump(packet -> NetworkPlatform.send(c.player, packet));
+            if (c.pending != null && System.currentTimeMillis() > c.pending.deadline) {
+                fail(c, c.pending.message.ticket(), c.pending.message.assets().getFirst().id(), "图片发送超时，请重试");
+            }
+        }
+    }
+
+    static void receiveControl(ServerPlayer player, Control packet) {
+        if (packet.action() == REQUEST) download(player, packet);
+        else if (packet.action() == ERROR) {
+            World world = WORLDS.get(player.server);
+            Connection c = connection(world, player);
+            if (c != null && c.pending != null && c.pending.message.ticket().equals(packet.ticket())) c.pending = null;
+            if (c != null) { c.transfers.remove(packet.ticket()); c.downloads.remove(packet.ticket()); }
+        }
+    }
+
+    static void receiveMessage(ServerPlayer player, Message message) {
         World world = WORLDS.get(player.server);
         Connection c = connection(world, player);
         if (c == null) return;
@@ -144,21 +130,21 @@ public final class EmojiNetwork {
         pending.expected = pending.missing.poll();
         pending.deadline = System.currentTimeMillis() + TIMEOUT;
         if (pending.expected != null) {
-            ServerPlayNetworking.send(c.player, new Control(UPLOAD, pending.message.ticket(), pending.expected.id(), ""));
+            NetworkPlatform.send(c.player, new Control(UPLOAD, pending.message.ticket(), pending.expected.id(), ""));
             return;
         }
         String name = c.player.getGameProfile().getName();
         Chat chat = new Chat(c.player.getUUID(), name, pending.message.text(), pending.message.assets());
         String fallback = EmojiTokens.REFERENCE.matcher(pending.message.text()).replaceAll("[图片]");
         for (ServerPlayer receiver : world.server.getPlayerList().getPlayers()) {
-            if (ServerPlayNetworking.canSend(receiver, Chat.TYPE)) ServerPlayNetworking.send(receiver, chat);
+            if (NetworkPlatform.canSend(receiver, Chat.TYPE)) NetworkPlatform.send(receiver, chat);
             else receiver.sendSystemMessage(Component.translatable("chat.type.text", Component.literal(name), Component.literal(fallback)));
         }
-        ServerPlayNetworking.send(c.player, new Control(DELIVERED, pending.message.ticket(), pending.message.assets().getFirst().id(), ""));
+        NetworkPlatform.send(c.player, new Control(DELIVERED, pending.message.ticket(), pending.message.assets().getFirst().id(), ""));
         c.pending = null;
     }
 
-    private static void receiveStart(ServerPlayer player, Start start) {
+    static void receiveStart(ServerPlayer player, Start start) {
         World world = WORLDS.get(player.server);
         Connection c = connection(world, player);
         if (c == null || c.pending == null || !c.pending.message.ticket().equals(start.ticket())) return;
@@ -170,7 +156,7 @@ public final class EmojiNetwork {
         } catch (RuntimeException e) { fail(c, start.ticket(), start.asset().id(), "图片上传信息不正确或超过 8 MB"); }
     }
 
-    private static void receiveChunk(ServerPlayer player, Chunk chunk) {
+    static void receiveChunk(ServerPlayer player, Chunk chunk) {
         World world = WORLDS.get(player.server);
         Connection c = connection(world, player);
         if (c == null || c.pending == null || !c.pending.message.ticket().equals(chunk.ticket())) return;
@@ -230,7 +216,7 @@ public final class EmojiNetwork {
     }
 
     private static void error(ServerPlayer player, UUID ticket, UUID id, String text) {
-        ServerPlayNetworking.send(player, new Control(ERROR, ticket, id, text));
+        NetworkPlatform.send(player, new Control(ERROR, ticket, id, text));
     }
 
     private record Cached(UUID owner, EmojiAsset asset) { }

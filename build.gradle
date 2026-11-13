@@ -124,7 +124,10 @@ test {
 }
 
 sourceSets {
+    main.java.srcDir 'src/fabric/java'
+    main.resources.srcDir 'src/fabric/resources'
     qa {
+        java.srcDir 'src/fabricQa/java'
         compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
         runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
     }

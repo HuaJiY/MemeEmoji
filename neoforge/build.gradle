@@ -1,0 +1,143 @@
+plugins {
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+version = rootProject.mod_version
+group = rootProject.maven_group
+base.archivesName = "${rootProject.archives_base_name}-neoforge"
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    maven { url = 'https://maven.aliyun.com/repository/public/' }
+    mavenCentral()
+    maven { url = 'https://api.modrinth.com/maven' }
+}
+
+sourceSets {
+    main.java.srcDir rootProject.file('src/main/java')
+    main.resources.srcDir rootProject.file('src/main/resources')
+    test.java.srcDir rootProject.file('src/test/java')
+    qa {
+        java.srcDir rootProject.file('src/qa/java')
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+    }
+}
+
+neoForge {
+    version = rootProject.neoforge_version
+    addModdingDependenciesTo sourceSets.qa
+    addModdingDependenciesTo sourceSets.test
+    mods {
+        memeemoji { sourceSet sourceSets.main }
+        memeemoji_qa { sourceSet sourceSets.qa }
+    }
+    runs {
+        neoClient { client(); loadedMods = [mods.memeemoji] }
+        neoServer { server(); programArgument '--nogui'; loadedMods = [mods.memeemoji] }
+        neoQaServer {
+            server()
+            programArgument '--nogui'
+            loadedMods = [mods.memeemoji]
+            gameDirectory = file('build/qa-server')
+            jvmArguments.addAll '-Xmx1G', '-Djava.awt.headless=true'
+        }
+        ['Sender', 'Receiver', 'Vanilla'].each { role ->
+            "neoQa${role}" {
+                client()
+                sourceSet = sourceSets.qa
+                gameDirectory = file("build/qa-${role.toLowerCase()}")
+                jvmArgument '-Xmx2G'
+                systemProperty 'memeemoji.qa.role', role.toLowerCase()
+                systemProperty 'memeemoji.qa.focus', providers.gradleProperty('qaFocus').getOrElse('full')
+                systemProperty 'memeemoji.qa.root', projectDir.toString().replace('\\', '/')
+                programArguments.addAll '--username', "Emoji${role}", '--width', '1280', '--height', '800',
+                        '--quickPlayMultiplayer', '127.0.0.1:25579'
+            }
+        }
+    }
+}
+
+dependencies {
+    ['imageio-webp', 'imageio-core', 'imageio-metadata'].each { module ->
+        implementation "com.twelvemonkeys.imageio:${module}:3.12.0"
+        additionalRuntimeClasspath "com.twelvemonkeys.imageio:${module}:3.12.0"
+        jarJar("com.twelvemonkeys.imageio:${module}:[3.12.0,3.13)") { version { prefer '3.12.0' } }
+    }
+    ['common-lang', 'common-io', 'common-image'].each { module ->
+        implementation "com.twelvemonkeys.common:${module}:3.12.0"
+        additionalRuntimeClasspath "com.twelvemonkeys.common:${module}:3.12.0"
+        jarJar("com.twelvemonkeys.common:${module}:[3.12.0,3.13)") { version { prefer '3.12.0' } }
+    }
+}
+
+tasks.register('prepareNeoGameQa') {
+    doLast {
+        def server = file('build/qa-server')
+        server.mkdirs()
+        new File(server, 'eula.txt').text = 'eula=true\n'
+        new File(server, 'server.properties').text = '''online-mode=false
+server-ip=127.0.0.1
+server-port=25579
+level-name=qa-world
+level-type=minecraft:flat
+generate-structures=false
+spawn-animals=false
+spawn-monsters=false
+spawn-npcs=false
+view-distance=2
+simulation-distance=2
+max-tick-time=-1
+'''
+        ['sender', 'receiver', 'vanilla'].each { role ->
+            def directory = file("build/qa-${role}")
+            directory.mkdirs()
+            new File(directory, 'options.txt').text = '''lang:zh_cn
+guiScale:2
+renderDistance:2
+simulationDistance:5
+maxFps:60
+enableVsync:false
+onboardAccessibility:false
+autoJump:false
+tutorialStep:none
+'''
+            if (role != 'vanilla' && providers.gradleProperty('qaModsDir').isPresent()) copy {
+                from(providers.gradleProperty('qaModsDir').get())
+                include 'ModernUI-NeoForge*.jar'
+                into new File(directory, 'mods')
+            }
+        }
+    }
+}
+
+tasks.matching { it.name in ['runNeoQaServer', 'runNeoQaSender', 'runNeoQaReceiver', 'runNeoQaVanilla'] }.configureEach {
+    dependsOn prepareNeoGameQa
+}
+
+tasks.matching { it.name in ['runNeoServer', 'runNeoQaServer'] }.configureEach {
+    standardInput = System.in
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('META-INF/neoforge.mods.toml') { expand version: project.version }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+['mediaTest': 'com.memeemoji.media.EmojiMediaTest',
+ 'geometryTest': 'com.memeemoji.chat.ChatGeometryTest',
+ 'protocolTest': 'com.memeemoji.net.EmojiPacketsTest'].each { taskName, entry ->
+    tasks.register(taskName, JavaExec) {
+        dependsOn testClasses
+        classpath = sourceSets.test.runtimeClasspath
+        mainClass = entry
+        jvmArgs '-Djava.awt.headless=true'
+    }
+}
+check.dependsOn mediaTest, geometryTest, protocolTest
+test { failOnNoDiscoveredTests = false }

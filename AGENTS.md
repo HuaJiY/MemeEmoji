@@ -1,15 +1,16 @@
 # MemeEmoji 项目约束
 
-Minecraft 1.21.1 Fabric，Java 21，官方 Mojang mappings。构建、使用、配置和文件位置以 [README.md](README.md) 为准。
+Minecraft 1.21.1 Fabric / NeoForge，Java 21，官方 Mojang mappings。构建、使用、配置和文件位置以 [README.md](README.md) 为准。
 
 ## 模块边界
 
+- `src/main` 是两端共用核心，不能引用加载器 API。Fabric 适配位于 `src/fabric`，NeoForge 适配与构建位于 `neoforge`；同名 `Platform`、`ClientPlatform`、`NetworkPlatform`、`ClientNetworkPlatform` 各自编译，不混装。共享协议、持久化和界面逻辑不复制到加载器目录。
 - `media`：个人库、持久 UUID 索引、原图解码、递归热加载、客户端纹理。解码与磁盘读取不在渲染线程执行；纹理注册、更新和释放必须在客户端线程执行。
 - `net`：服务器按消息引用接收上传、按需下载、世界级缓存。不得重新引入整库同步。分片通过连接级 tick 队列轮转发送，不在单帧发送整个文件；超时按传输进度续期，排队不计时。收包身份来自连接，不信任客户端发送的玩家名字。
 - `chat`：逐行计算实际高度；文字行保留原版行高。绘制、滚动和点击必须共用同一布局。
 - `gui`：个人库、偏好、预览和设置。远程图片只有主动收藏时才另存原文件并加入个人库；收藏副本映射持久化，重复收藏不重复复制。管理删除永久移除个人原文件，须先保留原字节与描述至聊天缓存；成功删除后清理收藏、最近使用和副本关联，失败项保留并提示。
-- `compat`：TalkBubbles 为可选客户端集成，外部类型引用隔离在加载检测之后。收包按服务器给出的发送者 UUID 关联玩家；仅替换含图片气泡的绘制，与聊天共用布局和纹理，普通文字及气泡生命周期仍由 TalkBubbles 处理。
-- `src/qa`：隔离游戏检查，不进入正式 jar，不使用现有玩家存档。核心无框架检查通过 Gradle JavaExec 任务进入 `check`。
+- `compat`：TalkBubbles 仅在 Fabric 端提供可选客户端集成，外部类型引用隔离在加载检测之后。收包按服务器给出的发送者 UUID 关联玩家；仅替换含图片气泡的绘制，与聊天共用布局和纹理，普通文字及气泡生命周期仍由 TalkBubbles 处理。
+- `src/qa`：两端共用的隔离游戏检查；加载入口位于 `src/fabricQa` 和 `neoforge/src/qa`，TalkBubbles 检查仅在 Fabric QA 中编译。不进入正式 jar，不使用现有玩家存档。核心无框架检查通过 Gradle JavaExec 任务进入 `check`。
 
 ## 必须保留的实现条件
 
@@ -22,4 +23,4 @@ Minecraft 1.21.1 Fabric，Java 21，官方 Mojang mappings。构建、使用、�
 - 不挂钩 ModernUI 私有字体类，也不生成 PUA 字形或资源包；文字布局使用 Minecraft 字体接口。
 - 配置写盘只在内容改变时进行，避免文件监听自激。
 - 设置预览只修改独立草稿，保存成功后才替换全局配置；取消不写盘。毛玻璃使用独立 `PostChain` 复用原版模糊着色器，资源重载和退出时释放，窗口变化时调整尺寸；不能依赖 `GameRenderer.blurEffect`，ModernUI 会将它置空。直接设置 `Radius`，不修改全局游戏选项。
-- ModernUI 3.13.0.1 的实机测试同时需要 ForgeConfigAPIPort 21.0.5 以上。
+- Fabric 端 ModernUI 3.13.0.1 的实机测试同时需要 ForgeConfigAPIPort 21.0.5 以上。

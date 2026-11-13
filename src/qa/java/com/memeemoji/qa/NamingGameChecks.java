@@ -6,7 +6,7 @@ import com.memeemoji.gui.EmojiPickerScreen;
 import com.memeemoji.media.EmojiAsset;
 import com.memeemoji.media.EmojiLibrary;
 import com.memeemoji.net.EmojiNetworkClient;
-import net.fabricmc.loader.api.FabricLoader;
+import com.memeemoji.platform.Platform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.components.EditBox;
@@ -25,7 +25,7 @@ import static com.memeemoji.qa.SettingsGameChecks.*;
 
 final class NamingGameChecks {
     private final Path root, evidence;
-    private final String prefix = FabricLoader.getInstance().isModLoaded("modernui") ? "modernui-" : "vanilla-";
+    private final String prefix = Platform.isModLoaded("modernui") ? "modernui-" : "vanilla-";
     private EmojiPickerScreen picker;
     private EmojiAsset original;
     private Path originalPath;

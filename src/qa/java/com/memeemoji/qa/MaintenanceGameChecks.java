@@ -33,7 +33,7 @@ final class MaintenanceGameChecks {
     private byte[] originalBytes;
     private int stage, ticks, since;
     private CompletableFuture<?> pending;
-    private final String prefix = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("modernui") ? "modernui-" : "vanilla-";
+    private final String prefix = com.memeemoji.platform.Platform.isModLoaded("modernui") ? "modernui-" : "vanilla-";
 
     MaintenanceGameChecks(Path evidence) { this.evidence = evidence; }
 

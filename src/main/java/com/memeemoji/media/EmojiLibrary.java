@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.memeemoji.MemeEmoji;
 import com.memeemoji.EmojiNames;
-import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +47,7 @@ public final class EmojiLibrary {
 
     private EmojiLibrary() {}
 
-    public static Path directory() { return FabricLoader.getInstance().getConfigDir().resolve("memeemoji"); }
+    public static Path directory() { return MemeEmoji.configDir(); }
     private static Path personal() { return directory().resolve("emoji"); }
     private static Path received() { return directory().resolve("received"); }
     public static List<EmojiAsset> local() { return snapshot.local; }
