@@ -146,7 +146,7 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric** 的个人表情包模组�
 .\gradlew.bat build
 ```
 
-产物：`build/libs/memeemoji-0.4.0.jar`。`build` 包含图片解码、真实目录监听、聊天几何、协议分片及传输队列检查。
+产物：`build/libs/memeemoji-0.4.1.jar`。`build` 包含图片解码、真实目录监听、聊天几何、协议分片及传输队列检查。
 
 游戏检查使用独立的 `src/qa` 模组，不打包进正式 jar。三个终端依次启动服务器、接收方、发送方：
 
