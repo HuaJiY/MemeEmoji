@@ -36,10 +36,10 @@ MemeEmoji 是适用于 **Minecraft 1.21.1 · Fabric / NeoForge** 的个人表情
 
 | 加载器 | 本地构建产物 |
 |---|---|
-| Fabric | `build/libs/memeemoji-0.4.1.jar` |
-| NeoForge | `neoforge/build/libs/memeemoji-neoforge-0.4.1.jar` |
+| Fabric | `build/libs/memeemoji-fabric-0.4.2.jar` |
+| NeoForge | `neoforge/build/libs/memeemoji-neoforge-0.4.2.jar` |
 
-已发布的 Fabric 版本也可从 [GitHub Releases](https://github.com/HuaJiY/MemeEmoji/releases/latest) 获取。NeoForge 使用上表的本地产物。
+两个加载器版本均可从 [GitHub Releases](https://github.com/HuaJiY/MemeEmoji/releases/latest) 获取。
 
 ## 发出第一张表情
 
